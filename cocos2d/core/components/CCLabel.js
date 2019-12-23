@@ -179,6 +179,10 @@ let Label = cc.Class({
         } else {
             this._activateMaterial = this._activateMaterialWebgl;
         }
+
+        if(this._renderNativeTTF()) {
+            this._extendNative && this._extendNative();
+        }
     },
 
     editor: CC_EDITOR && {
@@ -562,6 +566,10 @@ let Label = cc.Class({
             this._ttfTexture.destroy();
             this._ttfTexture = null;
         }
+        if(this._renderer) {
+            this._renderer.destroy();
+            this._renderer = null;
+        }
         this._super();
     },
 
@@ -575,7 +583,14 @@ let Label = cc.Class({
     _resetAssembler () {
         this._frame = null;
 
-        RenderComponent.prototype._resetAssembler.call(this);
+        if(this._renderNativeTTF()) {
+            this._assembler = new renderer.CustomAssembler();
+            this.node._proxy.setAssembler(this._assembler);
+            this._assembler.bindNodeProxy(this.node._proxy);
+        } else {
+            RenderComponent.prototype._resetAssembler.call(this);
+        }
+
     },
 
     _canRender () {
@@ -600,9 +615,20 @@ let Label = cc.Class({
         this._applyFontTexture(true);
     },
 
+    _renderNativeTTF() {
+        //return CC_NATIVERENDERER && !this._isSystemFontUsed && !(font instanceof cc.BitmapFont);
+        return CC_NATIVERENDERER; 
+    },
+
     _applyFontTexture (force) {
         let font = this.font;
-        if (font instanceof cc.BitmapFont) {
+
+        if(this._renderNativeTTF()) {
+            
+            this._activateMaterial(force);
+            this._assembler && this._assembler.updateRenderData(this);
+
+        } else if (font instanceof cc.BitmapFont) {
             let spriteFrame = font.spriteFrame;
             this._frame = spriteFrame;
             let self = this;
@@ -654,6 +680,11 @@ let Label = cc.Class({
         }
     },
 
+    _extendNative () {
+        //TODO: native extension
+        jsb.CCLabel && jsb.CCLabel.prototype && jsb.CCLabel.prototype.ctor && jsb.CCLabel.prototype.ctor.call(this);
+    },
+
     _activateMaterialCanvas (force) {
         if (!force) return;
 
@@ -668,9 +699,12 @@ let Label = cc.Class({
 
 
         // If frame not create, disable render and return.
-        if (!this._frame) {
-            this.disableRender();
-            return;
+        if(!this._renderNativeTTF())
+        {
+            if (!this._frame) {
+                this.disableRender();
+                return;
+            }
         }
 
         // Label's texture is generated dynamically,
@@ -684,7 +718,11 @@ let Label = cc.Class({
             material = Material.getInstantiatedMaterial(material, this);
         }
 
-        material.setProperty('texture', this._frame._texture);
+        if(!this._renderNativeTTF())
+        {
+            material.setProperty('texture', this._frame._texture);
+        }
+
         this.setMaterial(0, material);
 
         this.markForUpdateRenderData(true);
