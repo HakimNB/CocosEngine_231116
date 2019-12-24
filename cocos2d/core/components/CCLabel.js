@@ -180,7 +180,7 @@ let Label = cc.Class({
             this._activateMaterial = this._activateMaterialWebgl;
         }
 
-        if(this._renderNativeTTF()) {
+        if(CC_NATIVERENDERER) {
             this._extendNative && this._extendNative();
         }
     },
@@ -216,6 +216,11 @@ let Label = cc.Class({
                 }
 
                 this._checkStringEmpty();
+
+                if(this._renderNativeTTF())
+                {
+                    this._CCLabelProto.setString.call(this, this._string);
+                }
             },
             multiline: true,
             tooltip: CC_DEV && 'i18n:COMPONENT.label.string'
@@ -586,7 +591,10 @@ let Label = cc.Class({
         if(this._renderNativeTTF()) {
             this._assembler = new renderer.CustomAssembler();
             this.node._proxy.setAssembler(this._assembler);
-            this._assembler.bindNodeProxy(this.node._proxy);
+            if(this._CCLabelProto && this._CCLabelProto.bindNodeProxy) 
+            {
+                this._CCLabelProto.bindNodeProxy.call(this, this.node._proxy);
+            }
         } else {
             RenderComponent.prototype._resetAssembler.call(this);
         }
@@ -617,7 +625,7 @@ let Label = cc.Class({
 
     _renderNativeTTF() {
         //return CC_NATIVERENDERER && !this._isSystemFontUsed && !(font instanceof cc.BitmapFont);
-        return CC_NATIVERENDERER; 
+        return CC_NATIVERENDERER && this.font && this.font instanceof cc.TTFFont;
     },
 
     _applyFontTexture (force) {
@@ -625,8 +633,16 @@ let Label = cc.Class({
 
         if(this._renderNativeTTF()) {
             
+            if(this.font && this.font.nativeUrl) {
+                this._CCLabelProto.setFontPath.call(this, this.font.nativeUrl);
+            }
+            this._CCLabelProto.setString.call(this, this.string);
+            
+
             this._activateMaterial(force);
-            this._assembler && this._assembler.updateRenderData(this);
+            this._assembler && this._assembler.updateRenderData && this._assembler.updateRenderData(this);
+           // this.node._updateWorldMatrix();
+            this._CCLabelProto.render && this._CCLabelProto.render.call(this);
 
         } else if (font instanceof cc.BitmapFont) {
             let spriteFrame = font.spriteFrame;
@@ -682,7 +698,12 @@ let Label = cc.Class({
 
     _extendNative () {
         //TODO: native extension
-        jsb.CCLabel && jsb.CCLabel.prototype && jsb.CCLabel.prototype.ctor && jsb.CCLabel.prototype.ctor.call(this);
+        if(jsb.CCLabelRenderer && jsb.CCLabelRenderer.prototype && jsb.CCLabelRenderer.prototype.ctor) {
+            jsb.CCLabelRenderer.prototype.ctor.call(this);
+            this._CCLabelProto = jsb.CCLabelRenderer.prototype;
+        } else {
+            this._CCLabelProto = null;
+        }
     },
 
     _activateMaterialCanvas (force) {
@@ -721,6 +742,9 @@ let Label = cc.Class({
         if(!this._renderNativeTTF())
         {
             material.setProperty('texture', this._frame._texture);
+        } else {
+            material.define('CC_USE_MODEL', true);
+            this._CCLabelProto.setEffect.call(this, material.effect._nativeObj);
         }
 
         this.setMaterial(0, material);
@@ -753,5 +777,9 @@ let Label = cc.Class({
         this._isUnderline = !!enabled;
     },
  });
+
+//  if(CC_NATIVERENDERER && jsb.CCLabel && jsb.CCLabel.prototype) {
+//      Object.setPrototypeOf(Label.prototype, jsb.CCLabel.prototype);
+//  }
 
  cc.Label = module.exports = Label;

@@ -174,7 +174,7 @@ var NodeActivator = cc.Class({
 
         // component maybe added during onEnable, and the onEnable of new component is already called
         // so we should record the origin length
-        var originCount = node._components.length;
+        var originCount = node._components ? node._components.length : 0;
         // activate components
         for (let i = 0; i < originCount; ++i) {
             let component = node._components[i];
@@ -187,9 +187,10 @@ var NodeActivator = cc.Class({
                 --originCount;
             }
         }
-        node._childArrivalOrder = node._children.length;
+        let children_len = node._children ? node._children.length : 0;
+        node._childArrivalOrder = children_len;
         // activate children recursively
-        for (let i = 0, len = node._children.length; i < len; ++i) {
+        for (let i = 0, len = children_len; i < len; ++i) {
             let child = node._children[i];
             child._localZOrder = (child._localZOrder & 0xffff0000) | (i + 1);
             if (child._active) {
