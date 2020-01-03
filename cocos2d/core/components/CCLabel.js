@@ -289,6 +289,10 @@ let Label = cc.Class({
 
                 this._fontSize = value;
                 this._lazyUpdateRenderData();
+
+                if(this._CCLabelProto) {
+                    this._CCLabelProto.setFontSize.call(this, this.fontSize);
+                }
             },
             range: [0, 512],
             tooltip: CC_DEV && 'i18n:COMPONENT.label.font_size',
@@ -637,6 +641,7 @@ let Label = cc.Class({
                 this._CCLabelProto.setFontPath.call(this, this.font.nativeUrl);
             }
             this._CCLabelProto.setString.call(this, this.string);
+            this._CCLabelProto.setFontSize.call(this, this.fontSize);
             
 
             this._activateMaterial(force);
