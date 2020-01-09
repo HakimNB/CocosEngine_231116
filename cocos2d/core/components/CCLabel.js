@@ -441,6 +441,24 @@ let Label = cc.Class({
             tooltip: CC_DEV && 'i18n:COMPONENT.label.system_font',
         },
 
+        outline: {
+            type: cc.Float,
+            range: [0, 0.5],
+            get () {
+                return this._outline;
+            },
+            set(l) {
+                this._outline = l;
+                
+                if(this._renderNativeTTF())
+                {
+                    this._activateMaterialWebgl();
+                }
+            }
+        },
+
+        _outline: 0,
+
         _bmFontOriginalSize: {
             displayName: 'BMFont Original Size',
             get () {
@@ -642,6 +660,12 @@ let Label = cc.Class({
             }
             this._CCLabelProto.setString.call(this, this.string);
             this._CCLabelProto.setFontSize.call(this, this.fontSize);
+            this._CCLabelProto.setLineHeight.call(this, this.lineHeight);
+            this._CCLabelProto.setEnableWrap.call(this, this.enableWrapText);
+            this._CCLabelProto.setOverFlow.call(this, this.overflow);
+            this._CCLabelProto.setVerticalAlign.call(this, this.verticalAlign);
+            this._CCLabelProto.setHorizontalAlign.call(this, this.horizontalAlign);
+            this._CCLabelProto.setContentSize.call(this, this.node.getContentSize().width, this.node.getContentSize().height);
             
 
             this._activateMaterial(force);
@@ -749,7 +773,10 @@ let Label = cc.Class({
             material.setProperty('texture', this._frame._texture);
         } else {
             material.define('CC_USE_MODEL', true);
+            material.define('CC_USE_OUTLINE', this._outline > 0.0);
+
             this._CCLabelProto.setEffect.call(this, material.effect._nativeObj);
+            this._CCLabelProto.setOutline.call(this, this._outline);
         }
 
         this.setMaterial(0, material);
@@ -761,6 +788,10 @@ let Label = cc.Class({
     _lazyUpdateRenderData () {
         this.setVertsDirty();
         this.markForUpdateRenderData(true);
+
+        if(this._renderNativeTTF()) {
+            this._CCLabelProto.setContentSize.call(this, this.node._contentSize.width, this.node._contentSize.height);
+        }
     },
 
     _forceUpdateRenderData () {
