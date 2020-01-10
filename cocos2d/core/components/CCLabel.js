@@ -666,6 +666,7 @@ let Label = cc.Class({
             this._CCLabelProto.setVerticalAlign.call(this, this.verticalAlign);
             this._CCLabelProto.setHorizontalAlign.call(this, this.horizontalAlign);
             this._CCLabelProto.setContentSize.call(this, this.node.getContentSize().width, this.node.getContentSize().height);
+            this._CCLabelProto.setAnchorPoint.call(this, this.node.anchorX, this.node.anchorY);
             
 
             this._activateMaterial(force);
