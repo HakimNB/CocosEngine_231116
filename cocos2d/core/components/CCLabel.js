@@ -658,8 +658,15 @@ let Label = cc.Class({
             if(this.font && this.font.nativeUrl) {
                 this._CCLabelProto.setFontPath.call(this, this.font.nativeUrl);
             }
+            
+            let origin = new cc.Vec2(0, 0);
+            let ref = new cc.Vec2(72, 72);
+            this.node.convertToWorldSpaceAR(origin, origin);
+            this.node.convertToWorldSpaceAR(ref, ref);
+            let retinaSize = ref.sub(origin).mag();
+
             this._CCLabelProto.setString.call(this, this.string);
-            this._CCLabelProto.setFontSize.call(this, this.fontSize);
+            this._CCLabelProto.setFontSize.call(this, this.fontSize, retinaSize / 72 * this.fontSize);
             this._CCLabelProto.setLineHeight.call(this, this.lineHeight);
             this._CCLabelProto.setEnableWrap.call(this, this.enableWrapText);
             this._CCLabelProto.setOverFlow.call(this, this.overflow);
