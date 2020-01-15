@@ -441,24 +441,6 @@ let Label = cc.Class({
             tooltip: CC_DEV && 'i18n:COMPONENT.label.system_font',
         },
 
-        outline: {
-            type: cc.Float,
-            range: [0, 0.5],
-            get () {
-                return this._outline;
-            },
-            set(l) {
-                this._outline = l;
-                
-                if(this._renderNativeTTF())
-                {
-                    this._activateMaterialWebgl();
-                }
-            }
-        },
-
-        _outline: 0,
-
         _bmFontOriginalSize: {
             displayName: 'BMFont Original Size',
             get () {
@@ -659,11 +641,23 @@ let Label = cc.Class({
                 this._CCLabelProto.setFontPath.call(this, this.font.nativeUrl);
             }
             
-            let origin = new cc.Vec2(0, 0);
-            let ref = new cc.Vec2(72, 72);
-            this.node.convertToWorldSpaceAR(origin, origin);
-            this.node.convertToWorldSpaceAR(ref, ref);
-            let retinaSize = ref.sub(origin).mag();
+            let c = this.node.color;
+
+            let retinaSize = this.fontSize;
+            let node_camera = cc.Camera.findCamera(this.node);
+            if(true && node_camera){
+                let camera = node_camera._camera;
+                let canvas_width = cc.game.canvas.width;
+                let canvas_height = cc.game.canvas.height;
+
+                let origin = new cc.Vec3(0, 0, 0);
+                let ref = new cc.Vec3(72, 72, 0);
+                this.node.convertToWorldSpaceAR(origin, origin);
+                this.node.convertToWorldSpaceAR(ref, ref);
+                camera.worldToScreen(origin, origin, canvas_width, canvas_height);
+                camera.worldToScreen(ref, ref, canvas_width, canvas_height);
+                retinaSize = ref.sub(origin).mag();
+            }
 
             this._CCLabelProto.setString.call(this, this.string);
             this._CCLabelProto.setFontSize.call(this, this.fontSize, retinaSize / 72 * this.fontSize);
@@ -674,7 +668,25 @@ let Label = cc.Class({
             this._CCLabelProto.setHorizontalAlign.call(this, this.horizontalAlign);
             this._CCLabelProto.setContentSize.call(this, this.node.getContentSize().width, this.node.getContentSize().height);
             this._CCLabelProto.setAnchorPoint.call(this, this.node.anchorX, this.node.anchorY);
-            
+            this._CCLabelProto.setColor.call(this, c.getR(), c.getG(), c.getB(), Math.ceil(c.getA() * this.node.opacity / 255));
+
+            let material = this.getMaterial(0);
+
+            let outline = this.node.getComponent(cc.LabelOutline);
+            let outlineSize = 0;
+            if(outline && outline.width > 0) {
+                outlineSize = Math.max(Math.min(outlineSize  / 10, 0.5), 0.2);
+                let color = outline.color;
+                this._CCLabelProto.setOutlineColor.call(this, color.getR(), color.getG(), color.getB(), color.getA());
+            }
+            this._CCLabelProto.setOutline.call(this, outlineSize);
+
+            let shadow = this.node.getComponent(cc.LabelShadow);
+            if(shadow) {
+                let shadowColor = shadow.color;
+                this._CCLabelProto.setShadow.call(this, shadow.offset.x, shadow.offset.y, shadow.blur);
+                this._CCLabelProto.setShadowColor.call(this, shadowColor.getR(), shadowColor.getG(), shadowColor.getB(), shadowColor.getA());
+            }
 
             this._activateMaterial(force);
             this._assembler && this._assembler.updateRenderData && this._assembler.updateRenderData(this);
@@ -770,7 +782,11 @@ let Label = cc.Class({
         let material = this.sharedMaterials[0];
 
         if (!material) {
-            material = Material.getInstantiatedBuiltinMaterial('2d-sprite', this);
+            if(this._renderNativeTTF()){
+                material = Material.getInstantiatedBuiltinMaterial('2d-label', this);
+            } else {
+                material = Material.getInstantiatedBuiltinMaterial('2d-sprite', this);
+            }
         }
         else {
             material = Material.getInstantiatedMaterial(material, this);
@@ -780,11 +796,18 @@ let Label = cc.Class({
         {
             material.setProperty('texture', this._frame._texture);
         } else {
+            let outline = this.node.getComponent(cc.LabelOutline);
+            let outlineSize = 0;
+            if(outline && outline.width > 0) {
+                outlineSize = Math.max(Math.min(outlineSize  / 10, 0.5), 0.1);
+            }
+
             material.define('CC_USE_MODEL', true);
-            material.define('CC_USE_OUTLINE', this._outline > 0.0);
+            material.define('USE_TEXTURE_ALPHAONLY', true);
+            material.define('CC_USE_OUTLINE', outlineSize > 0.0);
 
             this._CCLabelProto.setEffect.call(this, material.effect._nativeObj);
-            this._CCLabelProto.setOutline.call(this, this._outline);
+            
         }
 
         this.setMaterial(0, material);
