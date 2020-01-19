@@ -211,16 +211,17 @@ let Label = cc.Class({
                 let oldValue = this._string;
                 this._string = '' + value;
 
+                if(this._renderNativeTTF())
+                {
+                    this._CCLabelProto.setString.call(this, this._string);
+                }
+
                 if (this.string !== oldValue) {
                     this._lazyUpdateRenderData();
                 }
 
                 this._checkStringEmpty();
 
-                if(this._renderNativeTTF())
-                {
-                    this._CCLabelProto.setString.call(this, this._string);
-                }
             },
             multiline: true,
             tooltip: CC_DEV && 'i18n:COMPONENT.label.string'
@@ -287,12 +288,12 @@ let Label = cc.Class({
             set (value) {
                 if (this._fontSize === value) return;
 
+                if(this._CCLabelProto) {
+                    this._CCLabelProto.setFontSize.call(this, value);                }
+
                 this._fontSize = value;
                 this._lazyUpdateRenderData();
 
-                if(this._CCLabelProto) {
-                    this._CCLabelProto.setFontSize.call(this, this.fontSize);
-                }
             },
             range: [0, 512],
             tooltip: CC_DEV && 'i18n:COMPONENT.label.font_size',
@@ -583,6 +584,12 @@ let Label = cc.Class({
     },
 
     _updateColor () {
+
+        if(this._renderNativeTTF()) {
+            let c = this.node.color;
+            this._CCLabelProto.setColor.call(this, c.getR(), c.getG(), c.getB(), Math.ceil(c.getA() * this.node.opacity / 255));
+        }
+
         if (!(this.font instanceof cc.BitmapFont)) {
             this._lazyUpdateRenderData();
         }
@@ -670,28 +677,10 @@ let Label = cc.Class({
             this._CCLabelProto.setAnchorPoint.call(this, this.node.anchorX, this.node.anchorY);
             this._CCLabelProto.setColor.call(this, c.getR(), c.getG(), c.getB(), Math.ceil(c.getA() * this.node.opacity / 255));
 
-            let material = this.getMaterial(0);
-
-            let outline = this.node.getComponent(cc.LabelOutline);
-            let outlineSize = 0;
-            if(outline && outline.width > 0) {
-                outlineSize = Math.max(Math.min(outlineSize  / 10, 0.5), 0.2);
-                let color = outline.color;
-                this._CCLabelProto.setOutlineColor.call(this, color.getR(), color.getG(), color.getB(), color.getA());
-            }
-            this._CCLabelProto.setOutline.call(this, outlineSize);
-
-            let shadow = this.node.getComponent(cc.LabelShadow);
-            if(shadow) {
-                let shadowColor = shadow.color;
-                this._CCLabelProto.setShadow.call(this, shadow.offset.x, shadow.offset.y, shadow.blur);
-                this._CCLabelProto.setShadowColor.call(this, shadowColor.getR(), shadowColor.getG(), shadowColor.getB(), shadowColor.getA());
-            }
-
             this._activateMaterial(force);
             this._assembler && this._assembler.updateRenderData && this._assembler.updateRenderData(this);
            // this.node._updateWorldMatrix();
-            this._CCLabelProto.render && this._CCLabelProto.render.call(this);
+            this._CCLabelProto.render.call(this);
 
         } else if (font instanceof cc.BitmapFont) {
             let spriteFrame = font.spriteFrame;
@@ -798,8 +787,18 @@ let Label = cc.Class({
         } else {
             let outline = this.node.getComponent(cc.LabelOutline);
             let outlineSize = 0;
-            if(outline && outline.width > 0) {
+            if(outline && outline.enabled && outline.width > 0) {
                 outlineSize = Math.max(Math.min(outlineSize  / 10, 0.5), 0.1);
+            }
+            this._CCLabelProto.setOutline.call(this, outlineSize);
+
+            let shadow = this.node.getComponent(cc.LabelShadow);
+            if(shadow && shadow.enabled) {
+                let shadowColor = shadow.color;
+                this._CCLabelProto.setShadow.call(this, shadow.offset.x, shadow.offset.y, shadow.blur);
+                this._CCLabelProto.setShadowColor.call(this, shadowColor.getR(), shadowColor.getG(), shadowColor.getB(), Math.ceil(shadowColor.getA() * this.node.opacity / 255));
+            } else {
+                this._CCLabelProto.setShadow.call(this, 0, 0, -1);
             }
 
             material.define('CC_USE_MODEL', true);
@@ -817,12 +816,26 @@ let Label = cc.Class({
     },
 
     _lazyUpdateRenderData () {
+        
+        if(this._renderNativeTTF()) {
+            let material = this.getMaterial(0);
+            if(material) {
+                let outline = this.node.getComponent(cc.LabelOutline);
+                if(outline && outline.enabled) {
+                    let outlineWidth = outline.width;
+                    outlineWidth =  Math.max(Math.min(outlineWidth  / 10, 0.3), 0.1);
+                    this._CCLabelProto.setOutline.call(this, outlineWidth);
+                    material.define("CC_USE_OUTLINE", outlineWidth > 0);
+                    let color = outline.color;
+                    this._CCLabelProto.setOutlineColor.call(this, color.getR(), color.getG(), color.getB(), Math.ceil(color.getA() * this.node.opacity / 255));
+                    this.markForRender(true);
+                }
+            }
+            this._CCLabelProto.setContentSize.call(this, this.node._contentSize.width, this.node._contentSize.height);
+            this._CCLabelProto.render.call(this);
+        }
         this.setVertsDirty();
         this.markForUpdateRenderData(true);
-
-        if(this._renderNativeTTF()) {
-            this._CCLabelProto.setContentSize.call(this, this.node._contentSize.width, this.node._contentSize.height);
-        }
     },
 
     _forceUpdateRenderData () {
