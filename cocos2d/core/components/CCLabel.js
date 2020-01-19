@@ -179,10 +179,6 @@ let Label = cc.Class({
         } else {
             this._activateMaterial = this._activateMaterialWebgl;
         }
-
-        if(CC_NATIVERENDERER) {
-            this._extendNative && this._extendNative();
-        }
     },
 
     editor: CC_EDITOR && {
@@ -211,17 +207,11 @@ let Label = cc.Class({
                 let oldValue = this._string;
                 this._string = '' + value;
 
-                if(this._renderNativeTTF())
-                {
-                    this._CCLabelProto.setString.call(this, this._string);
-                }
-
                 if (this.string !== oldValue) {
                     this._lazyUpdateRenderData();
                 }
 
                 this._checkStringEmpty();
-
             },
             multiline: true,
             tooltip: CC_DEV && 'i18n:COMPONENT.label.string'
@@ -288,12 +278,8 @@ let Label = cc.Class({
             set (value) {
                 if (this._fontSize === value) return;
 
-                if(this._CCLabelProto) {
-                    this._CCLabelProto.setFontSize.call(this, value);                }
-
                 this._fontSize = value;
                 this._lazyUpdateRenderData();
-
             },
             range: [0, 512],
             tooltip: CC_DEV && 'i18n:COMPONENT.label.font_size',
@@ -576,20 +562,10 @@ let Label = cc.Class({
             this._ttfTexture.destroy();
             this._ttfTexture = null;
         }
-        if(this._renderer) {
-            this._renderer.destroy();
-            this._renderer = null;
-        }
         this._super();
     },
 
     _updateColor () {
-
-        if(this._renderNativeTTF()) {
-            let c = this.node.color;
-            this._CCLabelProto.setColor.call(this, c.getR(), c.getG(), c.getB(), Math.ceil(c.getA() * this.node.opacity / 255));
-        }
-
         if (!(this.font instanceof cc.BitmapFont)) {
             this._lazyUpdateRenderData();
         }
@@ -599,17 +575,7 @@ let Label = cc.Class({
     _resetAssembler () {
         this._frame = null;
 
-        if(this._renderNativeTTF()) {
-            this._assembler = new renderer.CustomAssembler();
-            this.node._proxy.setAssembler(this._assembler);
-            if(this._CCLabelProto && this._CCLabelProto.bindNodeProxy) 
-            {
-                this._CCLabelProto.bindNodeProxy.call(this, this.node._proxy);
-            }
-        } else {
-            RenderComponent.prototype._resetAssembler.call(this);
-        }
-
+        RenderComponent.prototype._resetAssembler.call(this);
     },
 
     _canRender () {
@@ -634,55 +600,9 @@ let Label = cc.Class({
         this._applyFontTexture(true);
     },
 
-    _renderNativeTTF() {
-        //return CC_NATIVERENDERER && !this._isSystemFontUsed && !(font instanceof cc.BitmapFont);
-        return CC_NATIVERENDERER && this.font && this.font instanceof cc.TTFFont;
-    },
-
     _applyFontTexture (force) {
         let font = this.font;
-
-        if(this._renderNativeTTF()) {
-            
-            if(this.font && this.font.nativeUrl) {
-                this._CCLabelProto.setFontPath.call(this, this.font.nativeUrl);
-            }
-            
-            let c = this.node.color;
-
-            let retinaSize = this.fontSize;
-            let node_camera = cc.Camera.findCamera(this.node);
-            if(true && node_camera){
-                let camera = node_camera._camera;
-                let canvas_width = cc.game.canvas.width;
-                let canvas_height = cc.game.canvas.height;
-
-                let origin = new cc.Vec3(0, 0, 0);
-                let ref = new cc.Vec3(72, 72, 0);
-                this.node.convertToWorldSpaceAR(origin, origin);
-                this.node.convertToWorldSpaceAR(ref, ref);
-                camera.worldToScreen(origin, origin, canvas_width, canvas_height);
-                camera.worldToScreen(ref, ref, canvas_width, canvas_height);
-                retinaSize = ref.sub(origin).mag();
-            }
-
-            this._CCLabelProto.setString.call(this, this.string);
-            this._CCLabelProto.setFontSize.call(this, this.fontSize, retinaSize / 72 * this.fontSize);
-            this._CCLabelProto.setLineHeight.call(this, this.lineHeight);
-            this._CCLabelProto.setEnableWrap.call(this, this.enableWrapText);
-            this._CCLabelProto.setOverFlow.call(this, this.overflow);
-            this._CCLabelProto.setVerticalAlign.call(this, this.verticalAlign);
-            this._CCLabelProto.setHorizontalAlign.call(this, this.horizontalAlign);
-            this._CCLabelProto.setContentSize.call(this, this.node.getContentSize().width, this.node.getContentSize().height);
-            this._CCLabelProto.setAnchorPoint.call(this, this.node.anchorX, this.node.anchorY);
-            this._CCLabelProto.setColor.call(this, c.getR(), c.getG(), c.getB(), Math.ceil(c.getA() * this.node.opacity / 255));
-
-            this._activateMaterial(force);
-            this._assembler && this._assembler.updateRenderData && this._assembler.updateRenderData(this);
-           // this.node._updateWorldMatrix();
-            this._CCLabelProto.render.call(this);
-
-        } else if (font instanceof cc.BitmapFont) {
+        if (font instanceof cc.BitmapFont) {
             let spriteFrame = font.spriteFrame;
             this._frame = spriteFrame;
             let self = this;
@@ -708,22 +628,24 @@ let Label = cc.Class({
             }
         }
         else {
-            if (!this._frame) {
-                this._frame = new LabelFrame();
-            }
- 
-            if (this.cacheMode === CacheMode.CHAR) {
-                this._letterTexture = this._assembler._getAssemblerData();
-                this._frame._refreshTexture(this._letterTexture);
-            } else if (!this._ttfTexture) {
-                this._ttfTexture = new cc.Texture2D();
-                this._assemblerData = this._assembler._getAssemblerData();
-                this._ttfTexture.initWithElement(this._assemblerData.canvas);
-            } 
+            if(!this._nativeTTF()) {
+                if (!this._frame) {
+                    this._frame = new LabelFrame();
+                }
+    
+                if (this.cacheMode === CacheMode.CHAR) {
+                    this._letterTexture = this._assembler._getAssemblerData();
+                    this._frame._refreshTexture(this._letterTexture);
+                } else if (!this._ttfTexture) {
+                    this._ttfTexture = new cc.Texture2D();
+                    this._assemblerData = this._assembler._getAssemblerData();
+                    this._ttfTexture.initWithElement(this._assemblerData.canvas);
+                } 
 
-            if (this.cacheMode !== CacheMode.CHAR) {
-                this._frame._resetDynamicAtlasFrame();
-                this._frame._refreshTexture(this._ttfTexture);
+                if (this.cacheMode !== CacheMode.CHAR) {
+                    this._frame._resetDynamicAtlasFrame();
+                    this._frame._refreshTexture(this._ttfTexture);
+                }
             }
             
             this._activateMaterial(force);
@@ -734,14 +656,8 @@ let Label = cc.Class({
         }
     },
 
-    _extendNative () {
-        //TODO: native extension
-        if(jsb.CCLabelRenderer && jsb.CCLabelRenderer.prototype && jsb.CCLabelRenderer.prototype.ctor) {
-            jsb.CCLabelRenderer.prototype.ctor.call(this);
-            this._CCLabelProto = jsb.CCLabelRenderer.prototype;
-        } else {
-            this._CCLabelProto = null;
-        }
+    _nativeTTF() {
+        return !! this._assembler._updateTTFMaterial;
     },
 
     _activateMaterialCanvas (force) {
@@ -758,12 +674,9 @@ let Label = cc.Class({
 
 
         // If frame not create, disable render and return.
-        if(!this._renderNativeTTF())
-        {
-            if (!this._frame) {
-                this.disableRender();
-                return;
-            }
+        if (!this._frame && !this._nativeTTF()) {
+            this.disableRender();
+            return;
         }
 
         // Label's texture is generated dynamically,
@@ -771,44 +684,17 @@ let Label = cc.Class({
         let material = this.sharedMaterials[0];
 
         if (!material) {
-            if(this._renderNativeTTF()){
-                material = Material.getInstantiatedBuiltinMaterial('2d-label', this);
-            } else {
-                material = Material.getInstantiatedBuiltinMaterial('2d-sprite', this);
-            }
+            material = Material.getInstantiatedBuiltinMaterial('2d-sprite', this);
         }
         else {
             material = Material.getInstantiatedMaterial(material, this);
         }
 
-        if(!this._renderNativeTTF())
-        {
+        if(this._nativeTTF()) {
+            this._assembler._updateTTFMaterial(material);
+        }else{
             material.setProperty('texture', this._frame._texture);
-        } else {
-            let outline = this.node.getComponent(cc.LabelOutline);
-            let outlineSize = 0;
-            if(outline && outline.enabled && outline.width > 0) {
-                outlineSize = Math.max(Math.min(outlineSize  / 10, 0.5), 0.1);
-            }
-            this._CCLabelProto.setOutline.call(this, outlineSize);
-
-            let shadow = this.node.getComponent(cc.LabelShadow);
-            if(shadow && shadow.enabled) {
-                let shadowColor = shadow.color;
-                this._CCLabelProto.setShadow.call(this, shadow.offset.x, shadow.offset.y, shadow.blur);
-                this._CCLabelProto.setShadowColor.call(this, shadowColor.getR(), shadowColor.getG(), shadowColor.getB(), Math.ceil(shadowColor.getA() * this.node.opacity / 255));
-            } else {
-                this._CCLabelProto.setShadow.call(this, 0, 0, -1);
-            }
-
-            material.define('CC_USE_MODEL', true);
-            material.define('USE_TEXTURE_ALPHAONLY', true);
-            material.define('USE_SDF', outlineSize > 0.0);
-
-            this._CCLabelProto.setEffect.call(this, material.effect._nativeObj);
-            
         }
-
         this.setMaterial(0, material);
 
         this.markForUpdateRenderData(true);
@@ -816,23 +702,8 @@ let Label = cc.Class({
     },
 
     _lazyUpdateRenderData () {
-        
-        if(this._renderNativeTTF()) {
-            let material = this.getMaterial(0);
-            if(material) {
-                let outline = this.node.getComponent(cc.LabelOutline);
-                if(outline && outline.enabled) {
-                    let outlineWidth = outline.width;
-                    outlineWidth =  Math.max(Math.min(outlineWidth  / 10, 0.3), 0.1);
-                    this._CCLabelProto.setOutline.call(this, outlineWidth);
-                    material.define("USE_SDF", outlineWidth > 0);
-                    let color = outline.color;
-                    this._CCLabelProto.setOutlineColor.call(this, color.getR(), color.getG(), color.getB(), Math.ceil(color.getA() * this.node.opacity / 255));
-                    this.markForRender(true);
-                }
-            }
-            this._CCLabelProto.setContentSize.call(this, this.node._contentSize.width, this.node._contentSize.height);
-            this._CCLabelProto.render.call(this);
+        if(this._nativeTTF()) {
+            this._assembler.updateRenderData(this);
         }
         this.setVertsDirty();
         this.markForUpdateRenderData(true);
@@ -857,9 +728,5 @@ let Label = cc.Class({
         this._isUnderline = !!enabled;
     },
  });
-
-//  if(CC_NATIVERENDERER && jsb.CCLabel && jsb.CCLabel.prototype) {
-//      Object.setPrototypeOf(Label.prototype, jsb.CCLabel.prototype);
-//  }
 
  cc.Label = module.exports = Label;
