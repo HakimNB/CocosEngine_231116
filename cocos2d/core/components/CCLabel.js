@@ -803,7 +803,7 @@ let Label = cc.Class({
 
             material.define('CC_USE_MODEL', true);
             material.define('USE_TEXTURE_ALPHAONLY', true);
-            material.define('CC_USE_OUTLINE', outlineSize > 0.0);
+            material.define('USE_SDF', outlineSize > 0.0);
 
             this._CCLabelProto.setEffect.call(this, material.effect._nativeObj);
             
@@ -825,7 +825,7 @@ let Label = cc.Class({
                     let outlineWidth = outline.width;
                     outlineWidth =  Math.max(Math.min(outlineWidth  / 10, 0.3), 0.1);
                     this._CCLabelProto.setOutline.call(this, outlineWidth);
-                    material.define("CC_USE_OUTLINE", outlineWidth > 0);
+                    material.define("USE_SDF", outlineWidth > 0);
                     let color = outline.color;
                     this._CCLabelProto.setOutlineColor.call(this, color.getR(), color.getG(), color.getB(), Math.ceil(color.getA() * this.node.opacity / 255));
                     this.markForRender(true);
