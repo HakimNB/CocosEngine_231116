@@ -81,7 +81,7 @@ export class RenderData extends BaseRenderData {
 
     public static remove (data: RenderData) {
         const idx = _pool.data.indexOf(data);
-        if (idx === -1){
+        if (idx === -1) {
             return;
         }
 
@@ -128,13 +128,33 @@ export class RenderData extends BaseRenderData {
 }
 
 export class MeshRenderData extends BaseRenderData {
-    public vData: Float32Array = new Float32Array(256 * 9 * Float32Array.BYTES_PER_ELEMENT);
+    public vData: Float32Array;
     public iData: Uint16Array = new Uint16Array(256 * 6);
+    /**
+     * Each vertex contains multiple float numbers
+     */
     public vertexStart = 0;
+    /**
+     * Number of indices
+     */
     public indicesStart = 0;
     public byteStart = 0;
     public byteCount = 0;
-    private _formatByte = 9 * Float32Array.BYTES_PER_ELEMENT;
+    private _formatByte;
+
+    constructor (vertexFloatCnt: number = 9) {
+        super();
+        this._formatByte = vertexFloatCnt * Float32Array.BYTES_PER_ELEMENT;
+        this.vData = new Float32Array(256 * vertexFloatCnt * Float32Array.BYTES_PER_ELEMENT);
+        this.iData = new Uint16Array(256 * 6);
+    }
+
+    set formatByte (value: number) { this._formatByte = value; }
+
+    /**
+     * Index of Float32Array: vData
+     */
+    get vDataOffset () { return this.byteStart >>> 2; }
 
     public static add () {
         return _meshDataPool.add();
@@ -142,7 +162,7 @@ export class MeshRenderData extends BaseRenderData {
 
     public static remove (data: MeshRenderData) {
         const idx = _meshDataPool.data.indexOf(data);
-        if (idx === -1){
+        if (idx === -1) {
             return;
         }
 
@@ -159,7 +179,7 @@ export class MeshRenderData extends BaseRenderData {
         return true;
     }
 
-    public reserve(vertexCount: number, indicesCount: number) {
+    public reserve (vertexCount: number, indicesCount: number) {
         const newVBytes = this.byteCount + vertexCount * this._formatByte;
         const newICount = this.indicesCount + indicesCount;
 
@@ -184,7 +204,7 @@ export class MeshRenderData extends BaseRenderData {
         }
     }
 
-    public advance(vertexCount: number, indicesCount: number) {
+    public advance (vertexCount: number, indicesCount: number) {
         this.vertexCount += vertexCount; // vertexOffset
         this.indicesCount += indicesCount; // indicesOffset
         this.byteCount += vertexCount * this._formatByte;
@@ -247,6 +267,6 @@ const _pool = new RecyclePool(() => {
     return new RenderData();
 }, 32);
 
-const _meshDataPool: RecyclePool<MeshRenderData> = new RecyclePool(() =>  {
+const _meshDataPool: RecyclePool<MeshRenderData> = new RecyclePool(() => {
     return new MeshRenderData();
 }, 32);

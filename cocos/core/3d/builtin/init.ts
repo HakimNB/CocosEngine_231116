@@ -259,6 +259,12 @@ class BuiltinResMgr {
         defaultBillboardMtl._uuid = 'default-billboard-material';
         defaultBillboardMtl.initialize({ effectName: 'billboard' });
         resources[defaultBillboardMtl._uuid] = defaultBillboardMtl;
+
+        // ui spine two color material
+        const spineTwoColorMtl = new legacyCC.Material();
+        spineTwoColorMtl._uuid = 'ui-spine-two-colored-material';
+        spineTwoColorMtl.initialize({ defines: { USE_TEXTURE: true, CC_USE_EMBEDDED_ALPHA: true, IS_GRAY: false }, effectName: 'builtin-spine-two-colored' });
+        resources[spineTwoColorMtl._uuid] = spineTwoColorMtl;
     }
 }
 
