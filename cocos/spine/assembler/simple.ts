@@ -36,7 +36,7 @@ import { Skeleton, SkeletonMeshData, SpineMaterialType } from '../Skeleton'
 import spine from '../lib/spine-core.js';
 import { JSB } from '../../../editor/exports/populate-internal-constants';
 import { vfmtPosUvColor, vfmtPosUvTwoColor } from '../../core/renderer/ui/ui-vertex-format';
-import { VertexEffectDelegate } from '..';
+import { VertexEffectDelegate } from '../vertex-effect-delegate';
 import { FrameColor } from '../skeleton-cache';
 import { MaterialInstance } from '../../core/renderer';
 
