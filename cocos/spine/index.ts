@@ -46,6 +46,9 @@ export * from './skeleton';
 export * from './skeleton-data';
 export * from './vertex-effect-delegate';
 export * from './assembler';
+import spine from './lib/spine-core';
+export {spine};
+
 /**
  * !#en
  * The global time scale of Spine.

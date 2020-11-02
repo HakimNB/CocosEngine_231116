@@ -8205,5 +8205,4 @@ var spine;
 })(spine || (spine = {}));
 //# sourceMappingURL=spine-core.js.map
 
-
 export default spine;

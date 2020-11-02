@@ -77,6 +77,7 @@ let _nodeB: number;
 let _nodeA: number;
 let _finalColor32: Float32Array;
 let _darkColor32: Float32Array;
+const _vec3u_temp = new Vec3();
 let _vertexFormat: GFXAttribute[] = [];
 let _perVertexSize: number;
 let _perClipVertexSize: number;
@@ -200,8 +201,8 @@ function _spineColorToFloat32Array4 (spineColor: spine.Color) {
     return _tmpColor4;
 }
 
-function _vfmtFloatSize(useTint:boolean) {
-    return useTint ? 3 + 2+ 4 + 4 : 3 + 2 + 4;
+function _vfmtFloatSize (useTint: boolean) {
+    return useTint ? 3 + 2 + 4 + 4 : 3 + 2 + 4;
 }
 
 /**
@@ -225,8 +226,61 @@ export const simple: IAssembler = {
 
     },
 
-};
+    fillBuffers (layer: Skeleton, renderer: UI) {
+        if (!layer || !layer.meshRenderDataArray) return;
 
+        const dataArray = layer.meshRenderDataArray!;
+        const node = layer.node;
+
+        let buffer = renderer.currBufferBatch!;
+        let vertexOffset = buffer.byteOffset >> 2;
+        let indicesOffset = buffer.indicesOffset;
+        let vertexId = buffer.vertexOffset;
+
+        // 当前渲染的数据
+        const data = dataArray[layer._meshRenderDataArrayIdx];
+        const renderData = data.renderData;
+
+        const isRecreate = buffer.request(renderData.vertexCount, renderData.indicesCount);
+        if (!isRecreate) {
+            buffer = renderer.currBufferBatch!;
+            vertexOffset = 0;
+            indicesOffset = 0;
+            vertexId = 0;
+        }
+
+        const vBuf = buffer.vData!;
+        const iBuf = buffer.iData!;
+        const matrix = node.worldMatrix;
+
+        const srcVBuf = renderData.vData;
+        const srcVIdx = renderData.vertexStart;
+
+        // copy all vertexData
+        const strideFloat = renderData.formatByte / 4;
+        vBuf.set(srcVBuf.slice(srcVIdx, srcVIdx + renderData.vertexCount * strideFloat), vertexOffset);
+        for (let i = 0; i < renderData.vertexCount; i++) {
+            const pOffset = vertexOffset + i * strideFloat;
+            _vec3u_temp.set(vBuf[pOffset], vBuf[pOffset + 1], vBuf[pOffset + 2]);
+            _vec3u_temp.transformMat4(matrix);
+            vBuf[pOffset] = _vec3u_temp.x;
+            vBuf[pOffset + 1] = _vec3u_temp.y;
+            vBuf[pOffset + 2] = _vec3u_temp.z;
+        }
+
+        const quadCount = renderData.vertexCount / 4;
+        for (let i = 0; i < quadCount; i += 1) {
+            iBuf[indicesOffset] = vertexId;
+            iBuf[indicesOffset + 1] = vertexId + 1;
+            iBuf[indicesOffset + 2] = vertexId + 2;
+            iBuf[indicesOffset + 3] = vertexId + 2;
+            iBuf[indicesOffset + 4] = vertexId + 1;
+            iBuf[indicesOffset + 5] = vertexId + 3;
+            indicesOffset += 6;
+            vertexId += 4;
+        }
+    }
+};
 
 function updateComponentRenderData (comp: Skeleton, ui: UI) {
 
@@ -354,7 +408,7 @@ function fillVertices (skeletonColor: spine.Color, attachmentColor: spine.Color,
     } else {
         const uvs = vbuf.subarray(_vertexFloatOffset + 2);
 
-        _perClipVertexSize = _useTint ? 12 : 8;
+        _perClipVertexSize = 12; // const
 
         clipper.clipTriangles(vbuf.subarray(_vertexFloatOffset), _vertexFloatCount,
             ibuf.subarray(_indexOffset), _indexCount, uvs, _finalColor!, _darkColor!, _useTint);
@@ -368,11 +422,14 @@ function fillVertices (skeletonColor: spine.Color, attachmentColor: spine.Color,
         _buffer?.renderData.reserve(_vertexFloatCount / _perVertexSize, _indexCount);
         _indexOffset = _buffer!.renderData.indicesStart;
         _vertexOffset = _buffer!.renderData.vertexStart;
-        _vertexFloatOffset = _buffer!.renderData.byteStart >> 2;
+        _vertexFloatOffset = _buffer!.renderData.vDataOffset;
         vbuf = _buffer!.renderData.vData;
         ibuf = _buffer!.renderData.iData;
 
         // fill indices
+        // for(let ii=0; ii < _indexCount; ii++) {
+        //     clippedTriangles[ii] += _vertexOffset;
+        // }
         ibuf.set(clippedTriangles, _indexOffset);
 
         // fill vertices contain x y u v light color dark color
@@ -403,20 +460,24 @@ function fillVertices (skeletonColor: spine.Color, attachmentColor: spine.Color,
             for (let v = 0, n = clippedVertices.length, offset = _vertexFloatOffset; v < n; v += _perClipVertexSize, offset += _perVertexSize) {
                 vbuf[offset] = clippedVertices[v];         // x
                 vbuf[offset + 1] = clippedVertices[v + 1];     // y
-                vbuf[offset + 2] = clippedVertices[v + 6];     // u
-                vbuf[offset + 3] = clippedVertices[v + 7];     // v
+                vbuf[offset + 3] = clippedVertices[v + 6];     // u
+                vbuf[offset + 4] = clippedVertices[v + 7];     // v
 
-                _finalColor32 = ((clippedVertices[v + 5] << 24) >>> 0) + (clippedVertices[v + 4] << 16) +
-                    (clippedVertices[v + 3] << 8) + clippedVertices[v + 2];
-                uintVData[offset + 4] = _finalColor32;
+                vbuf[offset + 5] = clippedVertices[v + 2] / 255.0;
+                vbuf[offset + 6] = clippedVertices[v + 3] / 255.0;
+                vbuf[offset + 7] = clippedVertices[v + 4] / 255.0;
+                vbuf[offset + 8] = clippedVertices[v + 5] / 255.0;
 
                 if (_useTint) {
-                    _darkColor32 = ((clippedVertices[v + 11] << 24) >>> 0) + (clippedVertices[v + 10] << 16) +
-                        (clippedVertices[v + 9] << 8) + clippedVertices[v + 8];
-                    uintVData[offset + 5] = _darkColor32;
+                    vbuf[offset + 9] = clippedVertices[v + 8] / 255.0;
+                    vbuf[offset + 10] = clippedVertices[v + 9] / 255.0;
+                    vbuf[offset + 11] = clippedVertices[v + 10] / 255.0;
+                    vbuf[offset + 12] = clippedVertices[v + 11] / 255.0;
                 }
             }
         }
+
+        _buffer?.renderData.advance(_vertexFloatCount / _perVertexSize, _indexCount);
     }
 }
 
@@ -677,7 +738,7 @@ function cacheTraverse (worldMat?: Mat4) {
     const segments = frame.segments;
     if (segments.length === 0) return;
 
-    _perClipVertexSize =  12;
+    _perClipVertexSize = 12;
 
     let vbuf: Float32Array;
     let ibuf: Uint16Array;
@@ -748,7 +809,7 @@ function cacheTraverse (worldMat?: Mat4) {
         let floatOffset = _vfOffset;
         _perClipVertexSize = _vfmtFloatSize(_useTint);
 
-        for(let ii = 0; ii < subArray.length; ii+= 12) {
+        for (let ii = 0; ii < subArray.length; ii += 12) {
             vbuf[floatOffset + 0] = subArray[ii * 12 + 0];
             vbuf[floatOffset + 1] = subArray[ii * 12 + 1];
             vbuf[floatOffset + 3] = subArray[ii * 12 + 6];
@@ -757,7 +818,7 @@ function cacheTraverse (worldMat?: Mat4) {
             vbuf[floatOffset + 6] = subArray[ii * 12 + 3];
             vbuf[floatOffset + 7] = subArray[ii * 12 + 4];
             vbuf[floatOffset + 8] = subArray[ii * 12 + 5];
-            if(_useTint) {
+            if (_useTint) {
                 vbuf[floatOffset + 9] = subArray[ii * 12 + 8];
                 vbuf[floatOffset + 10] = subArray[ii * 12 + 9];
                 vbuf[floatOffset + 11] = subArray[ii * 12 + 10];

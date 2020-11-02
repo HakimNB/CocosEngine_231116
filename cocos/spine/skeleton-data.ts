@@ -146,7 +146,7 @@ export class SkeletonData extends Asset {
 
     createNode (callback:(err:Error|null, node:Node)=>void) {
         const node = new Node(this.name);
-        const skeleton = node.addComponent(Skeleton);
+        const skeleton = node.addComponent('cc.Skeleton') as Skeleton;
         skeleton.skeletonData = this;
 
         return callback(null, node);

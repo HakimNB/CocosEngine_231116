@@ -33,11 +33,11 @@ import { UIRenderable } from '../../cocos/core/components/ui-base/ui-renderable'
 import { builtinResMgr, CCClass, ccenum, CCObject, Color, Enum, errorID, logID, Material, PrivateNode, Texture2D, warn } from '../../cocos/core';
 import { displayName, tooltip, type, visible } from '../../cocos/core/data/decorators';
 import { EDITOR } from '../../editor/exports/populate-internal-constants';
-import { Graphics } from '../..';
 import { SkeletonData } from './skeleton-data';
 import { VertexEffectDelegate } from './vertex-effect-delegate';
 import { MeshRenderData } from '../core/renderer/ui/render-data';
 import { UI } from '../core/renderer/ui/ui';
+import { Graphics } from '../ui/components/graphics';
 
 export let timeScale = 1.0;
 
@@ -121,8 +121,8 @@ export interface SkeletonMeshData {
  * @extends UIRenderable
  */
 @ccclass('sp.Skeleton')
-@help('i18n:cc.Skeleton')
-@menu('Components/Skeleton')
+@help('i18n:sp.Skeleton')
+@menu('Components/SpineSkeleton')
 @executeInEditMode
 export class Skeleton extends UIRenderable {
     // editor: EDITOR && {
