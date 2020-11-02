@@ -35,14 +35,10 @@ import { simple } from './simple';
 
 // Inline all type switch to avoid jit deoptimization during inlined function change
 
-const simpleSpineAssembler: IAssemblerManager = {
+export const simpleSpineAssembler: IAssemblerManager = {
     getAssembler () {
         return simple;
     },
 };
 
 Skeleton.Assembler = simpleSpineAssembler;
-
-export {
-    simpleSpineAssembler as tiledLayerAssembler
-};
