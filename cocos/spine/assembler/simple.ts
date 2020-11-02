@@ -28,15 +28,13 @@
  * @module ui-assembler
  */
 
-import { Color, Mat4, Size, Vec3, Node, GFXBlendFactor, Texture2D, GFXAttribute, Material } from '../../core';
+import { Color, Mat4, Vec3, Node, GFXBlendFactor, Texture2D, GFXAttribute, Material } from '../../core';
 import { IAssembler } from '../../core/renderer/ui/base';
-import { MeshRenderData } from '../../core/renderer/ui/render-data';
 import { UI } from '../../core/renderer/ui/ui';
-import { Skeleton, SkeletonMeshData, SpineMaterialType } from '../Skeleton'
+import { Skeleton, SkeletonMeshData, SpineMaterialType } from '../skeleton'
 import spine from '../lib/spine-core.js';
 import { JSB } from '../../../editor/exports/populate-internal-constants';
 import { vfmtPosUvColor, vfmtPosUvTwoColor } from '../../core/renderer/ui/ui-vertex-format';
-import { VertexEffectDelegate } from '../vertex-effect-delegate';
 import { FrameColor } from '../skeleton-cache';
 import { MaterialInstance } from '../../core/renderer';
 
@@ -78,7 +76,6 @@ let _nodeA: number;
 let _finalColor32: Float32Array;
 let _darkColor32: Float32Array;
 const _vec3u_temp = new Vec3();
-let _vertexFormat: GFXAttribute[] = [];
 let _perVertexSize: number;
 let _perClipVertexSize: number;
 
@@ -115,7 +112,6 @@ let _db: number;
 let _da: number;
 let _comp: Skeleton | undefined;
 let _buffer: SkeletonMeshData | undefined;
-let _renderer: UI | undefined;
 let _node: Node | undefined;
 let _needColor: boolean;
 let _vertexEffect: spine.VertexEffect | null = null;
@@ -159,7 +155,7 @@ function _getSlotMaterial (blendMode: spine.BlendMode) {
         _comp!.spineMatrialType = SpineMaterialType.COLORED_TEXTURED;
     }
 
-    return _comp!.getUIRenderMaterial();
+    return _comp!.customMaterial;
 }
 
 function _handleColor (color: FrameColor) {
@@ -188,9 +184,6 @@ function _handleColor (color: FrameColor) {
     _darkColor32[3] = _da / 255.0;
 }
 
-function _spineColorToInt32 (spineColor: spine.Color) {
-    return ((spineColor.a << 24) >>> 0) + (spineColor.b << 16) + (spineColor.g << 8) + spineColor.r;
-}
 
 const _tmpColor4 = new Float32Array(4);
 function _spineColorToFloat32Array4 (spineColor: spine.Color) {
@@ -210,7 +203,7 @@ function _vfmtFloatSize (useTint: boolean) {
  * 可通过 `UI.simple` 获取该组装器。
  */
 export const simple: IAssembler = {
-    createData (comp: Skeleton) {
+    createData () {
     },
 
     updateRenderData (comp: Skeleton, ui: UI) {
@@ -222,7 +215,7 @@ export const simple: IAssembler = {
         }
     },
 
-    updateColor (comp: Skeleton) {
+    updateColor () {
 
     },
 
@@ -284,7 +277,6 @@ export const simple: IAssembler = {
 
 function updateComponentRenderData (comp: Skeleton, ui: UI) {
 
-    const node = comp.node;
     if (!comp._skeleton) return;
 
     const nodeColor = comp.color;
@@ -294,7 +286,6 @@ function updateComponentRenderData (comp: Skeleton, ui: UI) {
     _nodeA = nodeColor.a / 255;
 
     _useTint = comp.useTint || comp.isAnimationCached();
-    _vertexFormat = _useTint ? vfmtPosUvTwoColor : vfmtPosUvColor;
     // x y u v color1 color2 or x y u v color
     _perVertexSize = _useTint ? (4 + 4 + 4 + 2) : (3 + 2 + 4);
 
@@ -304,7 +295,6 @@ function updateComponentRenderData (comp: Skeleton, ui: UI) {
     comp.resetRenderData();
 
     _buffer = comp.requestMeshRenderData(_perVertexSize);
-    _renderer = ui;
     _comp = comp;
 
     _mustFlush = true;
@@ -344,7 +334,6 @@ function updateComponentRenderData (comp: Skeleton, ui: UI) {
     // Clear temp var.
     _node = undefined;
     _buffer = undefined;
-    _renderer = undefined;
     _comp = undefined;
     _vertexEffect = null;
 }

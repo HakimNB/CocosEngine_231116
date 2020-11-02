@@ -30,7 +30,7 @@ import { default as SkeletonCache, AnimationCache, AnimationFrame } from './skel
 import { AttachUtil } from './AttachUtil';
 import { ccclass, executeInEditMode, help, menu, property } from '../core/data/class-decorator';
 import { UIRenderable } from '../core/components/ui-base/ui-renderable';
-import { builtinResMgr, CCClass, ccenum, CCObject, Color, Enum, errorID, logID, Material, PrivateNode, Texture2D, warn } from '../core';
+import { builtinResMgr, CCClass, ccenum, CCObject, Color, Enum, errorID, logID, Material, PrivateNode, SpriteFrame, Texture2D, warn } from '../core';
 import { displayName, tooltip, type, visible } from '../core/data/decorators';
 import { EDITOR } from '../../editor/exports/populate-internal-constants';
 import { SkeletonData } from './skeleton-data';
@@ -41,12 +41,12 @@ import { Graphics } from '../ui/components/graphics';
 
 export let timeScale = 1.0;
 
-enum DefaultSkinsEnum {
+export enum DefaultSkinsEnum {
     default = -1,
 }
 ccenum(DefaultSkinsEnum);
 
-enum DefaultAnimsEnum {
+export enum DefaultAnimsEnum {
     None = 0
 }
 ccenum(DefaultAnimsEnum)
@@ -56,7 +56,7 @@ ccenum(DefaultAnimsEnum)
  * !#zh Spine动画缓存类型
  * @enum Skeleton.AnimationCacheMode
  */
-enum AnimationCacheMode {
+export enum AnimationCacheMode {
     /**
      * !#en The realtime mode.
      * !#zh 实时计算模式。
@@ -525,34 +525,27 @@ export class Skeleton extends UIRenderable {
 
     public set spineMatrialType(type: SpineMaterialType) {
         if(type != this._spineMatrialType) {
-            this._updateBuiltinMaterial();
+            this.updateMaterial();
             this._updateBlendFunc();
         }
     }
 
     public _updateBuiltinMaterial():Material {
         // not need _uiMaterialDirty at firstTime
-        let init = false;
-        if (!this._uiMaterial) { init = true; }
-
-        if (this._uiMaterial && !this._uiMaterialDirty) {
-            return this._uiMaterial;
-        } else {
-            switch (this._spineMatrialType) {
-                case SpineMaterialType.COLORED:
-                    this._uiMaterial = builtinResMgr.get('ui-base-material') as Material;
-                    break;
-                case SpineMaterialType.TWO_COLORED:
-                    this._uiMaterial = builtinResMgr.get('ui-spine-two-colored-material') as Material;
-                    break;
-                case SpineMaterialType.COLORED_TEXTURED:
-                    this._uiMaterial = builtinResMgr.get('ui-sprite-material') as Material;
-                    break;
-            }
-            this._uiMaterialDirty = false;
-            if(!init) {this._uiMatInsDirty = true;}
-            return this._uiMaterial;
+        let mat;
+        switch (this._spineMatrialType) {
+            case SpineMaterialType.COLORED:
+                mat = builtinResMgr.get('ui-base-material') as Material;
+                break;
+            case SpineMaterialType.TWO_COLORED:
+                mat = builtinResMgr.get('ui-spine-two-colored-material') as Material;
+                break;
+            case SpineMaterialType.COLORED_TEXTURED:
+            default:
+                mat = builtinResMgr.get('ui-sprite-material') as Material;
+                break;
         }
+        return mat;
     }
 
     // if change use batch mode, just clear material cache
@@ -658,11 +651,11 @@ export class Skeleton extends UIRenderable {
     // IMPLEMENT
     __preload () {
         super.__preload();
-        if (EDITOR) {
-            var Flags = CCObject.Flags;
-            this._objFlags |= (Flags.IsAnchorLocked | Flags.IsSizeLocked);
-            this._refreshInspector();
-        }
+        // if (EDITOR) {
+        //     var Flags = CCObject.Flags;
+        //     this._objFlags |= (Flags.IsAnchorLocked | Flags.IsSizeLocked);
+        //     this._refreshInspector();
+        // }
 
         var children = this.node.children;
         for (var i = 0, n = children.length; i < n; i++) {
@@ -1432,7 +1425,7 @@ export class Skeleton extends UIRenderable {
     public requestMeshRenderData (vertexFloatCnt:number) {
         const renderData = new MeshRenderData(vertexFloatCnt);
         const comb: SkeletonMeshData = { renderData };
-        renderData.material = this.getUIMaterialInstance();
+        renderData.material = this.getMaterial(0);
         this._meshRenderDataArray.push(comb);
         return comb;
     }
@@ -1473,7 +1466,7 @@ export class Skeleton extends UIRenderable {
                 const m = this._meshRenderDataArray[i];
                 if (m.texture) {
                     // NOTE: 由于 commitComp 只支持单张纹理, 故分多次提交
-                    ui.commitComp(this, m.texture, this._assembler);
+                    ui.commitComp(this, m.texture!, this._assembler);
                 }
             }
             this.node._static = true;

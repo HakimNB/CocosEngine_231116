@@ -25,7 +25,7 @@
 
 import { Asset, CCString, Enum, errorID, Node, Texture2D } from '../../cocos/core';
 import SkeletonCache from './skeleton-cache';
-import { Skeleton } from './Skeleton';
+import { Skeleton } from './skeleton';
 import { SkeletonTexture } from './skeleton-texture';
 import spine from './lib/spine-core.js';
 import { ccclass, serializable, type } from '../../cocos/core/data/decorators';

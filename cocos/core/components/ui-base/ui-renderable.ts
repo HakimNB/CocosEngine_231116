@@ -532,7 +532,7 @@ export class UIRenderable extends RenderableComponent {
         }
     }
 
-    private _updateBuiltinMaterial () : Material {
+    protected _updateBuiltinMaterial () : Material {
         let mat;
         switch (this._instanceMaterialType) {
             case InstanceMaterialType.ADD_COLOR:

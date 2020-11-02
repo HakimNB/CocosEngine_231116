@@ -24,7 +24,7 @@
  ****************************************************************************/
 
 import { Mat4, Node } from '../../cocos/core';
-import {Skeleton} from './Skeleton';
+import {Skeleton} from './skeleton';
 import spine from './lib/spine-core.js';
 import { JSB } from '../../editor/exports/populate-internal-constants';
 import { FrameBoneInfo } from './skeleton-cache';

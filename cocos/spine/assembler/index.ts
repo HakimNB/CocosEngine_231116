@@ -29,7 +29,7 @@
  */
 
 import { IAssemblerManager } from '../../core/renderer/ui/base';
-import { Skeleton } from '../Skeleton';
+import { Skeleton } from '../skeleton';
 import { simple } from './simple';
 
 
