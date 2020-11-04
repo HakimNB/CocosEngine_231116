@@ -13,7 +13,7 @@ const _worldMatrix = new Mat4();
 
 export function fillVertices3D (node: Node, renderer: UI, renderData: RenderData, color: Color) {
     const dataList = renderData.data;
-    let buffer = renderer.currBufferBatch!;
+    let buffer = renderer.fetchCurrentBufferBatch()!;
     let vertexOffset = buffer.byteOffset >> 2;
 
     let vertexCount = renderData.vertexCount;
@@ -21,7 +21,7 @@ export function fillVertices3D (node: Node, renderer: UI, renderData: RenderData
     let vertexId = buffer.vertexOffset;
     const isRecreate = buffer.request(vertexCount, renderData.indicesCount);
     if (!isRecreate) {
-        buffer = renderer.currBufferBatch!;
+        buffer = renderer.getCurrMeshBuffer()!;
         vertexCount = 0;
         indicesOffset = 0;
         vertexId = 0;
@@ -54,7 +54,7 @@ export function fillVertices3D (node: Node, renderer: UI, renderData: RenderData
 
 export function fillMeshVertices3D (node: Node, renderer: UI, renderData: RenderData, color: Color) {
     const dataList = renderData.data;
-    let buffer = renderer.currBufferBatch!;
+    let buffer = renderer.fetchCurrentBufferBatch()!;
     let vertexOffset = buffer.byteOffset >> 2;
 
     let vertexCount = renderData.vertexCount;
@@ -63,7 +63,7 @@ export function fillMeshVertices3D (node: Node, renderer: UI, renderData: Render
 
     const isRecreate = buffer.request(vertexCount, renderData.indicesCount);
     if (!isRecreate) {
-        buffer = renderer.currBufferBatch!;
+        buffer = renderer.getCurrMeshBuffer()!;
         vertexCount = 0;
         indicesOffset = 0;
         vertexId = 0;
@@ -102,7 +102,7 @@ export function fillMeshVertices3D (node: Node, renderer: UI, renderData: Render
 
 export function fillVerticesWithoutCalc3D (node: Node, renderer: UI, renderData: RenderData, color: Color) {
     const dataList = renderData.data;
-    let buffer = renderer.currBufferBatch!;
+    let buffer = renderer.fetchCurrentBufferBatch()!;
     let vertexOffset = buffer.byteOffset >> 2;
 
     // buffer
@@ -111,7 +111,7 @@ export function fillVerticesWithoutCalc3D (node: Node, renderer: UI, renderData:
     let vertexId: number = buffer.vertexOffset;
     const isRecreate = buffer.request(vertexCount, renderData.indicesCount);
     if (!isRecreate) {
-        buffer = renderer.currBufferBatch!;
+        buffer = renderer.getCurrMeshBuffer()!;
         vertexCount = 0;
         indicesOffset = 0;
         vertexId = 0;

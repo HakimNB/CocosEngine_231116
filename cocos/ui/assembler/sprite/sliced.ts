@@ -121,7 +121,7 @@ export const sliced: IAssembler = {
             this.updateWorldVertexData(sprite);
         }
 
-        let buffer = renderer.currBufferBatch!;
+        let buffer = renderer.fetchCurrentBufferBatch()!;
         const renderData: RenderData|null = sprite.renderData;
         // const node: Node = sprite.node;
         // const color: Color = sprite.color;
@@ -136,7 +136,7 @@ export const sliced: IAssembler = {
 
         const isRecreate = buffer.request(vertexCount, renderData!.indicesCount);
         if (!isRecreate) {
-            buffer = renderer.currBufferBatch!;
+            buffer = renderer.getCurrMeshBuffer()!;
             vertexOffset = 0;
             indicesOffset = 0;
             vertexId = 0;

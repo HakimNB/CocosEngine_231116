@@ -90,7 +90,7 @@ export const tilled: IAssembler = {
         const renderData = sprite.renderData!;
 
         // buffer
-        let buffer = renderer.currBufferBatch!;
+        let buffer = renderer.fetchCurrentBufferBatch()!;
         // buffer data may be realloc, need get reference after request.
         let indicesOffset = buffer.indicesOffset;
         let vertexOffset = buffer.byteOffset >> 2;
@@ -102,7 +102,7 @@ export const tilled: IAssembler = {
 
         const isRecreate = buffer.request(vertexCount, indicesCount);
         if (!isRecreate) {
-            buffer = renderer.currBufferBatch!;
+            buffer = renderer.getCurrMeshBuffer()!;
             vertexOffset = 0;
             indicesOffset = 0;
             vertexId = 0;

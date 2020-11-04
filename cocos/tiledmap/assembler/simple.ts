@@ -155,7 +155,7 @@ export const simple: IAssembler = {
         const dataArray = layer.meshRenderDataArray!;
         const node = layer.node;
 
-        let buffer = renderer.currBufferBatch!;
+        let buffer = renderer.fetchCurrentBufferBatch()!;
         let vertexOffset = buffer.byteOffset >> 2;
         let indicesOffset = buffer.indicesOffset;
         let vertexId = buffer.vertexOffset;
@@ -166,7 +166,7 @@ export const simple: IAssembler = {
 
         const isRecreate = buffer.request(renderData.vertexCount, renderData.indicesCount);
         if (!isRecreate) {
-            buffer = renderer.currBufferBatch!;
+            buffer = renderer.getCurrMeshBuffer()!;
             vertexOffset = 0;
             indicesOffset = 0;
             vertexId = 0;

@@ -93,14 +93,14 @@ export const simple: IAssembler = {
         const dataList: IRenderData[] = sprite!.renderData!.data;
         const node = sprite.node;
 
-        let buffer = renderer.currBufferBatch!;
+        let buffer = renderer.fetchCurrentBufferBatch()!;
         let vertexOffset = buffer.byteOffset >> 2;
         let indicesOffset = buffer.indicesOffset;
         let vertexId = buffer.vertexOffset;
 
         const isRecreate = buffer.request();
         if (!isRecreate) {
-            buffer = renderer.currBufferBatch!;
+            buffer = renderer.getCurrMeshBuffer()!;
             vertexOffset = 0;
             indicesOffset = 0;
             vertexId = 0;

@@ -50,7 +50,7 @@ import { ModelLocalBindings } from '../../pipeline/define';
 import { EffectAsset, RenderTexture, SpriteFrame } from '../../assets';
 import { programLib } from '../core/program-lib';
 import { TextureBase } from '../../assets/texture-base';
-import { getAttributeFormatBytes } from './ui-vertex-format';
+import { getAttributeFormatBytes, vfmtPosUvColor } from './ui-vertex-format';
 
 const _dsInfo = new DescriptorSetInfo(null!);
 
@@ -74,6 +74,21 @@ export class UI {
 
     //     this._currMeshBuffer = value;
     // }
+
+    public fetchCurrentBufferBatch (attributes: Attribute[] = vfmtPosUvColor) {
+        const bytes = getAttributeFormatBytes(attributes);
+        if (!this._currMeshBuffer) {
+            this._requireBufferBatch(attributes);
+            return this._currMeshBuffer;
+        }
+        if (this._currMeshBuffer.vertexFormatBytes !== bytes) {
+            this._requireBufferBatch(attributes);
+        }
+        return this._currMeshBuffer;
+    }
+
+    public getCurrMeshBuffer () { return this._currMeshBuffer; }
+    public setCurrMeshBuffer (b: MeshBuffer) { if (b) this._currMeshBuffer = b; }
 
     set currStaticRoot (value: UIStaticBatch | null) {
         this._currStaticRoot = value;
@@ -101,10 +116,11 @@ export class UI {
     private _currMeshBuffer: MeshBuffer | null = null;
     private _currStaticRoot: UIStaticBatch | null = null;
     private _currComponent: UIRenderable | null = null;
-    private _currTextureHash = 0;
-    private _currSamplerHash = 0;
-    private _currMaterialHash = 0;
-    private _currMaterialUniformHash = 0;
+    private _currTextureHash: number = 0;
+    private _currSamplerHash: number = 0;
+    private _currMaterialHash: number = 0;
+    private _currMaterialUniformHash: number = 0;
+    private _currVertexStrideBytes: number = 9 * 4;
     private _parentOpacity = 1;
     // DescriptorSet Cache Map
     private _descriptorSetCacheMap = new Map<number, Map<number, DescriptorSetHandle>>();
@@ -403,6 +419,7 @@ export class UI {
         this._meshBufferUseCount.clear();
         this._currMaterialHash = 0;
         this._currMaterialUniformHash = 0;
+        this._currVertexStrideBytes = 9 * 4;
         // this._requireBufferBatch();
         StencilManager.sharedManager!.reset();
     }
@@ -545,7 +562,7 @@ export class UI {
     public autoMergeBatches (renderComp?: UIRenderable) {
         const buffer = this._currMeshBuffer!;
         const uiCanvas = this._currCanvas;
-        const hIA = buffer.recordBatch();
+        const hIA = buffer ? buffer.recordBatch() : null;
         let mat = this._currMaterial;
 
         if (!hIA || !mat) {
@@ -695,7 +712,7 @@ export class UI {
         batch.initialize(attributes, this._requireBufferBatch.bind(this, attributes));
         const bytes = getAttributeFormatBytes(attributes);
         let buffers = this._meshBuffers.get(bytes);
-        if(!buffers) { buffers = []; this._meshBuffers.set(bytes, buffers); }
+        if (!buffers) { buffers = []; this._meshBuffers.set(bytes, buffers); }
         buffers.push(batch);
         return batch;
     }
@@ -703,7 +720,7 @@ export class UI {
     private _requireBufferBatch (attributes: Attribute[]) {
         const bytes = getAttributeFormatBytes(attributes);
         let buffers = this._meshBuffers.get(bytes);
-        if(!buffers) { buffers = []; this._meshBuffers.set(bytes, buffers); }
+        if (!buffers) { buffers = []; this._meshBuffers.set(bytes, buffers); }
         const meshBufferUseCount = this._meshBufferUseCount.get(bytes) || 0;
 
         if (meshBufferUseCount >= buffers.length) {

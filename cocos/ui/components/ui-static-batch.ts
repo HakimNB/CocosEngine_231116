@@ -140,8 +140,8 @@ export class UIStaticBatch extends UIRenderable {
     public updateAssembler (render: UI) {
         if (this._dirty) {
             render.finishMergeBatches();
-            this._lastMeshBuffer = render.currBufferBatch;
-            render.currBufferBatch = this._meshBuffer;
+            this._lastMeshBuffer = render.getCurrMeshBuffer();
+            render.setCurrMeshBuffer(this._meshBuffer!);
             render.currStaticRoot = this;
         }
 
@@ -154,7 +154,7 @@ export class UIStaticBatch extends UIRenderable {
     public postUpdateAssembler (render: UI) {
         if (this._dirty) {
             render.finishMergeBatches();
-            render.currBufferBatch = this._lastMeshBuffer;
+            render.setCurrMeshBuffer(this._lastMeshBuffer!);
             render.currStaticRoot = null;
             this._dirty = false;
             this._init = true;

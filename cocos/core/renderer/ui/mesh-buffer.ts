@@ -72,6 +72,8 @@ export class MeshBuffer {
         this._batcher = batcher;
     }
 
+    get vertexFormatBytes (): number { return this._vertexFormatBytes; }
+
     public initialize (attrs: Attribute[], outOfCallback: ((...args: number[]) => void) | null) {
         this._outOfCallback = outOfCallback;
         const formatBytes = getAttributeFormatBytes(attrs);

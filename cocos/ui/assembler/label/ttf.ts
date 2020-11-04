@@ -67,13 +67,13 @@ export const ttf: IAssembler = {
         const dataList: IRenderData[] = renderData.data;
         const node = comp.node;
 
-        let buffer = renderer.currBufferBatch!;
+        let buffer = renderer.fetchCurrentBufferBatch()!;
         const vertexOffset = buffer.byteOffset >> 2;
         let indicesOffset = buffer.indicesOffset;
         let vertexId = buffer.vertexOffset;
         const isRecreate = buffer.request();
         if (!isRecreate) {
-            buffer = renderer.currBufferBatch!;
+            buffer = renderer.getCurrMeshBuffer()!;
             indicesOffset = 0;
             vertexId = 0;
         }

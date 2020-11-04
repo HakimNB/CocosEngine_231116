@@ -54,13 +54,13 @@ export const ParticleAssembler: IAssembler = {
             node = comp.node;
         }
 
-        let buffer = renderer.currBufferBatch!;
+        let buffer = renderer.fetchCurrentBufferBatch()!;
         let vertexOffset = buffer.byteOffset >> 2;
         let indicesOffset = buffer.indicesOffset;
         let vertexId = buffer.vertexOffset;
         const isRecreate = buffer.request(renderData.vertexCount, renderData.indicesCount);
         if (!isRecreate) {
-            buffer = renderer.currBufferBatch!;
+            buffer = renderer.getCurrMeshBuffer()!;
             indicesOffset = 0;
             vertexId = 0;
         }

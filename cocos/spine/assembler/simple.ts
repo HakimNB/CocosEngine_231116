@@ -226,18 +226,18 @@ export const simple: IAssembler = {
         const dataArray = layer.meshRenderDataArray!;
         const node = layer.node;
 
-        let buffer = renderer.currBufferBatch!;
-        let vertexOffset = buffer.byteOffset >> 2;
-        let indicesOffset = buffer.indicesOffset;
-        let vertexId = buffer.vertexOffset;
-
         // 当前渲染的数据
         const data = dataArray[layer._meshRenderDataArrayIdx];
         const renderData = data.renderData;
 
+        let buffer = renderer.fetchCurrentBufferBatch(renderData.floatStride === 9 ? vfmtPosUvColor : vfmtPosUvTwoColor)!;
+        let vertexOffset = buffer.byteOffset >> 2;
+        let indicesOffset = buffer.indicesOffset;
+        let vertexId = buffer.vertexOffset;
+
         const isRecreate = buffer.request(renderData.vertexCount, renderData.indicesCount);
         if (!isRecreate) {
-            buffer = renderer.currBufferBatch!;
+            buffer = renderer.getCurrMeshBuffer()!;
             vertexOffset = 0;
             indicesOffset = 0;
             vertexId = 0;
