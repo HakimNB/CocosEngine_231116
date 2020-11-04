@@ -292,6 +292,14 @@ function updateComponentRenderData (comp: Skeleton, ui: UI) {
     _buffer = comp.requestMeshRenderData(_perVertexSize);
     _comp = comp;
 
+    if (_useTint) {
+        _comp!.spineMatrialType = SpineMaterialType.TWO_COLORED;
+    } else {
+        _comp!.spineMatrialType = SpineMaterialType.COLORED_TEXTURED;
+    }
+
+    _currentMaterial = _comp!.getMaterial(0);
+
     _mustFlush = true;
     _premultipliedAlpha = comp.premultipliedAlpha;
     _multiplier = 1.0;
@@ -557,6 +565,7 @@ function realTimeTraverse (worldMat?: Mat4) {
         }
 
         if (!_currentMaterial) _currentMaterial = material;
+        if (!_buffer?.renderData.material) _buffer!.renderData.material = _currentMaterial;
 
         if (_mustFlush || material.hash !== _currentMaterial.hash || (texture && _currentTexture !== texture)) {
             _mustFlush = false;
@@ -565,6 +574,7 @@ function realTimeTraverse (worldMat?: Mat4) {
             _currentMaterial = material;
             _currentTexture = texture;
             _buffer.texture = texture!;
+            _buffer!.renderData.material = _currentMaterial;
         }
 
         if (isRegion) {
@@ -758,6 +768,7 @@ function cacheTraverse (worldMat?: Mat4) {
         if (!material) continue;
         if (!_currentMaterial) _currentMaterial = material;
         if (!_currentTexture) _currentTexture = segInfo.tex!;
+        if (_buffer!.renderData.material) _buffer!.renderData.material = _currentMaterial;
 
         if (_mustFlush || material.hash !== _currentMaterial.hash || (segInfo.tex && segInfo.tex !== _currentTexture)) {
             _mustFlush = false;
@@ -768,6 +779,7 @@ function cacheTraverse (worldMat?: Mat4) {
             _currentMaterial = material;
             _currentTexture = segInfo.tex!;
             _buffer!.texture = segInfo.tex!;
+            _buffer!.renderData.material = _currentMaterial;
         }
 
         _vertexCount = segInfo.vertexCount;

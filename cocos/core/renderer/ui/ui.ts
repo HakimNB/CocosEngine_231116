@@ -50,6 +50,7 @@ import { ModelLocalBindings } from '../../pipeline/define';
 import { EffectAsset, RenderTexture, SpriteFrame } from '../../assets';
 import { programLib } from '../core/program-lib';
 import { TextureBase } from '../../assets/texture-base';
+import { getAttributeFormatBytes } from './ui-vertex-format';
 
 const _dsInfo = new DescriptorSetInfo(null!);
 
@@ -62,17 +63,17 @@ export class UI {
         return this._scene;
     }
 
-    get currBufferBatch () {
-        return this._currMeshBuffer;
-    }
+    // get currBufferBatch () {
+    //     return this._currMeshBuffer;
+    // }
 
-    set currBufferBatch (value) {
-        if (!value) {
-            return;
-        }
+    // set currBufferBatch (value) {
+    //     if (!value) {
+    //         return;
+    //     }
 
-        this._currMeshBuffer = value;
-    }
+    //     this._currMeshBuffer = value;
+    // }
 
     set currStaticRoot (value: UIStaticBatch | null) {
         this._currStaticRoot = value;
@@ -83,9 +84,9 @@ export class UI {
     private _bufferBatchPool: RecyclePool<MeshBuffer> = new RecyclePool(() => new MeshBuffer(this), 128);
     private _drawBatchPool: Pool<UIDrawBatch>;
     private _scene: RenderScene;
-    private _attributes: Attribute[] = [];
-    private _meshBuffers: MeshBuffer[] = [];
-    private _meshBufferUseCount = 0;
+    // private _attributes: Attribute[] = [];
+    private _meshBuffers: Map<number, MeshBuffer[]> = new Map();
+    private _meshBufferUseCount: Map<number, number> = new Map();
     private _uiMaterials: Map<number, UIMaterial> = new Map<number, UIMaterial>();
     private _canvasMaterials: Map<number, Map<number, number>> = new Map<number, Map<number, number>>();
     private _batches: CachedArray<UIDrawBatch>;
@@ -126,9 +127,10 @@ export class UI {
     }
 
     public initialize () {
-        this._attributes = UIVertexFormat.vfmtPosUvColor;
 
-        this._requireBufferBatch();
+        // this._attributes = UIVertexFormat.vfmtPosUvColor;
+
+        // this._requireBufferBatch();
 
         return true;
     }
@@ -141,8 +143,8 @@ export class UI {
         }
         this._batches.destroy();
 
-        for (let i = 0; i < this._meshBuffers.length; i++) {
-            this._meshBuffers[i].destroy();
+        for (const size of this._meshBuffers.keys()) {
+            this._meshBuffers.get(size)?.forEach(buffer => buffer.destroy());
         }
 
         if (this._drawBatchPool) {
@@ -161,7 +163,7 @@ export class UI {
             this._destoryDescriptorSet();
         }
 
-        this._meshBuffers.splice(0);
+        this._meshBuffers.clear();
         legacyCC.director.root.destroyScene(this._scene);
     }
 
@@ -373,10 +375,11 @@ export class UI {
     public uploadBuffers () {
         if (this._batches.length > 0) {
             const buffers = this._meshBuffers;
-            for (let i = 0; i < buffers.length; ++i) {
-                const bufferBatch = buffers[i];
-                bufferBatch.uploadBuffers();
-                bufferBatch.reset();
+            for (const i of buffers.keys()) {
+                buffers.get(i)?.forEach((bufferBatch) => {
+                    bufferBatch.uploadBuffers();
+                    bufferBatch.reset();
+                });
             }
         }
 
@@ -397,10 +400,10 @@ export class UI {
         this._currTexture = null;
         this._currSampler = null;
         this._currComponent = null;
-        this._meshBufferUseCount = 0;
+        this._meshBufferUseCount.clear();
         this._currMaterialHash = 0;
         this._currMaterialUniformHash = 0;
-        this._requireBufferBatch();
+        // this._requireBufferBatch();
         StencilManager.sharedManager!.reset();
     }
 
@@ -687,21 +690,28 @@ export class UI {
         this.autoMergeBatches(this._currComponent!);
     }
 
-    private _createMeshBuffer (): MeshBuffer {
+    private _createMeshBuffer (attributes: Attribute[]): MeshBuffer {
         const batch = this._bufferBatchPool.add();
-        batch.initialize(this._attributes, this._requireBufferBatch.bind(this));
-        this._meshBuffers.push(batch);
+        batch.initialize(attributes, this._requireBufferBatch.bind(this, attributes));
+        const bytes = getAttributeFormatBytes(attributes);
+        let buffers = this._meshBuffers.get(bytes);
+        if(!buffers) { buffers = []; this._meshBuffers.set(bytes, buffers); }
+        buffers.push(batch);
         return batch;
     }
 
-    private _requireBufferBatch () {
-        if (this._meshBufferUseCount >= this._meshBuffers.length) {
-            this._currMeshBuffer = this._createMeshBuffer();
-        } else {
-            this._currMeshBuffer = this._meshBuffers[this._meshBufferUseCount];
-        }
+    private _requireBufferBatch (attributes: Attribute[]) {
+        const bytes = getAttributeFormatBytes(attributes);
+        let buffers = this._meshBuffers.get(bytes);
+        if(!buffers) { buffers = []; this._meshBuffers.set(bytes, buffers); }
+        const meshBufferUseCount = this._meshBufferUseCount.get(bytes) || 0;
 
-        this._meshBufferUseCount++;
+        if (meshBufferUseCount >= buffers.length) {
+            this._currMeshBuffer = this._createMeshBuffer(attributes);
+        } else {
+            this._currMeshBuffer = buffers[meshBufferUseCount];
+        }
+        this._meshBufferUseCount.set(bytes, meshBufferUseCount + 1);
         if (arguments.length === 2) {
             this._currMeshBuffer.request(arguments[0], arguments[1]);
         }

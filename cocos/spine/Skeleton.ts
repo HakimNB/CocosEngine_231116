@@ -366,6 +366,7 @@ export class Skeleton extends UIRenderable {
         if (v != this._debugSlots) {
             this._debugSlots = v;
             this._updateDebugDraw();
+            this.markForUpdateRenderData();
         }
     }
     @serializable
@@ -382,6 +383,7 @@ export class Skeleton extends UIRenderable {
         if (v != this._debugBones) {
             this._debugBones = v;
             this._updateDebugDraw();
+            this.markForUpdateRenderData();
         }
     }
     @serializable
@@ -398,7 +400,7 @@ export class Skeleton extends UIRenderable {
         if (value != this._debugMesh) {
             this._debugMesh = value;
             this._updateDebugDraw();
-
+            this.markForUpdateRenderData();
         }
     }
     @serializable
@@ -416,6 +418,7 @@ export class Skeleton extends UIRenderable {
         if (value != this._useTint) {
             this._useTint = value;
             this._updateUseTint()
+            this.markForUpdateRenderData();
         }
     }
 
@@ -516,6 +519,7 @@ export class Skeleton extends UIRenderable {
 
     public set spineMatrialType(type: SpineMaterialType) {
         if(type != this._spineMatrialType) {
+            this._spineMatrialType = type;
             this.updateMaterial();
             this._updateBlendFunc();
         }
@@ -674,6 +678,7 @@ export class Skeleton extends UIRenderable {
             this._cacheMode = cacheMode;
             this._updateSkeletonData();
             this._updateUseTint();
+            this.markForUpdateRenderData();
         }
     }
 
@@ -769,7 +774,7 @@ export class Skeleton extends UIRenderable {
         this._curFrame = frames[frameIdx];
     }
 
-    _updateRealtime (dt) {
+    _updateRealtime (dt:number) {
         let skeleton = this._skeleton;
         let state = this._state;
         if (skeleton) {
@@ -1416,7 +1421,7 @@ export class Skeleton extends UIRenderable {
 
         const renderData = new MeshRenderData(vertexFloatCnt);
         const comb: SkeletonMeshData = { renderData };
-        renderData.material = this.getMaterial(0);
+        renderData.material = null;
         this._meshRenderDataArray.push(comb);
         return comb;
     }
