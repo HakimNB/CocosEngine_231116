@@ -81,6 +81,10 @@ CCProgram sprite-fs %{
     #endif
 
     o *= color;
+    o.r = 1.0;
+    o.g = 0.0;
+    o.b = 0.0;
+    o.a = 0.2;
     ALPHA_TEST(o);
     return o;
   }

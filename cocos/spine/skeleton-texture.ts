@@ -23,13 +23,13 @@
  THE SOFTWARE.
  ****************************************************************************/
 
-import { Material, Texture2D } from '../../cocos/core';
+import { ImageAsset, Material, Texture2D } from '../../cocos/core';
 import { Filter, WrapMode } from '../../cocos/core/assets/asset-enum';
 import spine from './lib/spine-core.js';
 
 export class SkeletonTexture extends spine.Texture {
     name: string = 'sp.SkeletonTexture';
-    _texture: Texture2D | null = null;
+    _texture: Texture2D|ImageAsset | null = null;
     _material: Material | null = null;
 
     constructor (opt:ImageBitmap|HTMLImageElement) {
@@ -42,18 +42,18 @@ export class SkeletonTexture extends spine.Texture {
     }
 
     getRealTexture (): Texture2D|null {
-        return this._texture;
+        return this._texture instanceof ImageAsset ? this._texture._texture : this._texture;
     }
 
     setFilters (minFilter: spine.TextureFilter, magFilter: spine.TextureFilter) {
         if (this._texture) {
-            this._texture.setFilters(convertFilter(minFilter), convertFilter(magFilter));
+            this.getRealTexture()!.setFilters(convertFilter(minFilter), convertFilter(magFilter));
         }
     }
 
     setWraps (uWrap: spine.TextureWrap, vWrap: spine.TextureWrap) {
         if (this._texture) {
-            this._texture.setWrapMode(convertWraps(uWrap), convertWraps(vWrap));
+            this.getRealTexture()!.setWrapMode(convertWraps(uWrap), convertWraps(vWrap));
         }
     }
 

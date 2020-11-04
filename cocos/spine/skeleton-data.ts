@@ -45,6 +45,8 @@ export class SkeletonData extends Asset {
         this.reset();
     }
 
+    
+    @serializable
     _skeletonJson: spine.SkeletonJson | null = null;
 
     // use by jsb
@@ -62,7 +64,6 @@ export class SkeletonData extends Asset {
      * !#zh 可查看 Spine 官方文档 http://zh.esotericsoftware.com/spine-json-format
      * @property {Object} skeletonJson
      */
-    @serializable
     get skeletonJson (): spine.SkeletonJson {
         return this._skeletonJson!;
     }
@@ -79,13 +80,12 @@ export class SkeletonData extends Asset {
         }
     }
 
-
+    @serializable
     protected _atlasText: string = '';
 
     /**
      * @property {String} atlasText
      */
-    @serializable
     get atlasText () {
         return this._atlasText;
     }
@@ -256,29 +256,32 @@ export class SkeletonData extends Asset {
     _animsEnum: { [key: string]: number } | null = null;
 
     getSkinsEnum () {
-        if (this._skinsEnum) {
+        if (this._skinsEnum && Object.keys(this._skinsEnum).length > 0) {
             return this._skinsEnum;
         }
         const sd = this.getRuntimeData(true);
         if (sd) {
             const skins = sd.skins;
-            const enumDef = {};
+            const enumDef:{[key: string]: number} = {};
             for (let i = 0; i < skins.length; i++) {
                 const name = skins[i].name;
                 enumDef[name] = i;
             }
+            // if(skins.length === 0) {
+            //     enumDef.default = 0;
+            // }
             return this._skinsEnum = Enum(enumDef);
         }
         return null;
     }
 
     getAnimsEnum () {
-        if (this._animsEnum) {
+        if (this._animsEnum && Object.keys(this._animsEnum).length > 0) {
             return this._animsEnum;
         }
         const sd = this.getRuntimeData(true);
         if (sd) {
-            const enumDef = { '<None>': 0 };
+            const enumDef:{[key: string]: number} = { '<None>': 0 };
             const anims = sd.animations;
             for (let i = 0; i < anims.length; i++) {
                 const name = anims[i].name;

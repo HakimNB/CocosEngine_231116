@@ -28,10 +28,10 @@ import { TrackEntryListeners } from './track-entry-listeners';
 import spine from './lib/spine-core.js';
 import { default as SkeletonCache, AnimationCache, AnimationFrame } from './skeleton-cache';
 import { AttachUtil } from './AttachUtil';
-import { ccclass, executeInEditMode, help, menu, property } from '../core/data/class-decorator';
+import { ccclass, executeInEditMode, help, menu } from '../core/data/class-decorator';
 import { UIRenderable } from '../core/components/ui-base/ui-renderable';
-import { builtinResMgr, CCClass, ccenum, CCObject, Color, Enum, errorID, logID, Material, PrivateNode, SpriteFrame, Texture2D, warn } from '../core';
-import { displayName, tooltip, type, visible } from '../core/data/decorators';
+import { builtinResMgr, CCClass, ccenum, Color, Enum, errorID, logID, Material, PrivateNode, Texture2D, warn } from '../core';
+import { displayName, editable, serializable, tooltip, type, visible } from '../core/data/decorators';
 import { EDITOR } from '../../editor/exports/populate-internal-constants';
 import { SkeletonData } from './skeleton-data';
 import { VertexEffectDelegate } from './vertex-effect-delegate';
@@ -145,7 +145,6 @@ export class Skeleton extends UIRenderable {
      * @readOnly
      * @default false
      */
-    @property
     @visible(false)
     paused: boolean = false;
 
@@ -160,6 +159,7 @@ export class Skeleton extends UIRenderable {
      * 多个 Skeleton 可以共用相同的骨骼数据。
      * @property {sp.SkeletonData} skeletonData
      */
+    @editable
     @type(SkeletonData)
     get skeletonData () {
         return this._skeletonData!;
@@ -175,6 +175,8 @@ export class Skeleton extends UIRenderable {
             this._updateSkeletonData();
         }
     }
+
+    @serializable
     _skeletonData: SkeletonData | null = null;
 
     // 由于 spine 的 skin 是无法二次替换的，所以只能设置默认的 skin
@@ -183,7 +185,7 @@ export class Skeleton extends UIRenderable {
      * !#zh 默认的皮肤名称。
      * @property {String} defaultSkin
      */
-    @property
+    @serializable
     @visible(false)
     defaultSkin: string = '';
 
@@ -193,7 +195,7 @@ export class Skeleton extends UIRenderable {
      * @property {String} defaultAnimation
      */
     @visible(false)
-    @property
+    @serializable
     defaultAnimation: string = '';
 
     /**
@@ -202,7 +204,7 @@ export class Skeleton extends UIRenderable {
      * @property {String} animation
      */
 
-    @property
+    @serializable
     @visible(false)
     get animation (): string {
         if (this.isAnimationCached()) {
@@ -223,10 +225,6 @@ export class Skeleton extends UIRenderable {
         }
     }
 
-
-    /**
-     * @property {Number} _defaultSkinIndex
-     */
     @displayName('Default Skin')
     @type(DefaultSkinsEnum)
     @tooltip('i18n:COMPONENT.skeleton.default_skin')
@@ -257,7 +255,8 @@ export class Skeleton extends UIRenderable {
         if (!skinsEnum) {
             errorID(7501, this.name);
         }
-        var skinName = skinsEnum[value];
+        
+        var skinName = value == -1 ? "default" : skinsEnum[value];
         if (skinName !== undefined) {
             this.defaultSkin = skinName;
             this.setSkin(this.defaultSkin);
@@ -316,6 +315,7 @@ export class Skeleton extends UIRenderable {
     _cacheMode = AnimationCacheMode.REALTIME;
     @displayName('Animation Cache Mode')
     @tooltip('i18n:COMPONENT.skeleton.animation_cache_mode')
+    @editable
     get defaultCacheMode () {
         return this._defaultCacheMode;
     }
@@ -323,15 +323,14 @@ export class Skeleton extends UIRenderable {
         this._defaultCacheMode = mode;
         this.setAnimationCacheMode(this._defaultCacheMode);
     }
+    @serializable
     private _defaultCacheMode: AnimationCacheMode = AnimationCacheMode.REALTIME;
 
     /**
      * !#en TODO
      * !#zh 是否循环播放当前骨骼动画。
-     * @property {Boolean} loop
-     * @default true
      */
-    @property
+    @serializable
     @tooltip('i18n:COMPONENT.skeleton.loop')
     loop = true;
 
@@ -341,30 +340,26 @@ export class Skeleton extends UIRenderable {
      * or enable this option when image's half transparent area appears to be darken.
      * !#zh 是否启用贴图预乘。
      * 当图片的透明区域出现色块时需要关闭该选项，当图片的半透明区域颜色变黑时需要启用该选项。
-     * @property {Boolean} premultipliedAlpha
-     * @default true
      */
-    @property
+    @serializable
     @tooltip('i18n:COMPONENT.skeleton.premultipliedAlpha')
+    @editable
     premultipliedAlpha: boolean = true;
 
     /**
      * !#en The time scale of this skeleton.
      * !#zh 当前骨骼中所有动画的时间缩放率。
-     * @property {Number} timeScale
-     * @default 1
      */
-    @property
+    @serializable
     @tooltip('i18n:COMPONENT.skeleton.time_scale')
+    @editable
     timeScale: number = 1;
 
     /**
      * !#en Indicates whether open debug slots.
      * !#zh 是否显示 slot 的 debug 信息。
-     * @property {Boolean} debugSlots
-     * @default false
      */
-    @property
+    @editable
     @tooltip('i18n:COMPONENT.skeleton.debug_slots')
     get debugSlots () { return this._debugSlots; }
     set debugSlots (v: boolean) {
@@ -373,15 +368,14 @@ export class Skeleton extends UIRenderable {
             this._updateDebugDraw();
         }
     }
+    @serializable
     private _debugSlots: boolean = false;
 
     /**
      * !#en Indicates whether open debug bones.
      * !#zh 是否显示 bone 的 debug 信息。
-     * @property {Boolean} debugBones
-     * @default false
      */
-    @property
+    @editable
     @tooltip('i18n:COMPONENT.skeleton.debug_bones')
     get debugBones () { return this._debugBones; }
     set debugBones (v: boolean) {
@@ -390,15 +384,14 @@ export class Skeleton extends UIRenderable {
             this._updateDebugDraw();
         }
     }
+    @serializable
     private _debugBones: boolean = false;
 
     /**
      * !#en Indicates whether open debug mesh.
      * !#zh 是否显示 mesh 的 debug 信息。
-     * @property {Boolean} debugMesh
-     * @default false
      */
-    @property
+    @editable
     @tooltip('i18n:COMPONENT.skeleton.debug_mesh')
     get debugMesh () { return this._debugMesh; }
     set debugMesh (value) {
@@ -408,16 +401,15 @@ export class Skeleton extends UIRenderable {
 
         }
     }
+    @serializable
     private _debugMesh: boolean = false;
 
 
     /**
      * !#en Enabled two color tint.
      * !#zh 是否启用染色效果。
-     * @property {Boolean} useTint
-     * @default false
      */
-    @property
+    @editable
     @tooltip('i18n:COMPONENT.skeleton.use_tint')
     get useTint () { return this._useTint; }
     set useTint (value) {
@@ -427,14 +419,12 @@ export class Skeleton extends UIRenderable {
         }
     }
 
+    @serializable
     private _useTint: boolean = false;
     /**
      * !#en Enabled batch model, if skeleton is complex, do not enable batch, or will lower performance.
      * !#zh 开启合批，如果渲染大量相同纹理，且结构简单的骨骼动画，开启合批可以降低drawcall，否则请不要开启，cpu消耗会上升。
-     * @property {Boolean} enableBatch
-     * @default false
      */
-    @property
     @tooltip('i18n:COMPONENT.skeleton.enabled_batch')
     get enableBatch () { return this._enableBatch; }
     set enableBatch (value) {
@@ -444,7 +434,8 @@ export class Skeleton extends UIRenderable {
         }
     }
 
-    private _enableBatch: boolean = false;
+    @serializable
+    private _enableBatch: boolean = true;
 
     // Below properties will effect when cache mode is SHARED_CACHE or PRIVATE_CACHE.
     // accumulate time
@@ -507,7 +498,7 @@ export class Skeleton extends UIRenderable {
     }
 
     // override base class disableRender to add post render flag
-    markForRender (enable) {
+    markForRender () {
         // this._super(enable);
         // if (enable) {
         //     this.node._renderFlag |= FLAG_POST_RENDER;
@@ -555,6 +546,7 @@ export class Skeleton extends UIRenderable {
         //     baseMaterial.define('CC_USE_MODEL', !this.enableBatch);
         // }
         // this._materialCache = {};
+        this.markForUpdateRenderData();
     }
 
     _validateRender () {
@@ -604,15 +596,12 @@ export class Skeleton extends UIRenderable {
             this._rootBone = this._skeleton.getRootBone();
         }
 
-        this.markForRender(true);
+        this.markForRender();
     }
 
     /**
      * !#en Sets slots visible range.
      * !#zh 设置骨骼插槽可视范围。
-     * @method setSlotsRange
-     * @param {Number} startSlotIndex
-     * @param {Number} endSlotIndex
      */
     setSlotsRange (startSlotIndex, endSlotIndex) {
         if (this.isAnimationCached()) {
@@ -628,8 +617,6 @@ export class Skeleton extends UIRenderable {
      * The parameter type is {{#crossLinkModule "sp.spine"}}sp.spine{{/crossLinkModule}}.AnimationStateData.
      * !#zh 设置动画状态数据。<br>
      * 参数是 {{#crossLinkModule "sp.spine"}}sp.spine{{/crossLinkModule}}.AnimationStateData。
-     * @method setAnimationStateData
-     * @param {sp.spine.AnimationStateData} stateData
      */
     setAnimationStateData (stateData) {
         if (this.isAnimationCached()) {
@@ -679,8 +666,6 @@ export class Skeleton extends UIRenderable {
      * 若想切换渲染模式，最好在设置'dragonAsset'之前，先设置好渲染模式，否则有运行时开销。
      * 若在编辑中设置渲染模式，则无需担心设置次序的问题。
      * 
-     * @method setAnimationCacheMode
-     * @param {AnimationCacheMode} cacheMode
      * @example
      * skeleton.setAnimationCacheMode(sp.Skeleton.AnimationCacheMode.SHARED_CACHE);
      */
@@ -695,8 +680,6 @@ export class Skeleton extends UIRenderable {
     /**
      * !#en Whether in cached mode.
      * !#zh 当前是否处于缓存模式。
-     * @method isAnimationCached
-     * @return {Boolean}
      */
     isAnimationCached () {
         if (EDITOR) return false;
@@ -801,10 +784,8 @@ export class Skeleton extends UIRenderable {
     /**
      * !#en Sets vertex effect delegate.
      * !#zh 设置顶点动画代理
-     * @method setVertexEffectDelegate
-     * @param {sp.VertexEffectDelegate} effectDelegate
      */
-    setVertexEffectDelegate (effectDelegate) {
+    setVertexEffectDelegate (effectDelegate:VertexEffectDelegate) {
         this._effectDelegate = effectDelegate;
     }
 
@@ -1417,12 +1398,22 @@ export class Skeleton extends UIRenderable {
         }
     }
 
-    onDestroy() {
+    public onEnable () {
+        super.onEnable();
+        this._flushAssembler();
+    }
+
+    public onDestroy() {
         this.destroyRenderData();
         super.onDestroy();
     }
 
     public requestMeshRenderData (vertexFloatCnt:number) {
+
+        if(this._meshRenderDataArray.length > 0 && this._meshRenderDataArray[this._meshRenderDataArray.length - 1].renderData.vertexStart == 0) {
+            return this._meshRenderDataArray[this._meshRenderDataArray.length - 1];
+        }
+
         const renderData = new MeshRenderData(vertexFloatCnt);
         const comb: SkeletonMeshData = { renderData };
         renderData.material = this.getMaterial(0);
@@ -1448,7 +1439,7 @@ export class Skeleton extends UIRenderable {
         if (this._assembler !== assembler) {
             this._assembler = assembler;
         }
-        if (!this._meshRenderDataArray) {
+        if (this._meshRenderDataArray.length == 0) {
             if (this._assembler && this._assembler.createData) {
                 this._assembler.createData(this);
                 this.markForUpdateRenderData();

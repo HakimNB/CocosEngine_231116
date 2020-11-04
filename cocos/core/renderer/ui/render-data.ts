@@ -150,11 +150,14 @@ export class MeshRenderData extends BaseRenderData {
     }
 
     set formatByte (value: number) { this._formatByte = value; }
+    get formatByte () {return this._formatByte;}
+
+    get floatStride () { return this._formatByte >> 2;}
 
     /**
      * Index of Float32Array: vData
      */
-    get vDataOffset () { return this.byteStart >>> 2; }
+    get vDataOffset () { return this.byteCount >>> 2; }
 
     public static add () {
         return _meshDataPool.add();

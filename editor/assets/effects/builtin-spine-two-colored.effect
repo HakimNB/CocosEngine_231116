@@ -87,7 +87,10 @@ CCProgram sprite-fs %{
 
  	  o.a = texColor.a * v_light.a;
     o.rgb = ((texColor.a - 1.0) * v_dark.a + 1.0 - texColor.rgb) * v_dark.rgb + texColor.rgb * v_light.rgb;
-			
+
+    o.r = 0.0;
+    o.b = 1.0;
+    o.a = 0.2;
     ALPHA_TEST(o);
     return o;
   }
