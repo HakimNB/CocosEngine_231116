@@ -5152,7 +5152,10 @@ var spine;
         SkeletonClipping.prototype.isClipping = function () {
             return this.clipAttachment != null;
         };
-        SkeletonClipping.prototype.clipTriangles = function (vertices, verticesLength, triangles, trianglesLength, uvs, light, dark, twoColor) {
+        SkeletonClipping.prototype.clipTriangles = function (vertices, verticesLength, triangles, trianglesLength, uvs, light, dark, twoColor, strideFloat, offsetV, offsetI) {
+            if (strideFloat === void 0) { strideFloat = 2; }
+            if (offsetV === void 0) { offsetV = 0; }
+            if (offsetI === void 0) { offsetI = 0; }
             var clipOutput = this.clipOutput, clippedVertices = this.clippedVertices;
             var clippedTriangles = this.clippedTriangles;
             var polygons = this.clippingPolygons;
@@ -5162,15 +5165,15 @@ var spine;
             clippedVertices.length = 0;
             clippedTriangles.length = 0;
             outer: for (var i = 0; i < trianglesLength; i += 3) {
-                var vertexOffset = triangles[i] << 1;
-                var x1 = vertices[vertexOffset], y1 = vertices[vertexOffset + 1];
-                var u1 = uvs[vertexOffset], v1 = uvs[vertexOffset + 1];
-                vertexOffset = triangles[i + 1] << 1;
-                var x2 = vertices[vertexOffset], y2 = vertices[vertexOffset + 1];
-                var u2 = uvs[vertexOffset], v2 = uvs[vertexOffset + 1];
-                vertexOffset = triangles[i + 2] << 1;
-                var x3 = vertices[vertexOffset], y3 = vertices[vertexOffset + 1];
-                var u3 = uvs[vertexOffset], v3 = uvs[vertexOffset + 1];
+                var vertexOffset = triangles[i] * strideFloat;
+                var x1 = vertices[vertexOffset + offsetV], y1 = vertices[vertexOffset + offsetV + 1];
+                var u1 = uvs[vertexOffset + offsetI], v1 = uvs[vertexOffset + offsetI + 1];
+                vertexOffset = triangles[i + 1] * strideFloat;
+                var x2 = vertices[vertexOffset + offsetV], y2 = vertices[vertexOffset + offsetV + 1];
+                var u2 = uvs[vertexOffset + offsetI], v2 = uvs[vertexOffset + offsetI + 1];
+                vertexOffset = triangles[i + 2] * strideFloat;
+                var x3 = vertices[vertexOffset + offsetV], y3 = vertices[vertexOffset + offsetV + 1];
+                var u3 = uvs[vertexOffset + offsetI], v3 = uvs[vertexOffset + offsetI + 1];
                 for (var p = 0; p < polygonsCount; p++) {
                     var s = clippedVertices.length;
                     if (this.clip(x1, y1, x2, y2, x3, y3, polygons[p], clipOutput)) {
@@ -8203,6 +8206,4 @@ var spine;
     }());
     spine.SwirlEffect = SwirlEffect;
 })(spine || (spine = {}));
-//# sourceMappingURL=spine-core.js.map
-
 export default spine;

@@ -76,12 +76,12 @@ export class UI {
     // }
 
     public fetchCurrentBufferBatch (attributes: Attribute[] = vfmtPosUvColor) {
-        const bytes = getAttributeFormatBytes(attributes);
+        const floatCnt = getAttributeFormatBytes(attributes);
         if (!this._currMeshBuffer) {
             this._requireBufferBatch(attributes);
             return this._currMeshBuffer;
         }
-        if (this._currMeshBuffer.vertexFormatBytes !== bytes) {
+        if ((this._currMeshBuffer.vertexFormatBytes >> 2) !== floatCnt) {
             this._requireBufferBatch(attributes);
         }
         return this._currMeshBuffer;
@@ -710,25 +710,25 @@ export class UI {
     private _createMeshBuffer (attributes: Attribute[]): MeshBuffer {
         const batch = this._bufferBatchPool.add();
         batch.initialize(attributes, this._requireBufferBatch.bind(this, attributes));
-        const bytes = getAttributeFormatBytes(attributes);
-        let buffers = this._meshBuffers.get(bytes);
-        if (!buffers) { buffers = []; this._meshBuffers.set(bytes, buffers); }
+        const floatCnt = getAttributeFormatBytes(attributes);
+        let buffers = this._meshBuffers.get(floatCnt);
+        if (!buffers) { buffers = []; this._meshBuffers.set(floatCnt, buffers); }
         buffers.push(batch);
         return batch;
     }
 
     private _requireBufferBatch (attributes: Attribute[]) {
-        const bytes = getAttributeFormatBytes(attributes);
-        let buffers = this._meshBuffers.get(bytes);
-        if (!buffers) { buffers = []; this._meshBuffers.set(bytes, buffers); }
-        const meshBufferUseCount = this._meshBufferUseCount.get(bytes) || 0;
+        const floatCnt = getAttributeFormatBytes(attributes);
+        let buffers = this._meshBuffers.get(floatCnt);
+        if (!buffers) { buffers = []; this._meshBuffers.set(floatCnt, buffers); }
+        const meshBufferUseCount = this._meshBufferUseCount.get(floatCnt) || 0;
 
         if (meshBufferUseCount >= buffers.length) {
             this._currMeshBuffer = this._createMeshBuffer(attributes);
         } else {
             this._currMeshBuffer = buffers[meshBufferUseCount];
         }
-        this._meshBufferUseCount.set(bytes, meshBufferUseCount + 1);
+        this._meshBufferUseCount.set(floatCnt, meshBufferUseCount + 1);
         if (arguments.length === 2) {
             this._currMeshBuffer.request(arguments[0], arguments[1]);
         }
@@ -745,7 +745,8 @@ export class UI {
         const byteOffset = this._currMeshBuffer!.byteOffset >> 2;
         const vbuf = this._currMeshBuffer!.vData!;
         const lastByteOffset = this._currMeshBuffer!.lastByteOffset >> 2;
-        for (let i = lastByteOffset; i < byteOffset; i += 9) {
+        const stride = this._currMeshBuffer!.vertexFormatBytes / 4;
+        for (let i = lastByteOffset; i < byteOffset; i += stride) {
             vbuf[i + MeshBuffer.OPACITY_OFFSET] = opacity;
         }
 

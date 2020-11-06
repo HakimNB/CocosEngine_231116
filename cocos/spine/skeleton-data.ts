@@ -45,7 +45,6 @@ export class SkeletonData extends Asset {
         this.reset();
     }
 
-    
     @serializable
     _skeletonJson: spine.SkeletonJson | null = null;
 
@@ -169,6 +168,13 @@ export class SkeletonData extends Asset {
         }
     }
 
+    resetEnums() {
+        if (EDITOR) {
+            this._skinsEnum = null;
+            this._animsEnum = null;
+        }
+    }
+
     ensureTexturesLoaded (loaded: null | ((x: boolean) => void), caller: any) {
         const textures = this.textures;
         const texsLen = textures.length;
@@ -252,11 +258,11 @@ export class SkeletonData extends Asset {
 
     // EDITOR functions
 
-    _skinsEnum: { [key: string]: number } | null = null;
-    _animsEnum: { [key: string]: number } | null = null;
+    private _skinsEnum: { [key: string]: number } | null = null;
+    private _animsEnum: { [key: string]: number } | null = null;
 
     getSkinsEnum () {
-        if (this._skinsEnum && Object.keys(this._skinsEnum).length > 0) {
+        if (this._skinsEnum /* && Object.keys(this._skinsEnum).length > 0 */) {
             return this._skinsEnum;
         }
         const sd = this.getRuntimeData(true);
@@ -267,16 +273,13 @@ export class SkeletonData extends Asset {
                 const name = skins[i].name;
                 enumDef[name] = i;
             }
-            // if(skins.length === 0) {
-            //     enumDef.default = 0;
-            // }
             return this._skinsEnum = Enum(enumDef);
         }
         return null;
     }
 
     getAnimsEnum () {
-        if (this._animsEnum && Object.keys(this._animsEnum).length > 0) {
+        if (this._animsEnum && Object.keys(this._animsEnum).length > 1) {
             return this._animsEnum;
         }
         const sd = this.getRuntimeData(true);

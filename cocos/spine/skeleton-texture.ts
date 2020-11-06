@@ -47,13 +47,13 @@ export class SkeletonTexture extends spine.Texture {
 
     setFilters (minFilter: spine.TextureFilter, magFilter: spine.TextureFilter) {
         if (this._texture) {
-            this.getRealTexture()!.setFilters(convertFilter(minFilter), convertFilter(magFilter));
+            this.getRealTexture()?.setFilters(convertFilter(minFilter), convertFilter(magFilter));
         }
     }
 
     setWraps (uWrap: spine.TextureWrap, vWrap: spine.TextureWrap) {
         if (this._texture) {
-            this.getRealTexture()!.setWrapMode(convertWraps(uWrap), convertWraps(vWrap));
+            this.getRealTexture()?.setWrapMode(convertWraps(uWrap), convertWraps(vWrap));
         }
     }
 

@@ -766,7 +766,7 @@ declare module spine {
         clipEndWithSlot(slot: Slot): void;
         clipEnd(): void;
         isClipping(): boolean;
-        clipTriangles(vertices: ArrayLike<number>, verticesLength: number, triangles: ArrayLike<number>, trianglesLength: number, uvs: ArrayLike<number>, light: Color, dark: Color, twoColor: boolean): void;
+        clipTriangles(vertices: ArrayLike<number>, verticesLength: number, triangles: ArrayLike<number>, trianglesLength: number, uvs: ArrayLike<number>, light: Color, dark: Color, twoColor: boolean, strideFloat?: number, offsetV?: number, offsetI?: number): void;
         clip(x1: number, y1: number, x2: number, y2: number, x3: number, y3: number, clippingArea: Array<number>, output: Array<number>): boolean;
         static makeClockwise(polygon: ArrayLike<number>): void;
     }

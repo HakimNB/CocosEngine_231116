@@ -24,9 +24,7 @@
  ****************************************************************************/
 import { TrackEntryListeners } from './track-entry-listeners';
 import spine from './lib/spine-core.js';
-import { Color, CubicSplineNumberValue, Texture2D } from '../../cocos/core';
-import { number } from 'yargs';
-import { NavigationPlugin } from 'typedoc';
+import { Texture2D } from '../../cocos/core';
 // Permit max cache time, unit is second.
 const MaxCacheTime = 30;
 const FrameTime = 1 / 60;
@@ -34,7 +32,6 @@ const FrameTime = 1 / 60;
 const _vertices: number[] = [];
 const _indices: number[] = [];
 let _boneInfoOffset = 0;
-let _vertexOffset = 0;
 let _indexOffset = 0;
 let _vfOffset = 0;
 let _preTexUrl: string|null = null;
@@ -277,7 +274,6 @@ export class AnimationCache {
         _vfOffset = 0;
         _boneInfoOffset = 0;
         _indexOffset = 0;
-        _vertexOffset = 0;
         _preTexUrl = null;
         _preBlendMode = null;
         _segVCount = 0;
@@ -411,7 +407,8 @@ export class AnimationCache {
             // FIXME: bad arguments
             // clipper.clipTriangles(_vertices, _vfCount, _indices, _indexCount, _vertices, _finalColor, _darkColor,
             //    true, _perVertexSize, _indexOffset, _vfOffset, _vfOffset + 2);
-            clipper.clipTriangles(_vertices, _vfCount, _indices, _indexCount, _vertices, _finalColor, _darkColor, true);
+            clipper.clipTriangles(_vertices, _vfCount, _indices, _indexCount,
+             _vertices, _finalColor, _darkColor, true, _perVertexSize, _vfOffset, _vfOffset + 2 );
             const clippedVertices = clipper.clippedVertices;
             const clippedTriangles = clipper.clippedTriangles;
 
@@ -585,7 +582,6 @@ export class AnimationCache {
                 }
                 _indexOffset += _indexCount;
                 _vfOffset += _vfCount;
-                _vertexOffset = _vfOffset / _perVertexSize;
                 _segICount += _indexCount;
                 _segVCount += _vfCount / _perVertexSize;
             }
