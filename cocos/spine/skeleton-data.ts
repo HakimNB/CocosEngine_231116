@@ -23,7 +23,7 @@
  THE SOFTWARE.
  ****************************************************************************/
 
-import { Asset, CCString, Enum, errorID, Node, Texture2D } from '../../cocos/core';
+import { Asset, CCString, Enum, Node, Texture2D, errorID } from '../../cocos/core';
 import SkeletonCache from './skeleton-cache';
 import { Skeleton } from './skeleton';
 import { SkeletonTexture } from './skeleton-texture';
@@ -40,13 +40,12 @@ import { EDITOR } from '../../editor/exports/populate-internal-constants';
 @ccclass('sp.SkeletonData')
 export class SkeletonData extends Asset {
 
-    constructor () {
-        super();
-        this.reset();
-    }
+
+    public static preventDeferredLoadDependents: boolean = true;
 
     @serializable
-    _skeletonJson: spine.SkeletonJson | null = null;
+    public _skeletonJson: spine.SkeletonJson | null = null;
+    
 
     // use by jsb
     get skeletonJsonStr (): string {
@@ -79,8 +78,6 @@ export class SkeletonData extends Asset {
         }
     }
 
-    @serializable
-    protected _atlasText: string = '';
 
     /**
      * @property {String} atlasText
@@ -100,7 +97,7 @@ export class SkeletonData extends Asset {
 
     @serializable
     @type([Texture2D])
-    textures: Texture2D[] = [];
+    public textures: Texture2D[] = [];
 
     /**
      * @property {String[]} textureNames
@@ -108,7 +105,7 @@ export class SkeletonData extends Asset {
      */
     @serializable
     @type([CCString])
-    textureNames: string[] = [];
+    public textureNames: string[] = [];
 
     /**
      * !#en
@@ -123,9 +120,7 @@ export class SkeletonData extends Asset {
      * @property {Number} scale
      */
     @serializable
-    scale: number = 1;
-
-    private _buffer?: ArrayBuffer;
+    public scale: number = 1;
 
     get _nativeAsset (): ArrayBuffer {
         return this._buffer!;
@@ -135,22 +130,10 @@ export class SkeletonData extends Asset {
         this.reset();
     }
 
+    @serializable
+    protected _atlasText: string = '';
 
-
-
-    static preventDeferredLoadDependents: boolean = true;
-
-
-    // PUBLIC
-
-    createNode (callback:(err:Error|null, node:Node)=>void) {
-        const node = new Node(this.name);
-        const skeleton = node.addComponent('cc.Skeleton') as Skeleton;
-        skeleton.skeletonData = this;
-
-        return callback(null, node);
-    }
-
+    private _buffer?: ArrayBuffer;
     /**
      * @property {sp.spine.SkeletonData} _skeletonData
      * @private
@@ -159,7 +142,28 @@ export class SkeletonData extends Asset {
 
     private _atlasCache: spine.TextureAtlas | null = null;
 
-    reset () {
+    private _skinsEnum: { [key: string]: number } | null = null;
+    private _animsEnum: { [key: string]: number } | null = null;
+
+    constructor () {
+        super();
+        this.reset();
+    }
+
+
+
+
+    // PUBLIC
+
+    public createNode (callback: (err: Error|null, node: Node) => void) {
+        const node = new Node(this.name);
+        const skeleton = node.addComponent('cc.Skeleton') as Skeleton;
+        skeleton.skeletonData = this;
+
+        return callback(null, node);
+    }
+
+    public reset () {
         this._skeletonCache = null;
         this._atlasCache = null;
         if (EDITOR) {
@@ -168,14 +172,14 @@ export class SkeletonData extends Asset {
         }
     }
 
-    resetEnums() {
+    public resetEnums () {
         if (EDITOR) {
             this._skinsEnum = null;
             this._animsEnum = null;
         }
     }
 
-    ensureTexturesLoaded (loaded: null | ((x: boolean) => void), caller: any) {
+    public ensureTexturesLoaded (loaded: null | ((x: boolean) => void), caller: any) {
         const textures = this.textures;
         const texsLen = textures.length;
         if (texsLen === 0) {
@@ -189,7 +193,7 @@ export class SkeletonData extends Asset {
                 loaded?.call(caller, true);
                 loaded = null;
             }
-        }
+        };
         for (let i = 0; i < texsLen; i++) {
             const tex = textures[i];
             if (tex.loaded) {
@@ -200,7 +204,7 @@ export class SkeletonData extends Asset {
         }
     }
 
-    isTexturesLoaded () {
+    public isTexturesLoaded () {
         const textures = this.textures;
         const texsLen = textures.length;
         for (let i = 0; i < texsLen; i++) {
@@ -221,7 +225,7 @@ export class SkeletonData extends Asset {
      * @param {Boolean} [quiet=false]
      * @return {sp.spine.SkeletonData}
      */
-    getRuntimeData (quiet?:boolean) {
+    public getRuntimeData (quiet?: boolean) {
         if (this._skeletonCache) {
             return this._skeletonCache;
         }
@@ -258,17 +262,15 @@ export class SkeletonData extends Asset {
 
     // EDITOR functions
 
-    private _skinsEnum: { [key: string]: number } | null = null;
-    private _animsEnum: { [key: string]: number } | null = null;
 
-    getSkinsEnum () {
+    public getSkinsEnum () {
         if (this._skinsEnum /* && Object.keys(this._skinsEnum).length > 0 */) {
             return this._skinsEnum;
         }
         const sd = this.getRuntimeData(true);
         if (sd) {
             const skins = sd.skins;
-            const enumDef:{[key: string]: number} = {};
+            const enumDef: {[key: string]: number} = {};
             for (let i = 0; i < skins.length; i++) {
                 const name = skins[i].name;
                 enumDef[name] = i;
@@ -278,13 +280,13 @@ export class SkeletonData extends Asset {
         return null;
     }
 
-    getAnimsEnum () {
+    public getAnimsEnum () {
         if (this._animsEnum && Object.keys(this._animsEnum).length > 1) {
             return this._animsEnum;
         }
         const sd = this.getRuntimeData(true);
         if (sd) {
-            const enumDef:{[key: string]: number} = { '<None>': 0 };
+            const enumDef: {[key: string]: number} = { '<None>': 0 };
             const anims = sd.animations;
             for (let i = 0; i < anims.length; i++) {
                 const name = anims[i].name;
@@ -295,6 +297,10 @@ export class SkeletonData extends Asset {
         return null;
     }
 
+    public destroy () {
+        SkeletonCache.sharedCache.removeSkeleton(this._uuid);
+        return super.destroy();
+    }
     // PRIVATE
 
     private _getTexture (line: string) {
@@ -332,8 +338,4 @@ export class SkeletonData extends Asset {
         return this._atlasCache = new spine.TextureAtlas(this.atlasText, this._getTexture.bind(this));
     }
 
-    destroy () {
-        SkeletonCache.sharedCache.removeSkeleton(this._uuid);
-        return super.destroy();
-    }
 }

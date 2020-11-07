@@ -26,13 +26,13 @@
 
 import { TrackEntryListeners } from './track-entry-listeners';
 import spine from './lib/spine-core.js';
-import { default as SkeletonCache, AnimationCache, AnimationFrame } from './skeleton-cache';
+import { AnimationCache, AnimationFrame, default as SkeletonCache } from './skeleton-cache';
 import { AttachUtil } from './AttachUtil';
 import { ccclass, executeInEditMode, help, menu } from '../core/data/class-decorator';
 import { UIRenderable } from '../core/components/ui-base/ui-renderable';
-import { builtinResMgr, CCClass, ccenum, CCObject, Color, Enum, errorID, GFXBlendFactor, logID, Material, PrivateNode, Texture2D, warn } from '../core';
-import { displayName, editable, serializable, tooltip, type, visible } from '../core/data/decorators';
-import { DEV, EDITOR } from '../../editor/exports/populate-internal-constants';
+import { CCClass, Color, Enum, GFXBlendFactor, Material, PrivateNode, Texture2D, builtinResMgr, ccenum, errorID, logID, warn } from '../core';
+import { displayName, editable, override, serializable, tooltip, type, visible } from '../core/data/decorators';
+import { EDITOR } from '../../editor/exports/populate-internal-constants';
 import { SkeletonData } from './skeleton-data';
 import { VertexEffectDelegate } from './vertex-effect-delegate';
 import { MeshRenderData } from '../core/renderer/ui/render-data';
@@ -40,7 +40,7 @@ import { UI } from '../core/renderer/ui/ui';
 import { Graphics } from '../ui/components/graphics';
 import { MaterialInstance } from '../core/renderer';
 
-export let timeScale = 1.0;
+export const timeScale = 1.0;
 
 export enum DefaultSkinsEnum {
     default = 0,
@@ -50,7 +50,7 @@ ccenum(DefaultSkinsEnum);
 export enum DefaultAnimsEnum {
     '<None>' = 0
 }
-ccenum(DefaultAnimsEnum)
+ccenum(DefaultAnimsEnum);
 
 /**
  * !#en Enum for animation cache mode type.
@@ -91,7 +91,7 @@ interface AnimationItem {
 }
 
 type TrackListener = (x: spine.TrackEntry) => void;
-type TrackListener2 = (x: spine.TrackEntry, n: number) => void;
+type TrackListener2 = (x: spine.TrackEntry, ev: spine.Event|number) => void;
 
 export enum SpineMaterialType {
     COLORED_TEXTURED = 0,
@@ -132,11 +132,28 @@ export class Skeleton extends UIRenderable {
     //     inspector: 'packages://inspector/inspectors/comps/skeleton2d.js',
     // },
 
-    static AnimationCacheMode = AnimationCacheMode;
-
-    protected _meshRenderDataArray: SkeletonMeshData[] = [];
-
+    public static AnimationCacheMode = AnimationCacheMode;
     get meshRenderDataArray () { return this._meshRenderDataArray; }
+
+
+    @override
+    @visible(false)
+    get customMaterial () { 
+        return super.customMaterial;
+    }
+    set customMaterial (v) { 
+        super.customMaterial = v;
+    }
+
+    @override
+    @visible(false)
+    get srcBlendFactor () {return super.srcBlendFactor;}
+    set srcBlendFactor (v) {super.srcBlendFactor = v;}
+
+    @override
+    @visible(false)
+    get dstBlendFactor () {return super.dstBlendFactor;}
+    set dstBlendFactor (v) {super.dstBlendFactor = v;}
 
     /**
      * !#en The skeletal animation is paused?
@@ -147,9 +164,9 @@ export class Skeleton extends UIRenderable {
      * @default false
      */
     @visible(false)
-    paused: boolean = false;
+    public paused: boolean = false;
 
-    /**
+    /**dstBlendFactor
      * !#en
      * The skeleton data contains the skeleton information (bind pose bones, slots, draw order,
      * attachments, skins, etc) and animations but does not hold any state.<br/>
@@ -178,27 +195,6 @@ export class Skeleton extends UIRenderable {
         }
     }
 
-    @serializable
-    _skeletonData: SkeletonData | null = null;
-
-    // 由于 spine 的 skin 是无法二次替换的，所以只能设置默认的 skin
-    /**
-     * !#en The name of default skin.
-     * !#zh 默认的皮肤名称。
-     * @property {String} defaultSkin
-     */
-    @serializable
-    @visible(false)
-    defaultSkin: string = '';
-
-    /**
-     * !#en The name of default animation.
-     * !#zh 默认的动画名称。
-     * @property {String} defaultAnimation
-     */
-    @visible(false)
-    @serializable
-    defaultAnimation: string = '';
 
     /**
      * !#en The name of current playing animation.
@@ -208,9 +204,9 @@ export class Skeleton extends UIRenderable {
 
     get animation (): string {
         if (this.isAnimationCached()) {
-            return this._animationName!;
+            return this._animationName;
         } else {
-            var entry = this.getCurrent(0);
+            const entry = this.getCurrent(0);
             return (entry && entry.animation.name) || "";
         }
     }
@@ -231,7 +227,7 @@ export class Skeleton extends UIRenderable {
     @tooltip('i18n:COMPONENT.skeleton.default_skin')
     get _defaultSkinIndex (): number {
         if (this.skeletonData) {
-            var skinsEnum = this.skeletonData.getSkinsEnum();
+            const skinsEnum = this.skeletonData.getSkinsEnum();
             if (skinsEnum) {
                 if (this.defaultSkin === "") {
                     if (skinsEnum.hasOwnProperty(0)) {
@@ -239,7 +235,7 @@ export class Skeleton extends UIRenderable {
                         return 0;
                     }
                 } else {
-                    var skinIndex = skinsEnum[this.defaultSkin];
+                    const skinIndex = skinsEnum[this.defaultSkin];
                     if (skinIndex !== undefined) {
                         return skinIndex;
                     }
@@ -249,7 +245,7 @@ export class Skeleton extends UIRenderable {
         return 0;
     }
     set _defaultSkinIndex (value: number) {
-        var skinsEnum;
+        let skinsEnum;
         if (this.skeletonData) {
             skinsEnum = this.skeletonData.getSkinsEnum();
         }
@@ -258,7 +254,7 @@ export class Skeleton extends UIRenderable {
             return;
         }
 
-        var skinName = skinsEnum[value];
+        const skinName = skinsEnum[value];
         if (skinName !== undefined) {
             this.defaultSkin = skinName;
             this.setSkin(this.defaultSkin);
@@ -277,12 +273,12 @@ export class Skeleton extends UIRenderable {
     @type(DefaultAnimsEnum)
     @tooltip('i18n:COMPONENT.skeleton.animation')
     get _animationIndex () {
-        var animationName = EDITOR ? this.defaultAnimation : this.animation;
+        const animationName = EDITOR ? this.defaultAnimation : this.animation;
         if (this.skeletonData) {
             if (animationName) {
-                var animsEnum = this.skeletonData.getAnimsEnum();
+                const animsEnum = this.skeletonData.getAnimsEnum();
                 if (animsEnum) {
-                    var animIndex = animsEnum[animationName];
+                    const animIndex = animsEnum[animationName];
                     if (animIndex !== undefined) {
                         return animIndex;
                     }
@@ -298,7 +294,7 @@ export class Skeleton extends UIRenderable {
         //     this.animation = '';
         //     return;
         // }
-        var animsEnum;
+        let animsEnum;
         if (this.skeletonData) {
             animsEnum = this.skeletonData.getAnimsEnum();
         }
@@ -306,7 +302,7 @@ export class Skeleton extends UIRenderable {
             errorID(7502, this.name);
             return;
         }
-        var animName = animsEnum[value];
+        const animName = animsEnum[value];
         if (animName !== undefined) {
             this.animation = animName;
             if (EDITOR) {
@@ -322,9 +318,6 @@ export class Skeleton extends UIRenderable {
 
     }
 
-    // Record pre cache mode.
-    _preCacheMode: number = -1;
-    _cacheMode = AnimationCacheMode.REALTIME;
     @displayName('Animation Cache Mode')
     @tooltip('i18n:COMPONENT.skeleton.animation_cache_mode')
     @editable
@@ -336,8 +329,7 @@ export class Skeleton extends UIRenderable {
         this._defaultCacheMode = mode;
         this.setAnimationCacheMode(this._defaultCacheMode);
     }
-    @serializable
-    private _defaultCacheMode: AnimationCacheMode = AnimationCacheMode.REALTIME;
+    
 
     /**
      * !#en TODO
@@ -345,7 +337,7 @@ export class Skeleton extends UIRenderable {
      */
     @serializable
     @tooltip('i18n:COMPONENT.skeleton.loop')
-    loop = true;
+    public loop = true;
 
     /**
      * !#en Indicates whether to enable premultiplied alpha.
@@ -374,7 +366,7 @@ export class Skeleton extends UIRenderable {
     @serializable
     @tooltip('i18n:COMPONENT.skeleton.time_scale')
     @editable
-    timeScale: number = 1;
+    public timeScale: number = 1;
 
     /**
      * !#en Indicates whether open debug slots.
@@ -390,8 +382,6 @@ export class Skeleton extends UIRenderable {
             this.markForUpdateRenderData();
         }
     }
-    @serializable
-    private _debugSlots: boolean = false;
 
     /**
      * !#en Indicates whether open debug bones.
@@ -407,8 +397,8 @@ export class Skeleton extends UIRenderable {
             this.markForUpdateRenderData();
         }
     }
-    @serializable
-    private _debugBones: boolean = false;
+    
+
 
     /**
      * !#en Indicates whether open debug mesh.
@@ -424,8 +414,6 @@ export class Skeleton extends UIRenderable {
             this.markForUpdateRenderData();
         }
     }
-    @serializable
-    private _debugMesh: boolean = false;
 
 
     /**
@@ -438,13 +426,11 @@ export class Skeleton extends UIRenderable {
     set useTint (value) {
         if (value != this._useTint) {
             this._useTint = value;
-            this._updateUseTint()
+            this._updateUseTint();
             this.markForUpdateRenderData();
         }
     }
 
-    @serializable
-    private _useTint: boolean = false;
     /**
      * !#en Enabled batch model, if skeleton is complex, do not enable batch, or will lower performance.
      * !#zh 开启合批，如果渲染大量相同纹理，且结构简单的骨骼动画，开启合批可以降低drawcall，否则请不要开启，cpu消耗会上升。
@@ -461,17 +447,35 @@ export class Skeleton extends UIRenderable {
     // @serializable
     // private _enableBatch: boolean = true;
 
-    enableBatch: boolean = false;
+    public enableBatch: boolean = false;
+    // Frame cache
+    public _frameCache: AnimationCache | null = null;
+    // Cur frame
+    public _curFrame: AnimationFrame | null = null;
 
+  
+    // protected _materialCache = {};
+    public _effectDelegate: VertexEffectDelegate | null = null;
+    public _skeleton: spine.Skeleton | null;
+    public _clipper?: spine.SkeletonClipping;
+    public _debugRenderer: Graphics | null;
+    public _startSlotIndex;
+    public _endSlotIndex;
+    public _startEntry;
+    public _endEntry;
+    public attachUtil: AttachUtil;
+
+    
+
+    protected _materialCache: { [key: string]: MaterialInstance } = {} as any;
+    protected _enumSkins: any = Enum({});
+    protected _enumAnimations: any = Enum({});
+    
     // Below properties will effect when cache mode is SHARED_CACHE or PRIVATE_CACHE.
     // accumulate time
     protected _accTime = 0;
     // Play times counter
     protected _playCount = 0;
-    // Frame cache
-    public _frameCache: AnimationCache | null = null;
-    // Cur frame
-    public _curFrame: AnimationFrame | null = null;
     // Skeleton cache
     protected _skeletonCache: SkeletonCache | null = null;
     // Aimation name
@@ -486,20 +490,49 @@ export class Skeleton extends UIRenderable {
     // Is animation complete.
     protected _isAniComplete = true;
 
+    @serializable
+    protected _useTint: boolean = false;
+    // Record pre cache mode.
+    @serializable
+    protected _preCacheMode: number = -1;
+    @serializable
+    protected _cacheMode = AnimationCacheMode.REALTIME;
+    @serializable
+    protected _defaultCacheMode: AnimationCacheMode = AnimationCacheMode.REALTIME;
+    @serializable
+    protected _debugBones: boolean = false;
+    @serializable
+    protected _debugSlots: boolean = false;
 
-    public _effectDelegate: VertexEffectDelegate | null = null;
-    public _skeleton: spine.Skeleton | null;
-    public _clipper?: spine.SkeletonClipping;
+    @serializable
+    protected _skeletonData: SkeletonData | null = null;
+
+    // 由于 spine 的 skin 是无法二次替换的，所以只能设置默认的 skin
+    /**
+     * !#en The name of default skin.
+     * !#zh 默认的皮肤名称。
+     * @property {String} defaultSkin
+     */
+    @serializable
+    @visible(false)
+    protected defaultSkin: string = '';
+
+    /**
+     * !#en The name of default animation.
+     * !#zh 默认的动画名称。
+     * @property {String} defaultAnimation
+     */
+    @visible(false)
+    @serializable
+    protected defaultAnimation: string = '';
+
+
+    protected _meshRenderDataArray: SkeletonMeshData[] = [];
+    @serializable
+    protected _debugMesh: boolean = false;
     protected _rootBone: spine.Bone | null;
     protected _state?: spine.AnimationState;
     protected _listener: spine.AnimationStateListener | null;
-    // protected _materialCache = {};
-    public _debugRenderer: Graphics | null;
-    public _startSlotIndex;
-    public _endSlotIndex;
-    public _startEntry;
-    public _endEntry;
-    attachUtil: AttachUtil;
 
     // CONSTRUCTOR
     constructor () {
@@ -518,54 +551,31 @@ export class Skeleton extends UIRenderable {
         setEnumAttr(this, '_defaultSkinIndex', this._enumSkins);
         setEnumAttr(this, '_animationIndex', this._enumAnimations);
     }
-
-
-    // override base class disableRender to clear post render flag
-    disableRender () {
-        // this._super();
-        // this.node._renderFlag &= ~FLAG_POST_RENDER;
-        this.destroyRenderData();
-    }
-
-    // if change use tint mode, just clear material cache
-    _updateUseTint () {
-        this.destroyRenderData();
-    }
+    
 
     public getBuiltinMaterial (type: SpineMaterialType): Material {
         // not need _uiMaterialDirty at firstTime
         let mat;
         switch (type) {
             case SpineMaterialType.COLORED:
-                mat = builtinResMgr.get('ui-base-material') as Material;
+                mat = builtinResMgr.get('ui-base-material');
                 break;
             case SpineMaterialType.TWO_COLORED:
-                mat = builtinResMgr.get('ui-spine-two-colored-material') as Material;
+                mat = builtinResMgr.get('ui-spine-two-colored-material');
                 break;
             case SpineMaterialType.COLORED_TEXTURED:
             default:
-                mat = builtinResMgr.get('ui-sprite-material') as Material;
+                mat = builtinResMgr.get('ui-sprite-material');
                 break;
         }
         return mat;
     }
 
-    // if change use batch mode, just clear material cache
-    _updateBatch () {
-        // let baseMaterial = this.getMaterial(0);
-        // if (baseMaterial) {
-        //     baseMaterial.define('CC_USE_MODEL', !this.enableBatch);
-        // }
-        // this._materialCache = {};
-        this.markForUpdateRenderData();
-    }
-
-    _validateRender () {
-        let skeletonData = this.skeletonData;
-        if (!skeletonData || !skeletonData.isTexturesLoaded()) {
-            this.disableRender();
-            return;
-        }
+    // override base class disableRender to clear post render flag
+    public disableRender () {
+        // this._super();
+        // this.node._renderFlag &= ~FLAG_POST_RENDER;
+        this.destroyRenderData();
     }
 
     /**
@@ -578,8 +588,8 @@ export class Skeleton extends UIRenderable {
      * @method setSkeletonData
      * @param {sp.spine.SkeletonData} skeletonData
      */
-    setSkeletonData (skeletonData: spine.SkeletonData) {
-        let uiTrans = this.node._uiProps.uiTransformComp!;
+    public setSkeletonData (skeletonData: spine.SkeletonData) {
+        const uiTrans = this.node._uiProps.uiTransformComp!;
         if (skeletonData.width != null && skeletonData.height != null) {
             uiTrans.setContentSize(skeletonData.width, skeletonData.height);
         }
@@ -597,7 +607,7 @@ export class Skeleton extends UIRenderable {
             if (this.debugBones || this.debugSlots) {
                 warn("Debug bones or slots is invalid in cached mode");
             }
-            let skeletonInfo = this._skeletonCache!.getSkeletonCache((this.skeletonData as any)._uuid, skeletonData);
+            const skeletonInfo = this._skeletonCache!.getSkeletonCache((this.skeletonData as any)._uuid, skeletonData);
             this._skeleton = skeletonInfo.skeleton;
             this._clipper = skeletonInfo.clipper;
             this._rootBone = this._skeleton.getRootBone();
@@ -614,7 +624,7 @@ export class Skeleton extends UIRenderable {
      * !#en Sets slots visible range.
      * !#zh 设置骨骼插槽可视范围。
      */
-    setSlotsRange (startSlotIndex, endSlotIndex) {
+    public setSlotsRange (startSlotIndex, endSlotIndex) {
         if (this.isAnimationCached()) {
             warn("Slots visible range can not be modified in cached mode.");
         } else {
@@ -629,11 +639,11 @@ export class Skeleton extends UIRenderable {
      * !#zh 设置动画状态数据。<br>
      * 参数是 {{#crossLinkModule "sp.spine"}}sp.spine{{/crossLinkModule}}.AnimationStateData。
      */
-    setAnimationStateData (stateData) {
+    public setAnimationStateData (stateData) {
         if (this.isAnimationCached()) {
             warn("'setAnimationStateData' interface can not be invoked in cached mode.");
         } else {
-            var state = new spine.AnimationState(stateData);
+            const state = new spine.AnimationState(stateData);
             if (this._listener) {
                 if (this._state) {
                     this._state.removeListener(this._listener);
@@ -647,17 +657,17 @@ export class Skeleton extends UIRenderable {
 
 
     // IMPLEMENT
-    __preload () {
+    public __preload () {
         super.__preload();
         // if (EDITOR) {
-            // var Flags = CCObject.Flags;
-            // this._objFlags |= (Flags.IsAnchorLocked | Flags.IsSizeLocked);
-            // this._refreshInspector();
+        // var Flags = CCObject.Flags;
+        // this._objFlags |= (Flags.IsAnchorLocked | Flags.IsSizeLocked);
+        // this._refreshInspector();
         // }
 
-        var children = this.node.children;
-        for (var i = 0, n = children.length; i < n; i++) {
-            var child = children[i];
+        const children = this.node.children;
+        for (let i = 0, n = children.length; i < n; i++) {
+            const child = children[i];
             if (child && child.name === "DEBUG_DRAW_NODE") {
                 child.destroy();
             }
@@ -667,7 +677,7 @@ export class Skeleton extends UIRenderable {
         this._updateDebugDraw();
         this._updateUseTint();
         // this._updateBatch();
-        DEV && this._refreshInspector();
+        EDITOR && this._refreshInspector();
     }
 
     /**
@@ -681,7 +691,7 @@ export class Skeleton extends UIRenderable {
      * @example
      * skeleton.setAnimationCacheMode(sp.Skeleton.AnimationCacheMode.SHARED_CACHE);
      */
-    setAnimationCacheMode (cacheMode: AnimationCacheMode) {
+    public setAnimationCacheMode (cacheMode: AnimationCacheMode) {
         if (this._preCacheMode !== cacheMode) {
             this._cacheMode = cacheMode;
             this._updateSkeletonData();
@@ -694,13 +704,13 @@ export class Skeleton extends UIRenderable {
      * !#en Whether in cached mode.
      * !#zh 当前是否处于缓存模式。
      */
-    isAnimationCached () {
-        if (DEV) return false;
+    public isAnimationCached () {
+        if (EDITOR) return false;
         return this._cacheMode !== AnimationCacheMode.REALTIME;
     }
 
-    update (dt: number) {
-        if (DEV) return;
+    public update (dt: number) {
+        if (EDITOR) return;
         if (this.paused) return;
 
         dt *= this.timeScale * timeScale;
@@ -710,10 +720,10 @@ export class Skeleton extends UIRenderable {
             // Cache mode and has animation queue.
             if (this._isAniComplete) {
                 if (this._animationQueue.length === 0 && !this._headAniInfo) {
-                    let frameCache = this._frameCache;
+                    const frameCache = this._frameCache;
                     if (frameCache && frameCache.isInvalid()) {
                         frameCache.updateToFrame();
-                        let frames = frameCache.frames;
+                        const frames = frameCache.frames;
                         this._curFrame = frames[frames.length - 1];
                     }
                     return;
@@ -723,7 +733,7 @@ export class Skeleton extends UIRenderable {
                 }
                 this._accTime += dt;
                 if (this._accTime > this._headAniInfo.delay) {
-                    let aniInfo = this._headAniInfo;
+                    const aniInfo = this._headAniInfo;
                     this._headAniInfo = null;
                     this.setAnimation(0, aniInfo.animationName, aniInfo.loop);
                 }
@@ -736,100 +746,22 @@ export class Skeleton extends UIRenderable {
         }
     }
 
-    _emitCacheCompleteEvent () {
-        if (!this._listener) return;
-        this._endEntry.animation.name = this._animationName;
-        this._listener.complete && this._listener.complete(this._endEntry);
-        this._listener.end && this._listener.end(this._endEntry);
-    }
-
-    _updateCache (dt: number) {
-        let frameCache = this._frameCache!;
-        if (!frameCache.isInited()) {
-            return;
-        }
-        let frames = frameCache.frames;
-        let frameTime = SkeletonCache.FrameTime;
-
-        // Animation Start, the event diffrent from dragonbones inner event,
-        // It has no event object.
-        if (this._accTime == 0 && this._playCount == 0) {
-            this._startEntry.animation.name = this._animationName;
-            this._listener && this._listener.start && this._listener.start(this._startEntry);
-        }
-
-        this._accTime += dt;
-        let frameIdx = Math.floor(this._accTime / frameTime);
-        if (!frameCache.isCompleted) {
-            frameCache.updateToFrame(frameIdx);
-        }
-
-        if (frameCache.isCompleted && frameIdx >= frames.length) {
-            this._playCount++;
-            if (this._playTimes > 0 && this._playCount >= this._playTimes) {
-                // set frame to end frame.
-                this._curFrame = frames[frames.length - 1];
-                this._accTime = 0;
-                this._playCount = 0;
-                this._isAniComplete = true;
-                this._emitCacheCompleteEvent();
-                return;
-            }
-            this._accTime = 0;
-            frameIdx = 0;
-            this._emitCacheCompleteEvent();
-        }
-        this._curFrame = frames[frameIdx];
-    }
-
-    _updateRealtime (dt: number) {
-        let skeleton = this._skeleton;
-        let state = this._state;
-        if (skeleton) {
-            skeleton.update(dt);
-            if (state) {
-                state.update(dt);
-                state.apply(skeleton);
-            }
-        }
-    }
-
     /**
      * !#en Sets vertex effect delegate.
      * !#zh 设置顶点动画代理
      */
-    setVertexEffectDelegate (effectDelegate: VertexEffectDelegate) {
+    public setVertexEffectDelegate (effectDelegate: VertexEffectDelegate) {
         this._effectDelegate = effectDelegate;
     }
 
-    // RENDERER
 
-    /**
-     * !#en Computes the world SRT from the local SRT for each bone.
-     * !#zh 重新更新所有骨骼的世界 Transform，
-     * 当获取 bone 的数值未更新时，即可使用该函数进行更新数值。
-     * @method updateWorldTransform
-     * @example
-     * var bone = spine.findBone('head');
-     * cc.log(bone.worldX); // return 0;
-     * spine.updateWorldTransform();
-     * bone = spine.findBone('head');
-     * cc.log(bone.worldX); // return -23.12;
-     */
-    updateWorldTransform () {
-        if (!this.isAnimationCached()) return;
-
-        if (this._skeleton) {
-            this._skeleton.updateWorldTransform();
-        }
-    }
 
     /**
      * !#en Sets the bones and slots to the setup pose.
      * !#zh 还原到起始动作
      * @method setToSetupPose
      */
-    setToSetupPose () {
+    public setToSetupPose () {
         if (this._skeleton) {
             this._skeleton.setToSetupPose();
         }
@@ -844,7 +776,7 @@ export class Skeleton extends UIRenderable {
      * 使用 SkeletonData 中的 BoneData 列表中的值。
      * @method setBonesToSetupPose
      */
-    setBonesToSetupPose () {
+    public setBonesToSetupPose () {
         if (this._skeleton) {
             this._skeleton.setBonesToSetupPose();
         }
@@ -859,7 +791,7 @@ export class Skeleton extends UIRenderable {
      * 使用 SkeletonData 中的 SlotData 列表中的值。
      * @method setSlotsToSetupPose
      */
-    setSlotsToSetupPose () {
+    public setSlotsToSetupPose () {
         if (this._skeleton) {
             this._skeleton.setSlotsToSetupPose();
         }
@@ -876,9 +808,9 @@ export class Skeleton extends UIRenderable {
      * @method updateAnimationCache
      * @param {String} animName
      */
-    updateAnimationCache (animName) {
+    public updateAnimationCache (animName) {
         if (!this.isAnimationCached()) return;
-        let uuid = this._skeletonData!._uuid;
+        const uuid = this._skeletonData!._uuid;
         if (this._skeletonCache) {
             this._skeletonCache.updateAnimationCache(uuid, animName);
         }
@@ -891,7 +823,7 @@ export class Skeleton extends UIRenderable {
      * 使动画缓存失效，之后会在每帧重新计算。
      * @method invalidAnimationCache
      */
-    invalidAnimationCache () {
+    public invalidAnimationCache () {
         if (!this.isAnimationCached()) return;
         if (this._skeletonCache) {
             this._skeletonCache.invalidAnimationCache(this._skeletonData!._uuid);
@@ -912,7 +844,7 @@ export class Skeleton extends UIRenderable {
      * @param {String} boneName
      * @return {sp.spine.Bone}
      */
-    findBone (boneName: string) {
+    public findBone (boneName: string) {
         if (this._skeleton) {
             return this._skeleton.findBone(boneName);
         }
@@ -931,7 +863,7 @@ export class Skeleton extends UIRenderable {
      * @param {String} slotName
      * @return {sp.spine.Slot}
      */
-    findSlot (slotName: string) {
+    public findSlot (slotName: string) {
         if (this._skeleton) {
             return this._skeleton.findSlot(slotName);
         }
@@ -952,7 +884,7 @@ export class Skeleton extends UIRenderable {
      * @method setSkin
      * @param {String} skinName
      */
-    setSkin (skinName: string) {
+    public setSkin (skinName: string) {
         if (this._skeleton) {
             this._skeleton.setSkinByName(skinName);
             this._skeleton.setSlotsToSetupPose();
@@ -974,7 +906,7 @@ export class Skeleton extends UIRenderable {
      * @param {String} attachmentName
      * @return {sp.spine.Attachment}
      */
-    getAttachment (slotName: string, attachmentName: string) {
+    public getAttachment (slotName: string, attachmentName: string) {
         if (this._skeleton) {
             return this._skeleton.getAttachmentByName(slotName, attachmentName);
         }
@@ -992,7 +924,7 @@ export class Skeleton extends UIRenderable {
      * @param {String} slotName
      * @param {String} attachmentName
      */
-    setAttachment (slotName: string, attachmentName: string) {
+    public setAttachment (slotName: string, attachmentName: string) {
         if (this._skeleton) {
             this._skeleton.setAttachment(slotName, attachmentName);
         }
@@ -1005,7 +937,7 @@ export class Skeleton extends UIRenderable {
     * @param {sp.spine.RegionAttachment|spine.BoundingBoxAttachment} regionAttachment
     * @return {sp.spine.TextureAtlasRegion}
     */
-    getTextureAtlas (regionAttachment: spine.RegionAttachment | spine.BoundingBoxAttachment) {
+    public getTextureAtlas (regionAttachment: spine.RegionAttachment | spine.BoundingBoxAttachment) {
         return (regionAttachment as spine.RegionAttachment).region;
     }
 
@@ -1020,7 +952,7 @@ export class Skeleton extends UIRenderable {
      * @param {String} toAnimation
      * @param {Number} duration
      */
-    setMix (fromAnimation: string, toAnimation: string, duration: number): void {
+    public setMix (fromAnimation: string, toAnimation: string, duration: number): void {
         if (this._state) {
             this._state.data.setMix(fromAnimation, toAnimation, duration);
         }
@@ -1037,7 +969,7 @@ export class Skeleton extends UIRenderable {
      * @param {Boolean} loop
      * @return {sp.spine.TrackEntry}
      */
-    setAnimation (trackIndex: number, name: string, loop: boolean) {
+    public setAnimation (trackIndex: number, name: string, loop: boolean) {
 
         this._playTimes = loop ? 0 : 1;
         this._animationName = name;
@@ -1064,12 +996,12 @@ export class Skeleton extends UIRenderable {
             }
         } else {
             if (this._skeleton) {
-                var animation = this._skeleton.data.findAnimation(name);
+                const animation = this._skeleton.data.findAnimation(name);
                 if (!animation) {
                     logID(7509, name);
                     return null;
                 }
-                var res = this._state!.setAnimationWith(trackIndex, animation, loop);
+                const res = this._state!.setAnimationWith(trackIndex, animation, loop);
                 this._state!.apply(this._skeleton);
                 return res;
             }
@@ -1089,7 +1021,7 @@ export class Skeleton extends UIRenderable {
      * @param {Number} [delay=0]
      * @return {sp.spine.TrackEntry}
      */
-    addAnimation (trackIndex: number, name: string, loop: boolean, delay?: number) {
+    public addAnimation (trackIndex: number, name: string, loop: boolean, delay?: number) {
         delay = delay || 0;
         if (this.isAnimationCached()) {
             if (trackIndex !== 0) {
@@ -1098,7 +1030,7 @@ export class Skeleton extends UIRenderable {
             this._animationQueue.push({ animationName: name, loop: loop, delay: delay });
         } else {
             if (this._skeleton) {
-                var animation = this._skeleton.data.findAnimation(name);
+                const animation = this._skeleton.data.findAnimation(name);
                 if (!animation) {
                     logID(7510, name);
                     return null;
@@ -1116,7 +1048,7 @@ export class Skeleton extends UIRenderable {
      * @param {String} name
      * @returns {sp.spine.Animation}
      */
-    findAnimation (name: string) {
+    public findAnimation (name: string) {
         if (this._skeleton) {
             return this._skeleton.data.findAnimation(name);
         }
@@ -1132,7 +1064,7 @@ export class Skeleton extends UIRenderable {
      * @param trackIndex
      * @return {sp.spine.TrackEntry}
      */
-    getCurrent (trackIndex: number) {
+    public getCurrent (trackIndex: number) {
         if (this.isAnimationCached()) {
             warn("'getCurrent' interface can not be invoked in cached mode.");
         } else {
@@ -1148,7 +1080,7 @@ export class Skeleton extends UIRenderable {
      * !#zh 清除所有 track 的动画状态。
      * @method clearTracks
      */
-    clearTracks () {
+    public clearTracks () {
         if (this.isAnimationCached()) {
             warn("'clearTracks' interface can not be invoked in cached mode.");
         } else {
@@ -1164,13 +1096,13 @@ export class Skeleton extends UIRenderable {
      * @method clearTrack
      * @param {number} trackIndex
      */
-    clearTrack (trackIndex: number) {
+    public clearTrack (trackIndex: number) {
         if (this.isAnimationCached()) {
             warn("'clearTrack' interface can not be invoked in cached mode.");
         } else {
             if (this._state) {
                 this._state.clearTrack(trackIndex);
-                if (DEV/* && !cc.engine.isPlaying*/) {
+                if (EDITOR/* && !cc.engine.isPlaying*/) {
                     this._state.update(0);
                 }
             }
@@ -1183,7 +1115,7 @@ export class Skeleton extends UIRenderable {
      * @method setStartListener
      * @param {function} listener
      */
-    setStartListener (listener: TrackListener) {
+    public setStartListener (listener: TrackListener) {
         this._ensureListener();
         this._listener!.start = listener;
     }
@@ -1194,7 +1126,7 @@ export class Skeleton extends UIRenderable {
      * @method setInterruptListener
      * @param {function} listener
      */
-    setInterruptListener (listener: TrackListener) {
+    public setInterruptListener (listener: TrackListener) {
         this._ensureListener();
         this._listener!.interrupt = listener;
     }
@@ -1205,7 +1137,7 @@ export class Skeleton extends UIRenderable {
      * @method setEndListener
      * @param {function} listener
      */
-    setEndListener (listener: TrackListener) {
+    public setEndListener (listener: TrackListener) {
         this._ensureListener();
         this._listener!.end = listener;
     }
@@ -1216,7 +1148,7 @@ export class Skeleton extends UIRenderable {
      * @method setDisposeListener
      * @param {function} listener
      */
-    setDisposeListener (listener: TrackListener) {
+    public setDisposeListener (listener: TrackListener) {
         this._ensureListener();
         this._listener!.dispose = listener;
     }
@@ -1227,7 +1159,7 @@ export class Skeleton extends UIRenderable {
      * @method setCompleteListener
      * @param {function} listener
      */
-    setCompleteListener (listener: TrackListener) {
+    public setCompleteListener (listener: TrackListener) {
         this._ensureListener();
         this._listener!.complete = listener;
     }
@@ -1238,7 +1170,7 @@ export class Skeleton extends UIRenderable {
      * @method setEventListener
      * @param {function} listener
      */
-    setEventListener (listener: TrackListener) {
+    public setEventListener (listener: TrackListener2) {
         this._ensureListener();
         this._listener!.event = listener;
     }
@@ -1250,7 +1182,7 @@ export class Skeleton extends UIRenderable {
      * @param {sp.spine.TrackEntry} entry
      * @param {function} listener
      */
-    setTrackStartListener (entry: spine.TrackEntry, listener: TrackListener) {
+    public setTrackStartListener (entry: spine.TrackEntry, listener: TrackListener) {
         TrackEntryListeners.getListeners(entry).start = listener;
     }
 
@@ -1261,7 +1193,7 @@ export class Skeleton extends UIRenderable {
      * @param {sp.spine.TrackEntry} entry
      * @param {function} listener
      */
-    setTrackInterruptListener (entry: spine.TrackEntry, listener: TrackListener) {
+    public setTrackInterruptListener (entry: spine.TrackEntry, listener: TrackListener) {
         TrackEntryListeners.getListeners(entry).interrupt = listener;
     }
 
@@ -1272,7 +1204,7 @@ export class Skeleton extends UIRenderable {
      * @param {sp.spine.TrackEntry} entry
      * @param {function} listener
      */
-    setTrackEndListener (entry: spine.TrackEntry, listener: TrackListener) {
+    public setTrackEndListener (entry: spine.TrackEntry, listener: TrackListener) {
         TrackEntryListeners.getListeners(entry).end = listener;
     }
 
@@ -1283,7 +1215,7 @@ export class Skeleton extends UIRenderable {
      * @param {sp.spine.TrackEntry} entry
      * @param {function} listener
      */
-    setTrackDisposeListener (entry: spine.TrackEntry, listener: TrackListener) {
+    public setTrackDisposeListener (entry: spine.TrackEntry, listener: TrackListener) {
         TrackEntryListeners.getListeners(entry).dispose = listener;
     }
 
@@ -1296,9 +1228,9 @@ export class Skeleton extends UIRenderable {
      * @param {sp.spine.TrackEntry} listener.entry
      * @param {Number} listener.loopCount
      */
-    setTrackCompleteListener (entry: spine.TrackEntry, listener: TrackListener2) {
+    public setTrackCompleteListener (entry: spine.TrackEntry, listener: TrackListener2) {
         TrackEntryListeners.getListeners(entry).complete = function (trackEntry) {
-            var loopCount = Math.floor(trackEntry.trackTime / trackEntry.animationEnd);
+            const loopCount = Math.floor(trackEntry.trackTime / trackEntry.animationEnd);
             listener(trackEntry, loopCount);
         };
     }
@@ -1310,7 +1242,7 @@ export class Skeleton extends UIRenderable {
      * @param {sp.spine.TrackEntry} entry
      * @param {function} listener
      */
-    setTrackEventListener (entry: spine.TrackEntry, listener: TrackListener) {
+    public setTrackEventListener (entry: spine.TrackEntry, listener: TrackListener) {
         TrackEntryListeners.getListeners(entry).event = listener;
     }
 
@@ -1320,144 +1252,11 @@ export class Skeleton extends UIRenderable {
      * @method getState
      * @return {sp.spine.AnimationState} state
      */
-    getState () {
+    public getState () {
         return this._state;
     }
 
-    private _materialCache: { [key: string]: MaterialInstance } = {} as any;
-    getMaterialForBlendAndTint (src: GFXBlendFactor, dst: GFXBlendFactor, type: SpineMaterialType): MaterialInstance {
-        const key = `${type}/${src}/${dst}`
-        let inst = this._materialCache[key];
-        if (inst) {
-            return inst;
-        }
-        const material = this.getBuiltinMaterial(type);
-        let matInfo = {
-            parent: material,
-            subModelIdx: 0,
-            owner: this,
-        };
-        inst = new MaterialInstance(matInfo);
-        this._materialCache[key] = inst;
-        inst.overridePipelineStates({
-            blendState: {
-                targets: [{
-                    blendSrc: src, blendDst: dst
-                }]
-            }
-        });
-        return inst;
-    }
-
-
-    private _enumSkins:any = Enum({});
-    private _enumAnimations:any = Enum({});
-
-    // update animation list for editor
-    protected _updateAnimEnum () {
-        var animEnum;
-        if (this.skeletonData) {
-            animEnum = this.skeletonData.getAnimsEnum();
-        } else {
-            animEnum = DefaultAnimsEnum;
-        }
-        // change enum
-        // Object.assign(DefaultAnimsEnum, animEnum || DefaultAnimsEnum);
-        // Enum.update(DefaultAnimsEnum);
-        
-        Object.assign(this._enumAnimations, animEnum || DefaultSkinsEnum);
-        // Object.assign(DefaultSkinsEnum, skinEnum || DefaultSkinsEnum);
-        Enum.update(this._enumAnimations);
-    }
-
-    // update skin list for editor
-    protected _updateSkinEnum () {
-        var skinEnum;
-        if (this.skeletonData) {
-            skinEnum = this.skeletonData.getSkinsEnum();
-        } else {
-            skinEnum = DefaultSkinsEnum;
-        }
-        // change enum
-        // setEnumAttr(this, '_defaultSkinIndex', skinEnum || DefaultSkinsEnum);
-        Object.assign(this._enumSkins, skinEnum || DefaultSkinsEnum);
-        // Object.assign(DefaultSkinsEnum, skinEnum || DefaultSkinsEnum);
-        Enum.update(this._enumSkins);
-    }
-
-    protected _ensureListener () {
-        if (!this._listener) {
-            this._listener = (new TrackEntryListeners()) as any;
-            if (this._state) {
-                this._state!.addListener(this._listener as any);
-            }
-        }
-    }
-
-    _updateSkeletonData () {
-        if (!this.skeletonData) {
-            this.disableRender();
-            return;
-        }
-
-        let data = this.skeletonData.getRuntimeData();
-        if (!data) {
-            this.disableRender();
-            return;
-        }
-
-        try {
-            this.setSkeletonData(data);
-            if (!this.isAnimationCached()) {
-                this.setAnimationStateData(new spine.AnimationStateData(this._skeleton!.data));
-            }
-            this.defaultSkin && this.setSkin(this.defaultSkin);
-        }
-        catch (e) {
-            warn(e);
-        }
-
-        this.attachUtil.init(this);
-        this.attachUtil._associateAttachedNode();
-        this._preCacheMode = this._cacheMode;
-        this.animation = this.defaultAnimation;
-    }
-
-
-    _refreshInspector () {
-        // update inspector
-        this._updateAnimEnum();
-        this._updateSkinEnum();
-        //TODO: refresh inspector
-        //Editor.Utils.refreshSelectedInspector('node', this.node.uuid);
-
-        if(EDITOR) {
-            // @ts-ignore
-            EditorExtends.emit('change', this.node.uuid, this.node);
-        }
-    }
-
-    _updateDebugDraw () {
-        if (this.debugBones || this.debugSlots || this.debugMesh) {
-            if (!this._debugRenderer) {
-                let debugDrawNode = new PrivateNode("DEBUG_DRAW_NODE");
-                let debugDraw = debugDrawNode.addComponent(Graphics);
-                debugDraw.lineWidth = 1;
-                debugDraw.strokeColor = new Color(255, 0, 0, 255);
-
-                this._debugRenderer = debugDraw;
-            }
-
-            this._debugRenderer!.node.parent = this.node;
-            if (this.isAnimationCached()) {
-                warn("Debug bones or slots is invalid in cached mode");
-            }
-        }
-        else if (this._debugRenderer) {
-            this._debugRenderer.node.parent = null;
-        }
-    }
-
+    
     public onEnable () {
         super.onEnable();
         this._flushAssembler();
@@ -1494,6 +1293,261 @@ export class Skeleton extends UIRenderable {
         }
     }
 
+    public getMaterialForBlendAndTint (src: GFXBlendFactor, dst: GFXBlendFactor, type: SpineMaterialType): MaterialInstance {
+        const key = `${type}/${src}/${dst}`;
+        let inst = this._materialCache[key];
+        if (inst) {
+            return inst;
+        }
+        const material = this.getBuiltinMaterial(type);
+        const matInfo = {
+            parent: material,
+            subModelIdx: 0,
+            owner: this,
+        };
+        inst = new MaterialInstance(matInfo);
+        this._materialCache[key] = inst;
+        inst.overridePipelineStates({
+            blendState: {
+                targets: [{
+                    blendSrc: src, blendDst: dst
+                }]
+            }
+        });
+        return inst;
+    }
+
+    
+
+    // 当前的 _meshRenderDataArray 的索引, 以便 fillBuffers 选取 RenderData
+    public _meshRenderDataArrayIdx: number = 0;
+    protected _render (ui: UI) {
+        if (this._meshRenderDataArray) {
+            for (let i = 0; i < this._meshRenderDataArray.length; i++) {
+                this._meshRenderDataArrayIdx = i;
+                const m = this._meshRenderDataArray[i];
+                if (m.texture) {
+                    // NOTE: 由于 commitComp 只支持单张纹理, 故分多次提交
+                    ui.commitComp(this, m.texture, this._assembler);
+                }
+            }
+            this.node._static = true;
+        }
+    }
+    
+    // RENDERER
+
+    /**
+     * !#en Computes the world SRT from the local SRT for each bone.
+     * !#zh 重新更新所有骨骼的世界 Transform，
+     * 当获取 bone 的数值未更新时，即可使用该函数进行更新数值。
+     * @method updateWorldTransform
+     * @example
+     * var bone = spine.findBone('head');
+     * cc.log(bone.worldX); // return 0;
+     * spine.updateWorldTransform();
+     * bone = spine.findBone('head');
+     * cc.log(bone.worldX); // return -23.12;
+     */
+    protected updateWorldTransform () {
+        if (!this.isAnimationCached()) return;
+
+        if (this._skeleton) {
+            this._skeleton.updateWorldTransform();
+        }
+    }
+    
+    protected _emitCacheCompleteEvent () {
+        if (!this._listener) return;
+        this._endEntry.animation.name = this._animationName;
+        this._listener.complete && this._listener.complete(this._endEntry);
+        this._listener.end && this._listener.end(this._endEntry);
+    }
+
+    protected _updateCache (dt: number) {
+        const frameCache = this._frameCache!;
+        if (!frameCache.isInited()) {
+            return;
+        }
+        const frames = frameCache.frames;
+        const frameTime = SkeletonCache.FrameTime;
+
+        // Animation Start, the event diffrent from dragonbones inner event,
+        // It has no event object.
+        if (this._accTime == 0 && this._playCount == 0) {
+            this._startEntry.animation.name = this._animationName;
+            this._listener && this._listener.start && this._listener.start(this._startEntry);
+        }
+
+        this._accTime += dt;
+        let frameIdx = Math.floor(this._accTime / frameTime);
+        if (!frameCache.isCompleted) {
+            frameCache.updateToFrame(frameIdx);
+        }
+
+        if (frameCache.isCompleted && frameIdx >= frames.length) {
+            this._playCount++;
+            if (this._playTimes > 0 && this._playCount >= this._playTimes) {
+                // set frame to end frame.
+                this._curFrame = frames[frames.length - 1];
+                this._accTime = 0;
+                this._playCount = 0;
+                this._isAniComplete = true;
+                this._emitCacheCompleteEvent();
+                this.markForUpdateRenderData();
+                return;
+            }
+            this._accTime = 0;
+            frameIdx = 0;
+            this._emitCacheCompleteEvent();
+        }
+        this._curFrame = frames[frameIdx];
+        this.markForUpdateRenderData();
+    }
+
+    protected _updateRealtime (dt: number) {
+        const skeleton = this._skeleton;
+        const state = this._state;
+        if (skeleton) {
+            skeleton.update(dt);
+            if (state) {
+                state.update(dt);
+                state.apply(skeleton);
+            }
+            this.markForUpdateRenderData();
+        }
+    }
+
+
+
+    // if change use tint mode, just clear material cache
+    protected _updateUseTint () {
+        this.destroyRenderData();
+    }
+    // if change use batch mode, just clear material cache
+    protected _updateBatch () {
+        // let baseMaterial = this.getMaterial(0);
+        // if (baseMaterial) {
+        //     baseMaterial.define('CC_USE_MODEL', !this.enableBatch);
+        // }
+        // this._materialCache = {};
+        this.markForUpdateRenderData();
+    }
+
+    protected _validateRender () {
+        const skeletonData = this.skeletonData;
+        if (!skeletonData || !skeletonData.isTexturesLoaded()) {
+            this.disableRender();
+            return;
+        }
+    }
+
+
+    // update animation list for editor
+    protected _updateAnimEnum () {
+        let animEnum;
+        if (this.skeletonData) {
+            animEnum = this.skeletonData.getAnimsEnum();
+        } else {
+            animEnum = DefaultAnimsEnum;
+        }
+        // change enum
+        // Object.assign(DefaultAnimsEnum, animEnum || DefaultAnimsEnum);
+        // Enum.update(DefaultAnimsEnum);
+        
+        Object.assign(this._enumAnimations, animEnum || DefaultSkinsEnum);
+        // Object.assign(DefaultSkinsEnum, skinEnum || DefaultSkinsEnum);
+        Enum.update(this._enumAnimations);
+    }
+
+    // update skin list for editor
+    protected _updateSkinEnum () {
+        let skinEnum;
+        if (this.skeletonData) {
+            skinEnum = this.skeletonData.getSkinsEnum();
+        } else {
+            skinEnum = DefaultSkinsEnum;
+        }
+        // change enum
+        // setEnumAttr(this, '_defaultSkinIndex', skinEnum || DefaultSkinsEnum);
+        Object.assign(this._enumSkins, skinEnum || DefaultSkinsEnum);
+        // Object.assign(DefaultSkinsEnum, skinEnum || DefaultSkinsEnum);
+        Enum.update(this._enumSkins);
+    }
+
+    protected _ensureListener () {
+        if (!this._listener) {
+            this._listener = (new TrackEntryListeners()) as any;
+            if (this._state) {
+                this._state.addListener(this._listener as any);
+            }
+        }
+    }
+
+    protected _updateSkeletonData () {
+        if (!this.skeletonData) {
+            this.disableRender();
+            return;
+        }
+
+        const data = this.skeletonData.getRuntimeData();
+        if (!data) {
+            this.disableRender();
+            return;
+        }
+
+        try {
+            this.setSkeletonData(data);
+            if (!this.isAnimationCached()) {
+                this.setAnimationStateData(new spine.AnimationStateData(this._skeleton!.data));
+            }
+            this.defaultSkin && this.setSkin(this.defaultSkin);
+        }
+        catch (e) {
+            warn(e);
+        }
+
+        this.attachUtil.init(this);
+        this.attachUtil._associateAttachedNode();
+        this._preCacheMode = this._cacheMode;
+        this.animation = this.defaultAnimation;
+    }
+
+
+    protected _refreshInspector () {
+        // update inspector
+        this._updateAnimEnum();
+        this._updateSkinEnum();
+        //TODO: refresh inspector
+        //Editor.Utils.refreshSelectedInspector('node', this.node.uuid);
+
+        if(EDITOR) {
+            // @ts-expect-error
+            EditorExtends.emit('change', this.node.uuid, this.node);
+        }
+    }
+
+    protected _updateDebugDraw () {
+        if (this.debugBones || this.debugSlots || this.debugMesh) {
+            if (!this._debugRenderer) {
+                const debugDrawNode = new PrivateNode("DEBUG_DRAW_NODE");
+                const debugDraw = debugDrawNode.addComponent(Graphics);
+                debugDraw.lineWidth = 1;
+                debugDraw.strokeColor = new Color(255, 0, 0, 255);
+
+                this._debugRenderer = debugDraw;
+            }
+
+            this._debugRenderer.node.parent = this.node;
+            if (this.isAnimationCached()) {
+                warn("Debug bones or slots is invalid in cached mode");
+            }
+        }
+        else if (this._debugRenderer) {
+            this._debugRenderer.node.parent = null;
+        }
+    }
+
     protected _flushAssembler () {
         const assembler = Skeleton.Assembler!.getAssembler(this);
         if (this._assembler !== assembler) {
@@ -1509,23 +1563,7 @@ export class Skeleton extends UIRenderable {
     }
 
     protected _updateColor () {
-
+        //TODO 
     }
 
-
-    // 当前的 _meshRenderDataArray 的索引, 以便 fillBuffers 选取 RenderData
-    public _meshRenderDataArrayIdx: number = 0;
-    protected _render (ui: UI) {
-        if (this._meshRenderDataArray) {
-            for (let i = 0; i < this._meshRenderDataArray.length; i++) {
-                this._meshRenderDataArrayIdx = i;
-                const m = this._meshRenderDataArray[i];
-                if (m.texture) {
-                    // NOTE: 由于 commitComp 只支持单张纹理, 故分多次提交
-                    ui.commitComp(this, m.texture!, this._assembler);
-                }
-            }
-            this.node._static = true;
-        }
-    }
 }

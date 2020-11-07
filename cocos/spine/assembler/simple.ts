@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 /*
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
 
@@ -28,16 +29,16 @@
  * @module ui-assembler
  */
 
-import { Color, Mat4, Vec3, Node, GFXBlendFactor, Texture2D, GFXAttribute, Material } from '../../core';
+import spine from '../lib/spine-core.js';
 import { IAssembler } from '../../core/renderer/ui/base';
 import { UI } from '../../core/renderer/ui/ui';
-import { Skeleton, SkeletonMeshData, SpineMaterialType } from '../skeleton'
-import spine from '../lib/spine-core.js';
 import { JSB } from '../../../editor/exports/populate-internal-constants';
-import { vfmtPosUvColor, vfmtPosUvTwoColor } from '../../core/renderer/ui/ui-vertex-format';
 import { FrameColor } from '../skeleton-cache';
 import { MaterialInstance } from '../../core/renderer';
 import { SkeletonTexture } from '../skeleton-texture';
+import { vfmtPosUvColor, vfmtPosUvTwoColor } from '../../core/renderer/ui/ui-vertex-format';
+import { Skeleton, SkeletonMeshData, SpineMaterialType } from '../skeleton';
+import { Color, GFXAttribute, GFXBlendFactor, Mat4, Material, Node, Texture2D, Vec3 } from '../../core';
 
 
 
@@ -142,7 +143,7 @@ function _getSlotMaterial (blendMode: spine.BlendMode) {
             break;
     }
 
-    return _comp!.getMaterialForBlendAndTint(src, dst, _useTint ? SpineMaterialType.TWO_COLORED : SpineMaterialType.COLORED_TEXTURED)
+    return _comp!.getMaterialForBlendAndTint(src, dst, _useTint ? SpineMaterialType.TWO_COLORED : SpineMaterialType.COLORED_TEXTURED);
 }
 
 function _handleColor (color: FrameColor) {
@@ -195,7 +196,7 @@ export const simple: IAssembler = {
 
     updateRenderData (comp: Skeleton, ui: UI) {
         _comp = comp;
-        if (comp.isAnimationCached()) return;
+        // if (comp.isAnimationCached()) return;
         const skeleton = comp._skeleton;
         if (skeleton) {
             skeleton.updateWorldTransform();
@@ -210,7 +211,7 @@ export const simple: IAssembler = {
     fillBuffers (comp: Skeleton, renderer: UI) {
         if (!comp || !comp.meshRenderDataArray) return;
         _comp = comp;
-        const dataArray = comp.meshRenderDataArray!;
+        const dataArray = comp.meshRenderDataArray;
         const node = comp.node;
 
         // 当前渲染的数据
@@ -279,7 +280,7 @@ function updateComponentRenderData (comp: Skeleton, ui: UI) {
     _buffer = comp.requestMeshRenderData(_perVertexSize);
     _comp = comp;
 
-    _currentMaterial = _comp!.getBuiltinMaterial(_useTint ? SpineMaterialType.TWO_COLORED : SpineMaterialType.COLORED_TEXTURED);
+    _currentMaterial = _comp.getBuiltinMaterial(_useTint ? SpineMaterialType.TWO_COLORED : SpineMaterialType.COLORED_TEXTURED);
 
     _mustFlush = true;
     // _premultipliedAlpha = comp.premultipliedAlpha;
@@ -297,7 +298,7 @@ function updateComponentRenderData (comp: Skeleton, ui: UI) {
     }
 
     let worldMat: Mat4 | undefined;
-    if (_comp!.enableBatch) {
+    if (_comp.enableBatch) {
         worldMat = _node.worldMatrix;
         _mustFlush = false;
         _handleVal |= FLAG_BATCH;
@@ -339,7 +340,7 @@ function fillVertices (skeletonColor: spine.Color, attachmentColor: spine.Color,
     _finalColor!.b = _tempb * slotColor.b;
 
     if (slot.darkColor == null) {
-        _darkColor!.set(0.0, 0.0, 0.0, 1.0);
+        _darkColor?.set(0.0, 0.0, 0.0, 1.0);
     } else {
         _darkColor!.r = slot.darkColor.r * _tempr;
         _darkColor!.g = slot.darkColor.g * _tempg;
@@ -361,7 +362,7 @@ function fillVertices (skeletonColor: spine.Color, attachmentColor: spine.Color,
                 vbuf[v + 3] = _tempUv!.x;         // u
                 vbuf[v + 4] = _tempUv!.y;         // v
 
-                vbuf.set(_spineColorToFloat32Array4(_finalColor!), v + 5)
+                vbuf.set(_spineColorToFloat32Array4(_finalColor!), v + 5);
                 if (_useTint) {
                     vbuf.set(_spineColorToFloat32Array4(_darkColor!), v + 9); // dark color
                 }
@@ -386,7 +387,8 @@ function fillVertices (skeletonColor: spine.Color, attachmentColor: spine.Color,
         const uvs = vbuf.subarray(_vertexFloatOffset + 3);
 
         clipper.clipTriangles(vertices, _vertexFloatCount,
-            ibuf.subarray(_indexOffset), _indexCount, uvs, _finalColor!, _darkColor!, _useTint, _perVertexSize);
+            ibuf.subarray(_indexOffset), _indexCount, uvs, _finalColor!, _darkColor!, _useTint,
+            _perVertexSize);
         const clippedVertices = new Float32Array(clipper.clippedVertices);
         const clippedTriangles = clipper.clippedTriangles;
 
@@ -455,7 +457,7 @@ function fillVertices (skeletonColor: spine.Color, attachmentColor: spine.Color,
             }
         }
         // TOOD: remove
-        _buffer?.renderData.advance(_vertexFloatCount / _perVertexSize, _indexCount);
+        // _buffer?.renderData.advance(_vertexFloatCount / _perVertexSize, _indexCount);
     }
 }
 
@@ -560,7 +562,7 @@ function realTimeTraverse (worldMat?: Mat4) {
             _currentMaterial = material;
             _currentTexture = texture;
             _buffer.texture = texture!;
-            _buffer!.renderData.material = _currentMaterial;
+            _buffer.renderData.material = _currentMaterial;
         }
 
         if (isRegion) {
@@ -601,7 +603,7 @@ function realTimeTraverse (worldMat?: Mat4) {
             _vertexFloatCount = (mattachment.worldVerticesLength >> 1) * _perVertexSize;
             _indexCount = triangles.length;
 
-            _buffer!.renderData.reserve(mattachment.worldVerticesLength >> 1, _indexCount)
+            _buffer!.renderData.reserve(mattachment.worldVerticesLength >> 1, _indexCount);
 
             _indexOffset = _buffer!.renderData.indicesCount;
             _vertexOffset = _buffer!.renderData.vertexCount;
@@ -649,7 +651,7 @@ function realTimeTraverse (worldMat?: Mat4) {
         }
 
         attachmentColor = meshAttachment.color,
-            slotColor = slot.color;
+        slotColor = slot.color;
 
         fillVertices(skeletonColor, attachmentColor, slotColor, clipper, slot);
 
@@ -764,8 +766,8 @@ function cacheTraverse (worldMat?: Mat4) {
             _buffer = _comp!.requestMeshRenderData(_vfmtFloatSize(_useTint));
             _currentMaterial = material;
             _currentTexture = segInfo.tex!;
-            _buffer!.texture = segInfo.tex!;
-            _buffer!.renderData.material = _currentMaterial;
+            _buffer.texture = segInfo.tex!;
+            _buffer.renderData.material = _currentMaterial;
         }
 
         _vertexCount = segInfo.vertexCount;
@@ -806,7 +808,7 @@ function cacheTraverse (worldMat?: Mat4) {
                 vbuf[floatOffset + 11] = subArray[ii * 12 + 10];
                 vbuf[floatOffset + 12] = subArray[ii * 12 + 11];
             }
-            floatOffset += _perClipVertexSize
+            floatOffset += _perVertexSize;
         }
 
         if (calcTranslate) {
