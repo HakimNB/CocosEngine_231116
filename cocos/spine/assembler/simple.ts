@@ -791,33 +791,34 @@ function cacheTraverse (worldMat?: Mat4) {
         frameVFOffset += segVFCount;
         // x y r g b a u v r g b a
         let floatOffset = _vfOffset;
-        _perClipVertexSize = _vfmtFloatSize(_useTint);
+        _perVertexSize = _vfmtFloatSize(_useTint);
 
-        for (let ii = 0; ii < subArray.length; ii += 12) {
-            vbuf[floatOffset + 0] = subArray[ii * 12 + 0];
-            vbuf[floatOffset + 1] = subArray[ii * 12 + 1];
-            vbuf[floatOffset + 3] = subArray[ii * 12 + 6];
-            vbuf[floatOffset + 4] = subArray[ii * 12 + 7];
-            vbuf[floatOffset + 5] = subArray[ii * 12 + 2];
-            vbuf[floatOffset + 6] = subArray[ii * 12 + 3];
-            vbuf[floatOffset + 7] = subArray[ii * 12 + 4];
-            vbuf[floatOffset + 8] = subArray[ii * 12 + 5];
+        for (let ii = 0; ii < subArray.length;) {
+            vbuf[floatOffset + 0] = subArray[ii + 0];
+            vbuf[floatOffset + 1] = subArray[ii + 1];
+            vbuf[floatOffset + 3] = subArray[ii + 3];
+            vbuf[floatOffset + 4] = subArray[ii + 4];
+            vbuf[floatOffset + 5] = subArray[ii + 5];
+            vbuf[floatOffset + 6] = subArray[ii + 6];
+            vbuf[floatOffset + 7] = subArray[ii + 7];
+            vbuf[floatOffset + 8] = subArray[ii + 8];
             if (_useTint) {
-                vbuf[floatOffset + 9] = subArray[ii * 12 + 8];
-                vbuf[floatOffset + 10] = subArray[ii * 12 + 9];
-                vbuf[floatOffset + 11] = subArray[ii * 12 + 10];
-                vbuf[floatOffset + 12] = subArray[ii * 12 + 11];
+                vbuf[floatOffset + 9] = subArray[ii + 9];
+                vbuf[floatOffset + 10] = subArray[ii + 10];
+                vbuf[floatOffset + 11] = subArray[ii + 11];
+                vbuf[floatOffset + 12] = subArray[ii + 12];
             }
             floatOffset += _perVertexSize;
+            ii += 13; 
         }
 
         if (calcTranslate) {
-            for (let ii = _vfOffset, il = _vfOffset + segVFCount; ii < il; ii += _perClipVertexSize) {
+            for (let ii = _vfOffset, il = _vfOffset + segVFCount; ii < il; ii += _perVertexSize) {
                 vbuf[ii] += _m12;
                 vbuf[ii + 1] += _m13;
             }
         } else if (needBatch) {
-            for (let ii = _vfOffset, il = _vfOffset + segVFCount; ii < il; ii += _perClipVertexSize) {
+            for (let ii = _vfOffset, il = _vfOffset + segVFCount; ii < il; ii += _perVertexSize) {
                 _x = vbuf[ii];
                 _y = vbuf[ii + 1];
                 vbuf[ii] = _x * _m00 + _y * _m04 + _m12;
@@ -831,7 +832,7 @@ function cacheTraverse (worldMat?: Mat4) {
 
         // handle color
         let frameColorOffset = frameVFOffset - segVFCount;
-        for (let ii = _vfOffset, iEnd = _vfOffset + segVFCount; ii < iEnd; ii += _perClipVertexSize, frameColorOffset += 6) {
+        for (let ii = _vfOffset, iEnd = _vfOffset + segVFCount; ii < iEnd; ii += _perVertexSize, frameColorOffset += 6) {
             if (frameColorOffset >= maxVFOffset) {
                 nowColor = colors[colorOffset++];
                 _handleColor(nowColor);
