@@ -30,7 +30,7 @@ import { AnimationCache, AnimationFrame, default as SkeletonCache } from './skel
 import { AttachUtil } from './AttachUtil';
 import { ccclass, executeInEditMode, help, menu } from '../core/data/class-decorator';
 import { UIRenderable } from '../core/components/ui-base/ui-renderable';
-import { CCClass, Color, Enum, GFXBlendFactor, Material, PrivateNode, Texture2D, builtinResMgr, ccenum, errorID, logID, warn } from '../core';
+import { CCClass, CCObject, Color, Enum, GFXBlendFactor, Material, PrivateNode, Texture2D, builtinResMgr, ccenum, errorID, logID, warn } from '../core';
 import { displayName, editable, override, serializable, tooltip, type, visible } from '../core/data/decorators';
 import { EDITOR } from '../../editor/exports/populate-internal-constants';
 import { SkeletonData } from './skeleton-data';
@@ -260,6 +260,7 @@ export class Skeleton extends UIRenderable {
             this.setSkin(this.defaultSkin);
             if (EDITOR /*&& !cc.engine.isPlaying*/) {
                 this._refreshInspector();
+                this.markForUpdateRenderData();
             }
         }
         else {
@@ -267,7 +268,14 @@ export class Skeleton extends UIRenderable {
         }
     }
 
+
+    public generateNode () {
+        this.attachUtil.generateAllAttachedNodes();
+    }
+
     // value of 0 represents no animation
+
+
 
     @displayName('Animation')
     @type(DefaultAnimsEnum)
@@ -455,7 +463,7 @@ export class Skeleton extends UIRenderable {
 
   
     // protected _materialCache = {};
-    public _effectDelegate: VertexEffectDelegate | null = null;
+    public _effectDelegate: VertexEffectDelegate | null|undefined = null;
     public _skeleton: spine.Skeleton | null;
     public _clipper?: spine.SkeletonClipping;
     public _debugRenderer: Graphics | null;
@@ -659,11 +667,11 @@ export class Skeleton extends UIRenderable {
     // IMPLEMENT
     public __preload () {
         super.__preload();
-        // if (EDITOR) {
-        // var Flags = CCObject.Flags;
-        // this._objFlags |= (Flags.IsAnchorLocked | Flags.IsSizeLocked);
-        // this._refreshInspector();
-        // }
+        if (EDITOR) {
+            const Flags = CCObject.Flags;
+            this._objFlags |= (Flags.IsAnchorLocked | Flags.IsSizeLocked);
+            // this._refreshInspector();
+        }
 
         const children = this.node.children;
         for (let i = 0, n = children.length; i < n; i++) {
@@ -750,7 +758,7 @@ export class Skeleton extends UIRenderable {
      * !#en Sets vertex effect delegate.
      * !#zh 设置顶点动画代理
      */
-    public setVertexEffectDelegate (effectDelegate: VertexEffectDelegate) {
+    public setVertexEffectDelegate (effectDelegate: VertexEffectDelegate|null|undefined) {
         this._effectDelegate = effectDelegate;
     }
 

@@ -287,7 +287,7 @@ function updateComponentRenderData (comp: Skeleton, ui: UI) {
     _multiplier = 1.0;
     _handleVal = 0x00;
     _needColor = false;
-    _vertexEffect = comp._effectDelegate && comp._effectDelegate._vertexEffect;
+    _vertexEffect = comp._effectDelegate && comp._effectDelegate._vertexEffect as any;
 
     if (nodeColor._val !== 0xffffffff /*|| _premultipliedAlpha */) {
         _needColor = true;
