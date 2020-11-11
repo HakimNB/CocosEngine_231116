@@ -1,3 +1,28 @@
+/*
+ Copyright (c) 2020 Xiamen Yaji Software Co., Ltd.
+
+ https://www.cocos.com/
+
+ Permission is hereby granted, free of charge, to any person obtaining a copy
+ of this software and associated engine source code (the "Software"), a limited,
+ worldwide, royalty-free, non-assignable, revocable and non-exclusive license
+ to use Cocos Creator solely to develop games on your target platforms. You shall
+ not use Cocos Creator software for developing other software or tools that's
+ used for developing games. You are not granted to publish, distribute,
+ sublicense, and/or sell copies of Cocos Creator.
+
+ The software or tools in this License Agreement are licensed, not sold.
+ Xiamen Yaji Software Co., Ltd. reserves all rights not expressly granted to you.
+
+ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ THE SOFTWARE.
+ */
+
 import { Material } from '../../assets/material';
 import { sphere } from '../../geometry';
 import { Color, Mat4, Vec3, Vec2 } from '../../math';
@@ -65,6 +90,7 @@ export const PCFType = Enum({
 });
 
 export class Shadows {
+
     /**
      * @en MAX_FAR. This is shadow camera max far.
      * @zh 阴影相机的最远视距。
@@ -78,7 +104,7 @@ export class Shadows {
     public static readonly COEFFICIENT_OF_EXPANSION: number = 2.0 * Math.sqrt(3.0);
 
     /**
-     * @en Whether activate planar shadow
+     * @en Whether activate planar shadow.
      * @zh 是否启用平面阴影？
      */
     get enabled (): boolean {
@@ -92,8 +118,8 @@ export class Shadows {
     }
 
     /**
-     * @en The normal of the plane which receives shadow
-     * @zh 阴影接收平面的法线
+     * @en The normal of the plane which receives shadow.
+     * @zh 阴影接收平面的法线。
      */
     get normal (): Vec3 {
         return this._normal;
@@ -106,7 +132,7 @@ export class Shadows {
 
     /**
      * @en The distance from coordinate origin to the receiving plane.
-     * @zh 阴影接收平面与原点的距离
+     * @zh 阴影接收平面与原点的距离。
      */
     get distance (): number {
         return ShadowsPool.get(this._handle, ShadowsView.DISTANCE);
@@ -117,8 +143,8 @@ export class Shadows {
     }
 
     /**
-     * @en Shadow color
-     * @zh 阴影颜色
+     * @en Shadow color.
+     * @zh 阴影颜色。
      */
     get shadowColor (): Color {
         return this._shadowColor;
@@ -130,8 +156,8 @@ export class Shadows {
     }
 
     /**
-     * @en Shadow type
-     * @zh 阴影类型
+     * @en Shadow type.
+     * @zh 阴影类型。
      */
     get type (): number {
         return ShadowsPool.get(this._handle, ShadowsView.TYPE);
@@ -143,8 +169,8 @@ export class Shadows {
     }
 
     /**
-     * @en get or set shadow camera near
-     * @zh 获取或者设置阴影相机近裁剪面
+     * @en get or set shadow camera near.
+     * @zh 获取或者设置阴影相机近裁剪面。
      */
     public get near (): number {
         return ShadowsPool.get(this._handle, ShadowsView.NEAR);
@@ -154,8 +180,8 @@ export class Shadows {
     }
 
     /**
-     * @en get or set shadow camera far
-     * @zh 获取或者设置阴影相机远裁剪面
+     * @en get or set shadow camera far.
+     * @zh 获取或者设置阴影相机远裁剪面。
      */
     public get far (): number {
         return ShadowsPool.get(this._handle, ShadowsView.FAR);
@@ -165,8 +191,8 @@ export class Shadows {
     }
 
     /**
-     * @en get or set shadow camera aspect
-     * @zh 获取或者设置阴影相机的宽高比
+     * @en get or set shadow camera aspect.
+     * @zh 获取或者设置阴影相机的宽高比。
      */
     public get aspect (): number {
         return ShadowsPool.get(this._handle, ShadowsView.ASPECT);
@@ -176,8 +202,8 @@ export class Shadows {
     }
 
     /**
-     * @en get or set shadow camera orthoSize
-     * @zh 获取或者设置阴影相机正交大小
+     * @en get or set shadow camera orthoSize.
+     * @zh 获取或者设置阴影相机正交大小。
      */
     public get orthoSize (): number {
         return ShadowsPool.get(this._handle, ShadowsView.ORTHO_SIZE);
@@ -187,8 +213,8 @@ export class Shadows {
     }
 
     /**
-     * @en get or set shadow camera orthoSize
-     * @zh 获取或者设置阴影纹理大小
+     * @en get or set shadow camera orthoSize.
+     * @zh 获取或者设置阴影纹理大小。
      */
     public get size (): Vec2 {
         return this._size;
@@ -199,8 +225,8 @@ export class Shadows {
     }
 
     /**
-     * @en get or set shadow pcf
-     * @zh 获取或者设置阴影pcf等级
+     * @en get or set shadow pcf.
+     * @zh 获取或者设置阴影pcf等级。
      */
     public get pcf (): number {
         return ShadowsPool.get(this._handle, ShadowsView.PCF_TYPE);
@@ -210,8 +236,20 @@ export class Shadows {
     }
 
     /**
-     * @en get or set shadow bias
-     * @zh 获取或者设置阴影偏移量
+     * @en shadow Map size has been modified.
+     * @zh 阴影贴图大小是否被修改。
+     */
+    public get shadowMapDirty (): boolean {
+        if (ShadowsPool.get(this._handle, ShadowsView.SHADOW_MAP_DIRTY)) { return true; }
+        return false;
+    }
+    public set shadowMapDirty (val: boolean) {
+        ShadowsPool.set(this._handle, ShadowsView.SHADOW_MAP_DIRTY, val ? 1 : 0);
+    }
+
+    /**
+     * @en get or set shadow bias.
+     * @zh 获取或者设置阴影偏移量。
      */
     public get bias (): number {
         return ShadowsPool.get(this._handle, ShadowsView.BIAS);
@@ -221,8 +259,8 @@ export class Shadows {
     }
 
     /**
-     * @en get or set shadow auto control
-     * @zh 获取或者设置阴影是否自动控制
+     * @en get or set shadow auto control.
+     * @zh 获取或者设置阴影是否自动控制。
      */
     public get autoAdapt (): boolean {
         if (ShadowsPool.get(this._handle, ShadowsView.AUTO_ADAPT)) { return true; }
@@ -249,10 +287,16 @@ export class Shadows {
     }
 
     /**
-     * @en The bounding sphere of the shadow map
-     * @zh 用于计算阴影 Shadow map 的场景包围球
+     * @en The bounding sphere of the shadow map.
+     * @zh 用于计算阴影 Shadow map 的场景包围球.
      */
     public sphere: sphere = new sphere(0.0, 0.0, 0.0, 0.01);
+
+    /**
+     * @en get or set shadow max received.
+     * @zh 阴影接收的最大灯光数量。
+     */
+    public maxReceived: number = 4;
 
     protected _normal = new Vec3(0, 1, 0);
     protected _shadowColor = new Color(0, 0, 0, 76);
