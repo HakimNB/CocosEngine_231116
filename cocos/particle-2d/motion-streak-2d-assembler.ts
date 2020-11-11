@@ -61,7 +61,7 @@ function normal (out, dir) {
     // get perpendicular
     out.x = -dir.y;
     out.y = dir.x;
-    return out
+    return out;
 }
 
 function computeMiter (miter, lineA, lineB, halfThick, maxMultiple) {
@@ -90,10 +90,10 @@ export const MotionStreakAssembler: IAssembler = {
 
     createData (comp: MotionStreak) {
         const renderData = comp.requestRenderData();
-        renderData!.dataLength = 4;
-        renderData!.vertexCount = 16;
-        renderData!.indicesCount = (16 - 2) * 3;
-        return renderData as RenderData;
+        renderData.dataLength = 4;
+        renderData.vertexCount = 16;
+        renderData.indicesCount = (16 - 2) * 3;
+        return renderData;
     },
 
     update (comp: MotionStreak, dt: number) {
@@ -149,7 +149,7 @@ export const MotionStreakAssembler: IAssembler = {
         const data = renderData.data;
         const fadeTime = comp.fadeTime;
         let findLast = false;
-        for (let i = points.length - 1; i >= 0 ; i--) {
+        for (let i = points.length - 1; i >= 0; i--) {
             const p = points[i];
             const point = p.point;
             const dir = p.dir;
@@ -212,13 +212,13 @@ export const MotionStreakAssembler: IAssembler = {
         const dataList = renderData.data;
         const node = comp.node;
 
-        let buffer = renderer.fetchCurrentBufferBatch()!;
+        let buffer = renderer.acquireBufferBatch()!;
         let vertexOffset = buffer.byteOffset >> 2;
         let indicesOffset = buffer.indicesOffset;
         let vertexId = buffer.vertexOffset;
         const isRecreate = buffer.request(renderData.vertexCount, renderData.indicesCount);
         if (!isRecreate) {
-            buffer = renderer.getCurrMeshBuffer()!;
+            buffer = renderer.currMeshBuffer!;
             indicesOffset = 0;
             vertexId = 0;
         }
@@ -236,7 +236,7 @@ export const MotionStreakAssembler: IAssembler = {
             vBuf[vertexOffset++] = vert.z;
             vBuf[vertexOffset++] = vert.u;
             vBuf[vertexOffset++] = vert.v;
-            Color.toArray(vBuf!, vert.color, vertexOffset);
+            Color.toArray(vBuf, vert.color, vertexOffset);
             vertexOffset += 4;
         }
 
@@ -255,7 +255,7 @@ export const MotionStreakAssembler: IAssembler = {
     clear () {
         this._points.length = 0;
     },
-}
+};
 
 export const MotionStreakAssemblerManager: IAssemblerManager = {
     getAssembler (comp: MotionStreak) {
