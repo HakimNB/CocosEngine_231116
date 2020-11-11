@@ -288,7 +288,7 @@ class BuiltinResMgr {
         // ui spine two color material
         const spineTwoColorMtl = new legacyCC.Material();
         spineTwoColorMtl._uuid = 'ui-spine-two-colored-material';
-        spineTwoColorMtl.initialize({ defines: { USE_TEXTURE: true, CC_USE_EMBEDDED_ALPHA: true, IS_GRAY: false }, effectName: 'builtin-spine-two-colored' });
+        spineTwoColorMtl.initialize({ defines: { USE_TEXTURE: true, CC_USE_EMBEDDED_ALPHA: true, IS_GRAY: false }, effectName: 'spine-two-colored' });
         resources[spineTwoColorMtl._uuid] = spineTwoColorMtl;
     }
 }
