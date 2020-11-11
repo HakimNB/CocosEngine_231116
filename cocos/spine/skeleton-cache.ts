@@ -96,7 +96,7 @@ export interface FrameSegment {
     blendMode?: spine.BlendMode;
 }
 
-export interface FrameBoneInfo {
+export interface FrameBoneInfo extends spine.Bone {
     a: number;
     b: number;
     c: number;
