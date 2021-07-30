@@ -110,7 +110,7 @@ class BufferPool<P extends PoolType, E extends BufferManifest> implements IMemor
         const float32BufferViews: Float32Array[] = [];
         const uint32BufferViews: Uint32Array[] = [];
         const freeList: number[] = [];
-        for (let j = 0; j < this._entriesPerChunk; j++) {
+        for (let j =  this._entriesPerChunk - 1; j >= 0; j--) {
             if (j) { freeList.push(j); }
             this._bufferViews[j] = [];
         }
@@ -150,7 +150,7 @@ class BufferPool<P extends PoolType, E extends BufferManifest> implements IMemor
     }
 
     public getTypedArray<K extends E[keyof E]>(handle: IHandle<P>, element: K): BufferArrayType {
-        const range = this.getBuffer(handle)!;
+        const range = this.getBufferRange(handle)!;
         const elementType = this._dataType[element];
         const count = this._dataMembers[element];
         const index = element as unknown as number;
