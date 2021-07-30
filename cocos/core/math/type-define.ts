@@ -90,4 +90,4 @@ export interface IVec4Like {
     w: number;
 }
 
-export type FloatArray = Float64Array | Float32Array;
+export type FloatArray = Float64Array;
