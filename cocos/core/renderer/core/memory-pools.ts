@@ -53,14 +53,13 @@ interface IHandle<P extends PoolType> extends Number {
 enum BufferDataType {
     UINT32,
     FLOAT32,
-    FLOAT64,
     NEVER,
 }
 
 type BufferManifest = { [key: string]: number | string; COUNT: number };
 type BufferDataTypeManifest<E extends BufferManifest> = { [key in E[keyof E]]: BufferDataType };
 type BufferDataMembersManifest<E extends BufferManifest> = { [key in E[keyof E]]: number };
-type BufferArrayType = Float32Array | Uint32Array | Float64Array;
+type BufferArrayType = Float32Array | Uint32Array;
 type BufferRange = { buffer: ArrayBuffer, byteOffset: number, byteLength: number };
 
 class BufferPool<P extends PoolType, E extends BufferManifest> implements IMemoryPool<P> {
@@ -157,8 +156,8 @@ class BufferPool<P extends PoolType, E extends BufferManifest> implements IMemor
             return new Uint32Array(range.buffer, range.byteOffset + index * 4, count);
         } else if (elementType === BufferDataType.FLOAT32) {
             return new Float32Array(range.buffer, range.byteOffset + index * 4, count);
-        } else { // (elementType === BufferDataType.FLOAT64)
-            return new Float64Array(range.buffer, range.byteOffset + index * 4, count / 2);
+        } else {
+            throw new Error(`bad element type ${elementType}`);
         }
     }
 
@@ -190,28 +189,28 @@ export const NULL_HANDLE = 0 as unknown as IHandle<any>;
 export type NodeHandle = IHandle<PoolType.NODE>;
 
 export enum NodeView {
-    DIRTY_FLAG,          // 1
-    LAYER,               // 1
-    WORLD_SCALE,        // Vec3 6
-    WORLD_POSITION = 8, // Vec3 6
-    WORLD_ROTATION = 14, // Quat 8
-    WORLD_MATRIX = 22,  // Mat4 32
-    LOCAL_SCALE = 54,   // Vec3 6
-    LOCAL_POSITION = 60, // Vec3 6
-    LOCAL_ROTATION = 66, // Quat 8
-    COUNT = 74
+    DIRTY_FLAG,             // 1
+    LAYER,                  // 1
+    WORLD_SCALE,            // Vec3 3
+    WORLD_POSITION = 5,     // Vec3 3
+    WORLD_ROTATION = 8,     // Quat 4
+    WORLD_MATRIX = 12,      // Mat4 16
+    LOCAL_SCALE = 28,       // Vec3 3
+    LOCAL_POSITION = 31,    // Vec3 3
+    LOCAL_ROTATION = 34,    // Quat 4
+    COUNT = 38
 }
 
 const NodeViewDataType: BufferDataTypeManifest<typeof NodeView> = {
     [NodeView.DIRTY_FLAG]: BufferDataType.UINT32,
     [NodeView.LAYER]: BufferDataType.UINT32,
-    [NodeView.WORLD_SCALE]: BufferDataType.FLOAT64,
-    [NodeView.WORLD_POSITION]: BufferDataType.FLOAT64,
-    [NodeView.WORLD_ROTATION]: BufferDataType.FLOAT64,
-    [NodeView.WORLD_MATRIX]: BufferDataType.FLOAT64,
-    [NodeView.LOCAL_SCALE]: BufferDataType.FLOAT64,
-    [NodeView.LOCAL_POSITION]: BufferDataType.FLOAT64,
-    [NodeView.LOCAL_ROTATION]: BufferDataType.FLOAT64,
+    [NodeView.WORLD_SCALE]: BufferDataType.FLOAT32,
+    [NodeView.WORLD_POSITION]: BufferDataType.FLOAT32,
+    [NodeView.WORLD_ROTATION]: BufferDataType.FLOAT32,
+    [NodeView.WORLD_MATRIX]: BufferDataType.FLOAT32,
+    [NodeView.LOCAL_SCALE]: BufferDataType.FLOAT32,
+    [NodeView.LOCAL_POSITION]: BufferDataType.FLOAT32,
+    [NodeView.LOCAL_ROTATION]: BufferDataType.FLOAT32,
     [NodeView.COUNT]: BufferDataType.NEVER,
 };
 
@@ -271,13 +270,13 @@ export type AABBHandle = IHandle<PoolType.AABB>;
 
 export enum AABBView {
     CENTER, // Vec3 6
-    HALFEXTENTS = 6, // Vec3 6
-    COUNT = 12
+    HALFEXTENTS = 3, // Vec3 6
+    COUNT = 6
 }
 
 const AABBViewDataType: BufferDataTypeManifest<typeof AABBView> = {
-    [AABBView.CENTER]: BufferDataType.FLOAT64,
-    [AABBView.HALFEXTENTS]: BufferDataType.FLOAT64,
+    [AABBView.CENTER]: BufferDataType.FLOAT32,
+    [AABBView.HALFEXTENTS]: BufferDataType.FLOAT32,
     [AABBView.COUNT]: BufferDataType.NEVER,
 };
 
