@@ -108,7 +108,7 @@ class BufferPool<P extends PoolType, E extends BufferManifest> implements IMemor
         // add a new chunk
         const buffer = this._nativePool.allocateNewChunk();
         const freeList: number[] = [];
-        for (let j =  this._entriesPerChunk - 1; j >= 0; j--) {
+        for (let j = this._entriesPerChunk - 1; j >= 0; j--) {
             if (j) { freeList.push(j); }
             this._bufferViews[j] = [];
         }
