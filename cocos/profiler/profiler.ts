@@ -422,6 +422,16 @@ export class Profiler {
         (this._stats.textureMemory.counter as PerfCounter).value = device.memoryStatus.textureSize / (1024 * 1024);
         (this._stats.tricount.counter as PerfCounter).value = device.numTris;
 
+        (performance as any).send(
+            this._stats.frame.counter.value,
+            this._stats.fps.counter.value,
+            this._stats.logic.counter.value,
+            this._stats.render.counter.value,
+            this._stats.draws.counter.value,
+            this._stats.instances.counter.value,
+            this._stats.tricount.counter.value,
+        );
+
         let i = 0;
         if (!EDITOR) {
             const view = this.digitsData;
