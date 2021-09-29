@@ -391,11 +391,11 @@ export class Vec3 extends MathBase {
         const x = a.x;
         const y = a.y;
         const z = a.z;
-        let rhw = m.m03 * x + m.m07 * y + m.m11 * z + m.m15;
+        let rhw = (m as any)._array[3] * x + (m as any)._array[7] * y + (m as any)._array[11] * z + (m as any)._array[15];
         rhw = rhw ? Math.abs(1 / rhw) : 1;
-        out.x = (m.m00 * x + m.m04 * y + m.m08 * z + m.m12) * rhw;
-        out.y = (m.m01 * x + m.m05 * y + m.m09 * z + m.m13) * rhw;
-        out.z = (m.m02 * x + m.m06 * y + m.m10 * z + m.m14) * rhw;
+        out.x = ((m as any)._array[0] * x + (m as any)._array[4] * y + (m as any)._array[8] * z + (m as any)._array[12]) * rhw;
+        out.y = ((m as any)._array[1] * x + (m as any)._array[5] * y + (m as any)._array[9] * z + (m as any)._array[13]) * rhw;
+        out.z = ((m as any)._array[2] * x + (m as any)._array[6] * y + (m as any)._array[10] * z + (m as any)._array[14]) * rhw;
         return out;
     }
 
@@ -407,11 +407,11 @@ export class Vec3 extends MathBase {
         const x = a.x;
         const y = a.y;
         const z = a.z;
-        let rhw = m.m03 * x + m.m07 * y + m.m11 * z;
+        let rhw = (m as any)._array[3] * x + (m as any)._array[7] * y + (m as any)._array[11] * z;
         rhw = rhw ? Math.abs(1 / rhw) : 1;
-        out.x = (m.m00 * x + m.m04 * y + m.m08 * z) * rhw;
-        out.y = (m.m01 * x + m.m05 * y + m.m09 * z) * rhw;
-        out.z = (m.m02 * x + m.m06 * y + m.m10 * z) * rhw;
+        out.x = ((m as any)._array[0] * x + (m as any)._array[4] * y + (m as any)._array[8] * z) * rhw;
+        out.y = ((m as any)._array[1] * x + (m as any)._array[5] * y + (m as any)._array[9] * z) * rhw;
+        out.z = ((m as any)._array[2] * x + (m as any)._array[6] * y + (m as any)._array[10] * z) * rhw;
         return out;
     }
 
@@ -423,9 +423,9 @@ export class Vec3 extends MathBase {
         const x = a.x;
         const y = a.y;
         const z = a.z;
-        out.x = x * m.m00 + y * m.m03 + z * m.m06;
-        out.y = x * m.m01 + y * m.m04 + z * m.m07;
-        out.z = x * m.m02 + y * m.m05 + z * m.m08;
+        out.x = x * (m as any)._array[0] + y * (m as any)._array[3] + z * (m as any)._array[6];
+        out.y = x * (m as any)._array[1] + y * (m as any)._array[4] + z * (m as any)._array[7];
+        out.z = x * (m as any)._array[2] + y * (m as any)._array[5] + z * (m as any)._array[8];
         return out;
     }
 
@@ -437,9 +437,9 @@ export class Vec3 extends MathBase {
         const x = v.x;
         const y = v.y;
         const z = v.z;
-        out.x = m.m00 * x + m.m04 * y + m.m08 * z + m.m12;
-        out.y = m.m01 * x + m.m05 * y + m.m09 * z + m.m13;
-        out.x = m.m02 * x + m.m06 * y + m.m10 * z + m.m14;
+        out.x = (m as any)._array[0] * x + (m as any)._array[4] * y + (m as any)._array[8] * z + (m as any)._array[12];
+        out.y = (m as any)._array[1] * x + (m as any)._array[5] * y + (m as any)._array[9] * z + (m as any)._array[13];
+        out.x = (m as any)._array[2] * x + (m as any)._array[6] * y + (m as any)._array[10] * z + (m as any)._array[14];
         return out;
     }
 

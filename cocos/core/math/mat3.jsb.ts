@@ -55,9 +55,9 @@ export class Mat3 extends MathBase {
      */
     public static clone <Out extends IMat3Like> (a: IMat3) {
         return new Mat3(
-            a.m00, a.m01, a.m02,
-            a.m03, a.m04, a.m05,
-            a.m06, a.m07, a.m08,
+            (a as any)._array[0], (a as any)._array[1], (a as any)._array[2],
+            (a as any)._array[3], (a as any)._array[4], (a as any)._array[5],
+            (a as any)._array[6], (a as any)._array[7], (a as any)._array[8],
         );
     }
 
@@ -66,15 +66,15 @@ export class Mat3 extends MathBase {
      * @zh 复制目标矩阵
      */
     public static copy <Out extends IMat3Like> (out: Out, a: IMat3) {
-        out.m00 = a.m00;
-        out.m01 = a.m01;
-        out.m02 = a.m02;
-        out.m03 = a.m03;
-        out.m04 = a.m04;
-        out.m05 = a.m05;
-        out.m06 = a.m06;
-        out.m07 = a.m07;
-        out.m08 = a.m08;
+        (out as any)._array[0] = (a as any)._array[0];
+        (out as any)._array[1] = (a as any)._array[1];
+        (out as any)._array[2] = (a as any)._array[2];
+        (out as any)._array[3] = (a as any)._array[3];
+        (out as any)._array[4] = (a as any)._array[4];
+        (out as any)._array[5] = (a as any)._array[5];
+        (out as any)._array[6] = (a as any)._array[6];
+        (out as any)._array[7] = (a as any)._array[7];
+        (out as any)._array[8] = (a as any)._array[8];
         return out;
     }
 
@@ -88,9 +88,9 @@ export class Mat3 extends MathBase {
         m10: number, m11: number, m12: number,
         m20: number, m21: number, m22: number,
     ) {
-        out.m00 = m00; out.m01 = m01; out.m02 = m02;
-        out.m03 = m10; out.m04 = m11; out.m05 = m12;
-        out.m06 = m20; out.m07 = m21; out.m08 = m22;
+        (out as any)._array[0] = m00; (out as any)._array[1] = m01; (out as any)._array[2] = m02;
+        (out as any)._array[3] = m10; (out as any)._array[4] = m11; (out as any)._array[5] = m12;
+        (out as any)._array[6] = m20; (out as any)._array[7] = m21; (out as any)._array[8] = m22;
         return out;
     }
 
@@ -99,15 +99,15 @@ export class Mat3 extends MathBase {
      * @zh 将目标赋值为单位矩阵
      */
     public static identity <Out extends IMat3Like> (out: Out) {
-        out.m00 = 1;
-        out.m01 = 0;
-        out.m02 = 0;
-        out.m03 = 0;
-        out.m04 = 1;
-        out.m05 = 0;
-        out.m06 = 0;
-        out.m07 = 0;
-        out.m08 = 1;
+        (out as any)._array[0] = 1;
+        (out as any)._array[1] = 0;
+        (out as any)._array[2] = 0;
+        (out as any)._array[3] = 0;
+        (out as any)._array[4] = 1;
+        (out as any)._array[5] = 0;
+        (out as any)._array[6] = 0;
+        (out as any)._array[7] = 0;
+        (out as any)._array[8] = 1;
         return out;
     }
 
@@ -118,25 +118,25 @@ export class Mat3 extends MathBase {
     public static transpose <Out extends IMat3Like> (out: Out, a: IMat3) {
         // If we are transposing ourselves we can skip a few steps but have to cache some values
         if (out === a) {
-            const a01 = a.m01;
-            const a02 = a.m02;
-            const a12 = a.m05;
-            out.m01 = a.m03;
-            out.m02 = a.m06;
-            out.m03 = a01;
-            out.m05 = a.m07;
-            out.m06 = a02;
-            out.m07 = a12;
+            const a01 = (a as any)._array[1];
+            const a02 = (a as any)._array[2];
+            const a12 = (a as any)._array[5];
+            (out as any)._array[1] = (a as any)._array[3];
+            (out as any)._array[2] = (a as any)._array[6];
+            (out as any)._array[3] = a01;
+            (out as any)._array[5] = (a as any)._array[7];
+            (out as any)._array[6] = a02;
+            (out as any)._array[7] = a12;
         } else {
-            out.m00 = a.m00;
-            out.m01 = a.m03;
-            out.m02 = a.m06;
-            out.m03 = a.m01;
-            out.m04 = a.m04;
-            out.m05 = a.m07;
-            out.m06 = a.m02;
-            out.m07 = a.m05;
-            out.m08 = a.m08;
+            (out as any)._array[0] = (a as any)._array[0];
+            (out as any)._array[1] = (a as any)._array[3];
+            (out as any)._array[2] = (a as any)._array[6];
+            (out as any)._array[3] = (a as any)._array[1];
+            (out as any)._array[4] = (a as any)._array[4];
+            (out as any)._array[5] = (a as any)._array[7];
+            (out as any)._array[6] = (a as any)._array[2];
+            (out as any)._array[7] = (a as any)._array[5];
+            (out as any)._array[8] = (a as any)._array[8];
         }
 
         return out;
@@ -147,9 +147,9 @@ export class Mat3 extends MathBase {
      * @zh 矩阵求逆，注意，在矩阵不可逆时，会返回一个全为 0 的矩阵。
      */
     public static invert <Out extends IMat3Like> (out: Out, a: IMat3) {
-        const a00 = a.m00; const a01 = a.m01; const a02 = a.m02;
-        const a10 = a.m03; const a11 = a.m04; const a12 = a.m05;
-        const a20 = a.m06; const a21 = a.m07; const a22 = a.m08;
+        const a00 = (a as any)._array[0]; const a01 = (a as any)._array[1]; const a02 = (a as any)._array[2];
+        const a10 = (a as any)._array[3]; const a11 = (a as any)._array[4]; const a12 = (a as any)._array[5];
+        const a20 = (a as any)._array[6]; const a21 = (a as any)._array[7]; const a22 = (a as any)._array[8];
 
         const b01 = a22 * a11 - a12 * a21;
         const b11 = -a22 * a10 + a12 * a20;
@@ -159,22 +159,22 @@ export class Mat3 extends MathBase {
         let det = a00 * b01 + a01 * b11 + a02 * b21;
 
         if (det === 0) {
-            out.m00 = 0; out.m01 = 0; out.m02 = 0;
-            out.m03 = 0; out.m04 = 0; out.m05 = 0;
-            out.m06 = 0; out.m07 = 0; out.m08 = 0;
+            (out as any)._array[0] = 0; (out as any)._array[1] = 0; (out as any)._array[2] = 0;
+            (out as any)._array[3] = 0; (out as any)._array[4] = 0; (out as any)._array[5] = 0;
+            (out as any)._array[6] = 0; (out as any)._array[7] = 0; (out as any)._array[8] = 0;
             return out;
         }
         det = 1.0 / det;
 
-        out.m00 = b01 * det;
-        out.m01 = (-a22 * a01 + a02 * a21) * det;
-        out.m02 = (a12 * a01 - a02 * a11) * det;
-        out.m03 = b11 * det;
-        out.m04 = (a22 * a00 - a02 * a20) * det;
-        out.m05 = (-a12 * a00 + a02 * a10) * det;
-        out.m06 = b21 * det;
-        out.m07 = (-a21 * a00 + a01 * a20) * det;
-        out.m08 = (a11 * a00 - a01 * a10) * det;
+        (out as any)._array[0] = b01 * det;
+        (out as any)._array[1] = (-a22 * a01 + a02 * a21) * det;
+        (out as any)._array[2] = (a12 * a01 - a02 * a11) * det;
+        (out as any)._array[3] = b11 * det;
+        (out as any)._array[4] = (a22 * a00 - a02 * a20) * det;
+        (out as any)._array[5] = (-a12 * a00 + a02 * a10) * det;
+        (out as any)._array[6] = b21 * det;
+        (out as any)._array[7] = (-a21 * a00 + a01 * a20) * det;
+        (out as any)._array[8] = (a11 * a00 - a01 * a10) * det;
         return out;
     }
 
@@ -183,9 +183,9 @@ export class Mat3 extends MathBase {
      * @zh 矩阵行列式
      */
     public static determinant <Out extends IMat3Like> (a: IMat3) {
-        const a00 = a.m00; const a01 = a.m01; const a02 = a.m02;
-        const a10 = a.m03; const a11 = a.m04; const a12 = a.m05;
-        const a20 = a.m06; const a21 = a.m07; const a22 = a.m08;
+        const a00 = (a as any)._array[0]; const a01 = (a as any)._array[1]; const a02 = (a as any)._array[2];
+        const a10 = (a as any)._array[3]; const a11 = (a as any)._array[4]; const a12 = (a as any)._array[5];
+        const a20 = (a as any)._array[6]; const a21 = (a as any)._array[7]; const a22 = (a as any)._array[8];
 
         return a00 * (a22 * a11 - a12 * a21) + a01 * (-a22 * a10 + a12 * a20) + a02 * (a21 * a10 - a11 * a20);
     }
@@ -195,25 +195,25 @@ export class Mat3 extends MathBase {
      * @zh 矩阵乘法
      */
     public static multiply <Out extends IMat3Like> (out: Out, a: IMat3, b: IMat3) {
-        const a00 = a.m00; const a01 = a.m01; const a02 = a.m02;
-        const a10 = a.m03; const a11 = a.m04; const a12 = a.m05;
-        const a20 = a.m06; const a21 = a.m07; const a22 = a.m08;
+        const a00 = (a as any)._array[0]; const a01 = (a as any)._array[1]; const a02 = (a as any)._array[2];
+        const a10 = (a as any)._array[3]; const a11 = (a as any)._array[4]; const a12 = (a as any)._array[5];
+        const a20 = (a as any)._array[6]; const a21 = (a as any)._array[7]; const a22 = (a as any)._array[8];
 
-        const b00 = b.m00; const b01 = b.m01; const b02 = b.m02;
-        const b10 = b.m03; const b11 = b.m04; const b12 = b.m05;
-        const b20 = b.m06; const b21 = b.m07; const b22 = b.m08;
+        const b00 = (b as any)._array[0]; const b01 = (b as any)._array[1]; const b02 = (b as any)._array[2];
+        const b10 = (b as any)._array[3]; const b11 = (b as any)._array[4]; const b12 = (b as any)._array[5];
+        const b20 = (b as any)._array[6]; const b21 = (b as any)._array[7]; const b22 = (b as any)._array[8];
 
-        out.m00 = b00 * a00 + b01 * a10 + b02 * a20;
-        out.m01 = b00 * a01 + b01 * a11 + b02 * a21;
-        out.m02 = b00 * a02 + b01 * a12 + b02 * a22;
+        (out as any)._array[0] = b00 * a00 + b01 * a10 + b02 * a20;
+        (out as any)._array[1] = b00 * a01 + b01 * a11 + b02 * a21;
+        (out as any)._array[2] = b00 * a02 + b01 * a12 + b02 * a22;
 
-        out.m03 = b10 * a00 + b11 * a10 + b12 * a20;
-        out.m04 = b10 * a01 + b11 * a11 + b12 * a21;
-        out.m05 = b10 * a02 + b11 * a12 + b12 * a22;
+        (out as any)._array[3] = b10 * a00 + b11 * a10 + b12 * a20;
+        (out as any)._array[4] = b10 * a01 + b11 * a11 + b12 * a21;
+        (out as any)._array[5] = b10 * a02 + b11 * a12 + b12 * a22;
 
-        out.m06 = b20 * a00 + b21 * a10 + b22 * a20;
-        out.m07 = b20 * a01 + b21 * a11 + b22 * a21;
-        out.m08 = b20 * a02 + b21 * a12 + b22 * a22;
+        (out as any)._array[6] = b20 * a00 + b21 * a10 + b22 * a20;
+        (out as any)._array[7] = b20 * a01 + b21 * a11 + b22 * a21;
+        (out as any)._array[8] = b20 * a02 + b21 * a12 + b22 * a22;
         return out;
     }
 
@@ -222,25 +222,25 @@ export class Mat3 extends MathBase {
      * @zh 取四阶矩阵的前三阶，与三阶矩阵相乘
      */
     public static multiplyMat4 <Out extends IMat3Like> (out: Out, a: IMat3, b: IMat4) {
-        const a00 = a.m00; const a01 = a.m01; const a02 = a.m02;
-        const a10 = a.m03; const a11 = a.m04; const a12 = a.m05;
-        const a20 = a.m06; const a21 = a.m07; const a22 = a.m08;
+        const a00 = (a as any)._array[0]; const a01 = (a as any)._array[1]; const a02 = (a as any)._array[2];
+        const a10 = (a as any)._array[3]; const a11 = (a as any)._array[4]; const a12 = (a as any)._array[5];
+        const a20 = (a as any)._array[6]; const a21 = (a as any)._array[7]; const a22 = (a as any)._array[8];
 
-        const b00 = b.m00; const b01 = b.m01; const b02 = b.m02;
-        const b10 = b.m04; const b11 = b.m05; const b12 = b.m06;
-        const b20 = b.m08; const b21 = b.m09; const b22 = b.m10;
+        const b00 = (b as any)._array[0]; const b01 = (b as any)._array[1]; const b02 = (b as any)._array[2];
+        const b10 = (b as any)._array[4]; const b11 = (b as any)._array[5]; const b12 = (b as any)._array[6];
+        const b20 = (b as any)._array[8]; const b21 = (b as any)._array[9]; const b22 = (b as any)._array[10];
 
-        out.m00 = b00 * a00 + b01 * a10 + b02 * a20;
-        out.m01 = b00 * a01 + b01 * a11 + b02 * a21;
-        out.m02 = b00 * a02 + b01 * a12 + b02 * a22;
+        (out as any)._array[0] = b00 * a00 + b01 * a10 + b02 * a20;
+        (out as any)._array[1] = b00 * a01 + b01 * a11 + b02 * a21;
+        (out as any)._array[2] = b00 * a02 + b01 * a12 + b02 * a22;
 
-        out.m03 = b10 * a00 + b11 * a10 + b12 * a20;
-        out.m04 = b10 * a01 + b11 * a11 + b12 * a21;
-        out.m05 = b10 * a02 + b11 * a12 + b12 * a22;
+        (out as any)._array[3] = b10 * a00 + b11 * a10 + b12 * a20;
+        (out as any)._array[4] = b10 * a01 + b11 * a11 + b12 * a21;
+        (out as any)._array[5] = b10 * a02 + b11 * a12 + b12 * a22;
 
-        out.m06 = b20 * a00 + b21 * a10 + b22 * a20;
-        out.m07 = b20 * a01 + b21 * a11 + b22 * a21;
-        out.m08 = b20 * a02 + b21 * a12 + b22 * a22;
+        (out as any)._array[6] = b20 * a00 + b21 * a10 + b22 * a20;
+        (out as any)._array[7] = b20 * a01 + b21 * a11 + b22 * a21;
+        (out as any)._array[8] = b20 * a02 + b21 * a12 + b22 * a22;
         return out;
     }
 
@@ -249,22 +249,22 @@ export class Mat3 extends MathBase {
      * @zh 在给定矩阵变换基础上加入变换
      */
     public static transform <Out extends IMat3Like> (out: Out, a: IMat3, v: IVec3) {
-        const a00 = a.m00; const a01 = a.m01; const a02 = a.m02;
-        const a10 = a.m03; const a11 = a.m04; const a12 = a.m05;
-        const a20 = a.m06; const a21 = a.m07; const a22 = a.m08;
+        const a00 = (a as any)._array[0]; const a01 = (a as any)._array[1]; const a02 = (a as any)._array[2];
+        const a10 = (a as any)._array[3]; const a11 = (a as any)._array[4]; const a12 = (a as any)._array[5];
+        const a20 = (a as any)._array[6]; const a21 = (a as any)._array[7]; const a22 = (a as any)._array[8];
         const x = v.x; const y = v.y;
 
-        out.m00 = a00;
-        out.m01 = a01;
-        out.m02 = a02;
+        (out as any)._array[0] = a00;
+        (out as any)._array[1] = a01;
+        (out as any)._array[2] = a02;
 
-        out.m03 = a10;
-        out.m04 = a11;
-        out.m05 = a12;
+        (out as any)._array[3] = a10;
+        (out as any)._array[4] = a11;
+        (out as any)._array[5] = a12;
 
-        out.m06 = x * a00 + y * a10 + a20;
-        out.m07 = x * a01 + y * a11 + a21;
-        out.m08 = x * a02 + y * a12 + a22;
+        (out as any)._array[6] = x * a00 + y * a10 + a20;
+        (out as any)._array[7] = x * a01 + y * a11 + a21;
+        (out as any)._array[8] = x * a02 + y * a12 + a22;
         return out;
     }
 
@@ -275,17 +275,17 @@ export class Mat3 extends MathBase {
     public static scale <Out extends IMat3Like> (out: Out, a: IMat3, v: IVec3) {
         const x = v.x; const y = v.y;
 
-        out.m00 = x * a.m00;
-        out.m01 = x * a.m01;
-        out.m02 = x * a.m02;
+        (out as any)._array[0] = x * (a as any)._array[0];
+        (out as any)._array[1] = x * (a as any)._array[1];
+        (out as any)._array[2] = x * (a as any)._array[2];
 
-        out.m03 = y * a.m03;
-        out.m04 = y * a.m04;
-        out.m05 = y * a.m05;
+        (out as any)._array[3] = y * (a as any)._array[3];
+        (out as any)._array[4] = y * (a as any)._array[4];
+        (out as any)._array[5] = y * (a as any)._array[5];
 
-        out.m06 = a.m06;
-        out.m07 = a.m07;
-        out.m08 = a.m08;
+        (out as any)._array[6] = (a as any)._array[6];
+        (out as any)._array[7] = (a as any)._array[7];
+        (out as any)._array[8] = (a as any)._array[8];
         return out;
     }
 
@@ -295,24 +295,24 @@ export class Mat3 extends MathBase {
      * @param rad radius of rotation
      */
     public static rotate <Out extends IMat3Like> (out: Out, a: IMat3, rad: number) {
-        const a00 = a.m00; const a01 = a.m01; const a02 = a.m02;
-        const a10 = a.m03; const a11 = a.m04; const a12 = a.m05;
-        const a20 = a.m06; const a21 = a.m07; const a22 = a.m08;
+        const a00 = (a as any)._array[0]; const a01 = (a as any)._array[1]; const a02 = (a as any)._array[2];
+        const a10 = (a as any)._array[3]; const a11 = (a as any)._array[4]; const a12 = (a as any)._array[5];
+        const a20 = (a as any)._array[6]; const a21 = (a as any)._array[7]; const a22 = (a as any)._array[8];
 
         const s = Math.sin(rad);
         const c = Math.cos(rad);
 
-        out.m00 = c * a00 + s * a10;
-        out.m01 = c * a01 + s * a11;
-        out.m02 = c * a02 + s * a12;
+        (out as any)._array[0] = c * a00 + s * a10;
+        (out as any)._array[1] = c * a01 + s * a11;
+        (out as any)._array[2] = c * a02 + s * a12;
 
-        out.m03 = c * a10 - s * a00;
-        out.m04 = c * a11 - s * a01;
-        out.m05 = c * a12 - s * a02;
+        (out as any)._array[3] = c * a10 - s * a00;
+        (out as any)._array[4] = c * a11 - s * a01;
+        (out as any)._array[5] = c * a12 - s * a02;
 
-        out.m06 = a20;
-        out.m07 = a21;
-        out.m08 = a22;
+        (out as any)._array[6] = a20;
+        (out as any)._array[7] = a21;
+        (out as any)._array[8] = a22;
         return out;
     }
 
@@ -321,15 +321,15 @@ export class Mat3 extends MathBase {
      * @zh 取四阶矩阵的前三阶
      */
     public static fromMat4 <Out extends IMat3Like> (out: Out, a: IMat4) {
-        out.m00 = a.m00;
-        out.m01 = a.m01;
-        out.m02 = a.m02;
-        out.m03 = a.m04;
-        out.m04 = a.m05;
-        out.m05 = a.m06;
-        out.m06 = a.m08;
-        out.m07 = a.m09;
-        out.m08 = a.m10;
+        (out as any)._array[0] = (a as any)._array[0];
+        (out as any)._array[1] = (a as any)._array[1];
+        (out as any)._array[2] = (a as any)._array[2];
+        (out as any)._array[3] = (a as any)._array[4];
+        (out as any)._array[4] = (a as any)._array[5];
+        (out as any)._array[5] = (a as any)._array[6];
+        (out as any)._array[6] = (a as any)._array[8];
+        (out as any)._array[7] = (a as any)._array[9];
+        (out as any)._array[8] = (a as any)._array[10];
         return out;
     }
 
@@ -368,15 +368,15 @@ export class Mat3 extends MathBase {
      * @zh 计算位移矩阵
      */
     public static fromTranslation <Out extends IMat3Like> (out: Out, v: IVec2) {
-        out.m00 = 1;
-        out.m01 = 0;
-        out.m02 = 0;
-        out.m03 = 0;
-        out.m04 = 1;
-        out.m05 = 0;
-        out.m06 = v.x;
-        out.m07 = v.y;
-        out.m08 = 1;
+        (out as any)._array[0] = 1;
+        (out as any)._array[1] = 0;
+        (out as any)._array[2] = 0;
+        (out as any)._array[3] = 0;
+        (out as any)._array[4] = 1;
+        (out as any)._array[5] = 0;
+        (out as any)._array[6] = v.x;
+        (out as any)._array[7] = v.y;
+        (out as any)._array[8] = 1;
         return out;
     }
 
@@ -385,17 +385,17 @@ export class Mat3 extends MathBase {
      * @zh 计算缩放矩阵
      */
     public static fromScaling <Out extends IMat3Like> (out: Out, v: IVec2) {
-        out.m00 = v.x;
-        out.m01 = 0;
-        out.m02 = 0;
+        (out as any)._array[0] = v.x;
+        (out as any)._array[1] = 0;
+        (out as any)._array[2] = 0;
 
-        out.m03 = 0;
-        out.m04 = v.y;
-        out.m05 = 0;
+        (out as any)._array[3] = 0;
+        (out as any)._array[4] = v.y;
+        (out as any)._array[5] = 0;
 
-        out.m06 = 0;
-        out.m07 = 0;
-        out.m08 = 1;
+        (out as any)._array[6] = 0;
+        (out as any)._array[7] = 0;
+        (out as any)._array[8] = 1;
         return out;
     }
 
@@ -406,17 +406,17 @@ export class Mat3 extends MathBase {
     public static fromRotation <Out extends IMat3Like> (out: Out, rad: number) {
         const s = Math.sin(rad); const c = Math.cos(rad);
 
-        out.m00 = c;
-        out.m01 = s;
-        out.m02 = 0;
+        (out as any)._array[0] = c;
+        (out as any)._array[1] = s;
+        (out as any)._array[2] = 0;
 
-        out.m03 = -s;
-        out.m04 = c;
-        out.m05 = 0;
+        (out as any)._array[3] = -s;
+        (out as any)._array[4] = c;
+        (out as any)._array[5] = 0;
 
-        out.m06 = 0;
-        out.m07 = 0;
-        out.m08 = 1;
+        (out as any)._array[6] = 0;
+        (out as any)._array[7] = 0;
+        (out as any)._array[8] = 1;
         return out;
     }
 
@@ -440,17 +440,17 @@ export class Mat3 extends MathBase {
         const wy = w * y2;
         const wz = w * z2;
 
-        out.m00 = 1 - yy - zz;
-        out.m03 = yx - wz;
-        out.m06 = zx + wy;
+        (out as any)._array[0] = 1 - yy - zz;
+        (out as any)._array[3] = yx - wz;
+        (out as any)._array[6] = zx + wy;
 
-        out.m01 = yx + wz;
-        out.m04 = 1 - xx - zz;
-        out.m07 = zy - wx;
+        (out as any)._array[1] = yx + wz;
+        (out as any)._array[4] = 1 - xx - zz;
+        (out as any)._array[7] = zy - wx;
 
-        out.m02 = zx - wy;
-        out.m05 = zy + wx;
-        out.m08 = 1 - xx - yy;
+        (out as any)._array[2] = zx - wy;
+        (out as any)._array[5] = zy + wx;
+        (out as any)._array[8] = 1 - xx - yy;
 
         return out;
     }
@@ -460,10 +460,10 @@ export class Mat3 extends MathBase {
      * @zh 计算指定四维矩阵的逆转置三维矩阵
      */
     public static inverseTransposeMat4 <Out extends IMat3Like> (out: Out, a: IMat4) {
-        const a00 = a.m00; const a01 = a.m01; const a02 = a.m02; const a03 = a.m03;
-        const a10 = a.m04; const a11 = a.m05; const a12 = a.m06; const a13 = a.m07;
-        const a20 = a.m08; const a21 = a.m09; const a22 = a.m10; const a23 = a.m11;
-        const a30 = a.m12; const a31 = a.m13; const a32 = a.m14; const a33 = a.m15;
+        const a00 = (a as any)._array[0]; const a01 = (a as any)._array[1]; const a02 = (a as any)._array[2]; const a03 = (a as any)._array[3];
+        const a10 = (a as any)._array[4]; const a11 = (a as any)._array[5]; const a12 = (a as any)._array[6]; const a13 = (a as any)._array[7];
+        const a20 = (a as any)._array[8]; const a21 = (a as any)._array[9]; const a22 = (a as any)._array[10]; const a23 = (a as any)._array[11];
+        const a30 = (a as any)._array[12]; const a31 = (a as any)._array[13]; const a32 = (a as any)._array[14]; const a33 = (a as any)._array[15];
 
         const b00 = a00 * a11 - a01 * a10;
         const b01 = a00 * a12 - a02 * a10;
@@ -486,17 +486,17 @@ export class Mat3 extends MathBase {
         }
         det = 1.0 / det;
 
-        out.m00 = (a11 * b11 - a12 * b10 + a13 * b09) * det;
-        out.m01 = (a12 * b08 - a10 * b11 - a13 * b07) * det;
-        out.m02 = (a10 * b10 - a11 * b08 + a13 * b06) * det;
+        (out as any)._array[0] = (a11 * b11 - a12 * b10 + a13 * b09) * det;
+        (out as any)._array[1] = (a12 * b08 - a10 * b11 - a13 * b07) * det;
+        (out as any)._array[2] = (a10 * b10 - a11 * b08 + a13 * b06) * det;
 
-        out.m03 = (a02 * b10 - a01 * b11 - a03 * b09) * det;
-        out.m04 = (a00 * b11 - a02 * b08 + a03 * b07) * det;
-        out.m05 = (a01 * b08 - a00 * b10 - a03 * b06) * det;
+        (out as any)._array[3] = (a02 * b10 - a01 * b11 - a03 * b09) * det;
+        (out as any)._array[4] = (a00 * b11 - a02 * b08 + a03 * b07) * det;
+        (out as any)._array[5] = (a01 * b08 - a00 * b10 - a03 * b06) * det;
 
-        out.m06 = (a31 * b05 - a32 * b04 + a33 * b03) * det;
-        out.m07 = (a32 * b02 - a30 * b05 - a33 * b01) * det;
-        out.m08 = (a30 * b04 - a31 * b02 + a33 * b00) * det;
+        (out as any)._array[6] = (a31 * b05 - a32 * b04 + a33 * b03) * det;
+        (out as any)._array[7] = (a32 * b02 - a30 * b05 - a33 * b01) * det;
+        (out as any)._array[8] = (a30 * b04 - a31 * b02 + a33 * b00) * det;
 
         return out;
     }
@@ -507,15 +507,15 @@ export class Mat3 extends MathBase {
      * @param ofs Array Start Offset
      */
     public static toArray <Out extends IWritableArrayLike<number>> (out: Out, m: IMat3Like, ofs = 0) {
-        out[ofs + 0] = m.m00;
-        out[ofs + 1] = m.m01;
-        out[ofs + 2] = m.m02;
-        out[ofs + 3] = m.m03;
-        out[ofs + 4] = m.m04;
-        out[ofs + 5] = m.m05;
-        out[ofs + 6] = m.m06;
-        out[ofs + 7] = m.m07;
-        out[ofs + 8] = m.m08;
+        out[ofs + 0] = (m as any)._array[0];
+        out[ofs + 1] = (m as any)._array[1];
+        out[ofs + 2] = (m as any)._array[2];
+        out[ofs + 3] = (m as any)._array[3];
+        out[ofs + 4] = (m as any)._array[4];
+        out[ofs + 5] = (m as any)._array[5];
+        out[ofs + 6] = (m as any)._array[6];
+        out[ofs + 7] = (m as any)._array[7];
+        out[ofs + 8] = (m as any)._array[8];
         return out;
     }
 
@@ -525,15 +525,15 @@ export class Mat3 extends MathBase {
      * @param ofs Array Start Offset
      */
     public static fromArray <Out extends IMat3Like> (out: Out, arr: IWritableArrayLike<number>, ofs = 0) {
-        out.m00 = arr[ofs + 0];
-        out.m01 = arr[ofs + 1];
-        out.m02 = arr[ofs + 2];
-        out.m03 = arr[ofs + 3];
-        out.m04 = arr[ofs + 4];
-        out.m05 = arr[ofs + 5];
-        out.m06 = arr[ofs + 6];
-        out.m07 = arr[ofs + 7];
-        out.m08 = arr[ofs + 8];
+        (out as any)._array[0] = arr[ofs + 0];
+        (out as any)._array[1] = arr[ofs + 1];
+        (out as any)._array[2] = arr[ofs + 2];
+        (out as any)._array[3] = arr[ofs + 3];
+        (out as any)._array[4] = arr[ofs + 4];
+        (out as any)._array[5] = arr[ofs + 5];
+        (out as any)._array[6] = arr[ofs + 6];
+        (out as any)._array[7] = arr[ofs + 7];
+        (out as any)._array[8] = arr[ofs + 8];
         return out;
     }
 
@@ -542,15 +542,15 @@ export class Mat3 extends MathBase {
      * @zh 逐元素矩阵加法
      */
     public static add <Out extends IMat3Like> (out: Out, a: IMat3, b: IMat3) {
-        out.m00 = a.m00 + b.m00;
-        out.m01 = a.m01 + b.m01;
-        out.m02 = a.m02 + b.m02;
-        out.m03 = a.m03 + b.m03;
-        out.m04 = a.m04 + b.m04;
-        out.m05 = a.m05 + b.m05;
-        out.m06 = a.m06 + b.m06;
-        out.m07 = a.m07 + b.m07;
-        out.m08 = a.m08 + b.m08;
+        (out as any)._array[0] = (a as any)._array[0] + (b as any)._array[0];
+        (out as any)._array[1] = (a as any)._array[1] + (b as any)._array[1];
+        (out as any)._array[2] = (a as any)._array[2] + (b as any)._array[2];
+        (out as any)._array[3] = (a as any)._array[3] + (b as any)._array[3];
+        (out as any)._array[4] = (a as any)._array[4] + (b as any)._array[4];
+        (out as any)._array[5] = (a as any)._array[5] + (b as any)._array[5];
+        (out as any)._array[6] = (a as any)._array[6] + (b as any)._array[6];
+        (out as any)._array[7] = (a as any)._array[7] + (b as any)._array[7];
+        (out as any)._array[8] = (a as any)._array[8] + (b as any)._array[8];
         return out;
     }
 
@@ -559,15 +559,15 @@ export class Mat3 extends MathBase {
      * @zh 逐元素矩阵减法
      */
     public static subtract <Out extends IMat3Like> (out: Out, a: IMat3, b: IMat3) {
-        out.m00 = a.m00 - b.m00;
-        out.m01 = a.m01 - b.m01;
-        out.m02 = a.m02 - b.m02;
-        out.m03 = a.m03 - b.m03;
-        out.m04 = a.m04 - b.m04;
-        out.m05 = a.m05 - b.m05;
-        out.m06 = a.m06 - b.m06;
-        out.m07 = a.m07 - b.m07;
-        out.m08 = a.m08 - b.m08;
+        (out as any)._array[0] = (a as any)._array[0] - (b as any)._array[0];
+        (out as any)._array[1] = (a as any)._array[1] - (b as any)._array[1];
+        (out as any)._array[2] = (a as any)._array[2] - (b as any)._array[2];
+        (out as any)._array[3] = (a as any)._array[3] - (b as any)._array[3];
+        (out as any)._array[4] = (a as any)._array[4] - (b as any)._array[4];
+        (out as any)._array[5] = (a as any)._array[5] - (b as any)._array[5];
+        (out as any)._array[6] = (a as any)._array[6] - (b as any)._array[6];
+        (out as any)._array[7] = (a as any)._array[7] - (b as any)._array[7];
+        (out as any)._array[8] = (a as any)._array[8] - (b as any)._array[8];
         return out;
     }
 
@@ -576,15 +576,15 @@ export class Mat3 extends MathBase {
      * @zh 矩阵标量乘法
      */
     public static multiplyScalar <Out extends IMat3Like> (out: Out, a: IMat3, b: number) {
-        out.m00 = a.m00 * b;
-        out.m01 = a.m01 * b;
-        out.m02 = a.m02 * b;
-        out.m03 = a.m03 * b;
-        out.m04 = a.m04 * b;
-        out.m05 = a.m05 * b;
-        out.m06 = a.m06 * b;
-        out.m07 = a.m07 * b;
-        out.m08 = a.m08 * b;
+        (out as any)._array[0] = (a as any)._array[0] * b;
+        (out as any)._array[1] = (a as any)._array[1] * b;
+        (out as any)._array[2] = (a as any)._array[2] * b;
+        (out as any)._array[3] = (a as any)._array[3] * b;
+        (out as any)._array[4] = (a as any)._array[4] * b;
+        (out as any)._array[5] = (a as any)._array[5] * b;
+        (out as any)._array[6] = (a as any)._array[6] * b;
+        (out as any)._array[7] = (a as any)._array[7] * b;
+        (out as any)._array[8] = (a as any)._array[8] * b;
         return out;
     }
 
@@ -593,15 +593,15 @@ export class Mat3 extends MathBase {
      * @zh 逐元素矩阵标量乘加: A + B * scale
      */
     public static multiplyScalarAndAdd <Out extends IMat3Like> (out: Out, a: IMat3, b: IMat3, scale: number) {
-        out.m00 = b.m00 * scale + a.m00;
-        out.m01 = b.m01 * scale + a.m01;
-        out.m02 = b.m02 * scale + a.m02;
-        out.m03 = b.m03 * scale + a.m03;
-        out.m04 = b.m04 * scale + a.m04;
-        out.m05 = b.m05 * scale + a.m05;
-        out.m06 = b.m06 * scale + a.m06;
-        out.m07 = b.m07 * scale + a.m07;
-        out.m08 = b.m08 * scale + a.m08;
+        (out as any)._array[0] = (b as any)._array[0] * scale + (a as any)._array[0];
+        (out as any)._array[1] = (b as any)._array[1] * scale + (a as any)._array[1];
+        (out as any)._array[2] = (b as any)._array[2] * scale + (a as any)._array[2];
+        (out as any)._array[3] = (b as any)._array[3] * scale + (a as any)._array[3];
+        (out as any)._array[4] = (b as any)._array[4] * scale + (a as any)._array[4];
+        (out as any)._array[5] = (b as any)._array[5] * scale + (a as any)._array[5];
+        (out as any)._array[6] = (b as any)._array[6] * scale + (a as any)._array[6];
+        (out as any)._array[7] = (b as any)._array[7] * scale + (a as any)._array[7];
+        (out as any)._array[8] = (b as any)._array[8] * scale + (a as any)._array[8];
         return out;
     }
 
@@ -610,9 +610,9 @@ export class Mat3 extends MathBase {
      * @zh 矩阵等价判断
      */
     public static strictEquals <Out extends IMat3Like> (a: IMat3, b: IMat3) {
-        return a.m00 === b.m00 && a.m01 === b.m01 && a.m02 === b.m02
-            && a.m03 === b.m03 && a.m04 === b.m04 && a.m05 === b.m05
-            && a.m06 === b.m06 && a.m07 === b.m07 && a.m08 === b.m08;
+        return (a as any)._array[0] === (b as any)._array[0] && (a as any)._array[1] === (b as any)._array[1] && (a as any)._array[2] === (b as any)._array[2]
+            && (a as any)._array[3] === (b as any)._array[3] && (a as any)._array[4] === (b as any)._array[4] && (a as any)._array[5] === (b as any)._array[5]
+            && (a as any)._array[6] === (b as any)._array[6] && (a as any)._array[7] === (b as any)._array[7] && (a as any)._array[8] === (b as any)._array[8];
     }
 
     /**
@@ -621,15 +621,15 @@ export class Mat3 extends MathBase {
      */
     public static equals <Out extends IMat3Like> (a: IMat3, b: IMat3, epsilon = EPSILON) {
         return (
-            Math.abs(a.m00 - b.m00) <= epsilon * Math.max(1.0, Math.abs(a.m00), Math.abs(b.m00))
-            && Math.abs(a.m01 - b.m01) <= epsilon * Math.max(1.0, Math.abs(a.m01), Math.abs(b.m01))
-            && Math.abs(a.m02 - b.m02) <= epsilon * Math.max(1.0, Math.abs(a.m02), Math.abs(b.m02))
-            && Math.abs(a.m03 - b.m03) <= epsilon * Math.max(1.0, Math.abs(a.m03), Math.abs(b.m03))
-            && Math.abs(a.m04 - b.m04) <= epsilon * Math.max(1.0, Math.abs(a.m04), Math.abs(b.m04))
-            && Math.abs(a.m05 - b.m05) <= epsilon * Math.max(1.0, Math.abs(a.m05), Math.abs(b.m05))
-            && Math.abs(a.m06 - b.m06) <= epsilon * Math.max(1.0, Math.abs(a.m06), Math.abs(b.m06))
-            && Math.abs(a.m07 - b.m07) <= epsilon * Math.max(1.0, Math.abs(a.m07), Math.abs(b.m07))
-            && Math.abs(a.m08 - b.m08) <= epsilon * Math.max(1.0, Math.abs(a.m08), Math.abs(b.m08))
+            Math.abs((a as any)._array[0] - (b as any)._array[0]) <= epsilon * Math.max(1.0, Math.abs((a as any)._array[0]), Math.abs((b as any)._array[0]))
+            && Math.abs((a as any)._array[1] - (b as any)._array[1]) <= epsilon * Math.max(1.0, Math.abs((a as any)._array[1]), Math.abs((b as any)._array[1]))
+            && Math.abs((a as any)._array[2] - (b as any)._array[2]) <= epsilon * Math.max(1.0, Math.abs((a as any)._array[2]), Math.abs((b as any)._array[2]))
+            && Math.abs((a as any)._array[3] - (b as any)._array[3]) <= epsilon * Math.max(1.0, Math.abs((a as any)._array[3]), Math.abs((b as any)._array[3]))
+            && Math.abs((a as any)._array[4] - (b as any)._array[4]) <= epsilon * Math.max(1.0, Math.abs((a as any)._array[4]), Math.abs((b as any)._array[4]))
+            && Math.abs((a as any)._array[5] - (b as any)._array[5]) <= epsilon * Math.max(1.0, Math.abs((a as any)._array[5]), Math.abs((b as any)._array[5]))
+            && Math.abs((a as any)._array[6] - (b as any)._array[6]) <= epsilon * Math.max(1.0, Math.abs((a as any)._array[6]), Math.abs((b as any)._array[6]))
+            && Math.abs((a as any)._array[7] - (b as any)._array[7]) <= epsilon * Math.max(1.0, Math.abs((a as any)._array[7]), Math.abs((b as any)._array[7]))
+            && Math.abs((a as any)._array[8] - (b as any)._array[8]) <= epsilon * Math.max(1.0, Math.abs((a as any)._array[8]), Math.abs((b as any)._array[8]))
         );
     }
 
