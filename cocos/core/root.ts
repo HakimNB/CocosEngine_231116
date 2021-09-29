@@ -43,6 +43,7 @@ import { legacyCC } from './global-exports';
 import { RenderWindow, IRenderWindowInfo } from './renderer/core/render-window';
 import { ColorAttachment, DepthStencilAttachment, RenderPassInfo, StoreOp, Device, Swapchain, Feature } from './gfx';
 import { warnID } from './platform/debug';
+import { Director } from '.';
 
 /**
  * @zh
@@ -406,7 +407,7 @@ export class Root {
      */
     public frameMove (deltaTime: number) {
         this._setFrameTime(deltaTime);
-
+        const stats = (legacyCC.director as Director).stats;
         /*
         if (this._fixedFPSFrameTime > 0) {
 
@@ -417,7 +418,7 @@ export class Root {
             }
         }
         */
-
+        stats.batcherUpdate = performance.now();
         ++this._frameCount;
         this._setCumulativeTime(deltaTime);
         this._fpsTime += deltaTime;
@@ -430,28 +431,44 @@ export class Root {
             this._scenes[i].removeBatches();
         }
         if (this._batcher) this._batcher.update();
+        stats.batcherUpdate = performance.now() - stats.batcherUpdate;
 
+        stats.extractRenderCameras = performance.now();
         const windows = this._windows;
         const cameraList: Camera[] = [];
         for (let i = 0; i < windows.length; i++) {
             const window = windows[i];
             window.extractRenderCameras(cameraList);
         }
+        stats.extractRenderCameras = performance.now() - stats.extractRenderCameras;
 
         if (this._pipeline && cameraList.length > 0) {
+            stats.acquire = performance.now();
             this._device.acquire([legacyCC.game._swapchain]);
+            stats.acquire = performance.now() - stats.acquire;
+
             const scenes = this._scenes;
             const stamp = legacyCC.director.getTotalFrames();
+            stats.uploadBuffer = performance.now();
             if (this._batcher) this._batcher.uploadBuffers();
+            stats.uploadBuffer = performance.now() - stats.uploadBuffer;
 
+            stats.sceneUpdate = performance.now();
             for (let i = 0; i < scenes.length; i++) {
                 scenes[i].update(stamp);
             }
+            stats.sceneUpdate = performance.now() - stats.sceneUpdate;
 
             legacyCC.director.emit(legacyCC.Director.EVENT_BEFORE_COMMIT);
             cameraList.sort((a: Camera, b: Camera) => a.priority - b.priority);
+
+            stats.pipelineRender = performance.now();
             this._pipeline.render(cameraList);
+            stats.pipelineRender = performance.now() - stats.pipelineRender;
+
+            stats.devicePresent = performance.now();
             this._device.present();
+            stats.devicePresent = performance.now() - stats.devicePresent;
         }
 
         if (this._batcher) this._batcher.reset();

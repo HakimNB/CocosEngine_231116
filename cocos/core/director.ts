@@ -717,12 +717,30 @@ export class Director extends EventTarget {
         this.tick(dt);
     }
 
+    public stats = {
+        all: 0,
+        startPhase: 0,
+        updatePhase: 0,
+        systemUpdate: 0,
+        lateUpdate: 0,
+        postUpdate: 0,
+        frameMove: 0,
+        batcherUpdate: 0,
+        extractRenderCameras: 0,
+        acquire: 0,
+        uploadBuffer: 0,
+        sceneUpdate: 0,
+        pipelineRender: 0,
+        devicePresent: 0,
+    };
+
     /**
      * @en Run main loop of director
      * @zh 运行主循环
      */
     public tick (dt: number) {
         if (!this._invalid) {
+            this.stats.all = performance.now();
             this.emit(Director.EVENT_BEGIN_FRAME);
             if (!EDITOR) {
                 // @ts-expect-error _frameDispatchEvents is a private method.
@@ -731,30 +749,67 @@ export class Director extends EventTarget {
             // Update
             if (!this._paused) {
                 this.emit(Director.EVENT_BEFORE_UPDATE);
+
+                this.stats.startPhase = performance.now();
                 // Call start for new added components
                 this._compScheduler.startPhase();
+                this.stats.startPhase = performance.now() - this.stats.startPhase;
+                this.stats.updatePhase = performance.now();
                 // Update for components
                 this._compScheduler.updatePhase(dt);
+                this.stats.updatePhase = performance.now() - this.stats.updatePhase;
+                this.stats.systemUpdate = performance.now();
                 // Update systems
                 for (let i = 0; i < this._systems.length; ++i) {
                     this._systems[i].update(dt);
                 }
+                this.stats.systemUpdate = performance.now() - this.stats.systemUpdate;
+
                 // Late update for components
+                this.stats.lateUpdate = performance.now();
                 this._compScheduler.lateUpdatePhase(dt);
+                this.stats.lateUpdate = performance.now() - this.stats.lateUpdate;
+
                 // User can use this event to do things after update
                 this.emit(Director.EVENT_AFTER_UPDATE);
                 // Destroy entities that have been removed recently
                 CCObject._deferredDestroy();
 
+                this.stats.postUpdate = performance.now();
+
                 // Post update systems
                 for (let i = 0; i < this._systems.length; ++i) {
                     this._systems[i].postUpdate(dt);
                 }
+                this.stats.postUpdate = performance.now() - this.stats.postUpdate;
             }
 
             this.emit(Director.EVENT_BEFORE_DRAW);
+            this.stats.frameMove = performance.now();
+            // The test environment does not currently support the renderer
             this._root!.frameMove(dt);
+            this.stats.frameMove = performance.now() - this.stats.frameMove;
+
             this.emit(Director.EVENT_AFTER_DRAW);
+            this.stats.all = performance.now() - this.stats.all;
+            if ((performance as any).send) {
+                (performance as any).send(
+                    this.stats.all,
+                    this.stats.startPhase,
+                    this.stats.updatePhase,
+                    this.stats.systemUpdate,
+                    this.stats.lateUpdate,
+                    this.stats.postUpdate,
+                    this.stats.frameMove,
+                    this.stats.batcherUpdate,
+                    this.stats.extractRenderCameras,
+                    this.stats.acquire,
+                    this.stats.uploadBuffer,
+                    this.stats.sceneUpdate,
+                    this.stats.pipelineRender,
+                    this.stats.devicePresent,
+                );
+            }
 
             Node.resetHasChangedFlags();
             Node.clearNodeArray();
