@@ -436,9 +436,15 @@ export class Root {
         stats.extractRenderCameras = performance.now();
         const windows = this._windows;
         const cameraList: Camera[] = [];
+        if ((performance as any).perf_event) {
+            (performance as any).perf_event('extractRenderCameras', 0);
+        }
         for (let i = 0; i < windows.length; i++) {
             const window = windows[i];
             window.extractRenderCameras(cameraList);
+        }
+        if ((performance as any).perf_event) {
+            [stats.extractRenderCamerasCacheMiss, stats.extractRenderCamerasCacheReference] = (performance as any).perf_event('extractRenderCameras', 1);
         }
         stats.extractRenderCameras = performance.now() - stats.extractRenderCameras;
 

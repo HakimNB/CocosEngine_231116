@@ -732,6 +732,10 @@ export class Director extends EventTarget {
         sceneUpdate: 0,
         pipelineRender: 0,
         devicePresent: 0,
+        startPhaseCacheMiss: 0,
+        startPhaseCacheReference: 0,
+        extractRenderCamerasCacheMiss: 0,
+        extractRenderCamerasCacheReference: 0,
     };
 
     /**
@@ -751,8 +755,14 @@ export class Director extends EventTarget {
                 this.emit(Director.EVENT_BEFORE_UPDATE);
 
                 this.stats.startPhase = performance.now();
+                if ((performance as any).perf_event) {
+                    (performance as any).perf_event('startPhase', 0);
+                }
                 // Call start for new added components
                 this._compScheduler.startPhase();
+                if ((performance as any).perf_event) {
+                    [this.stats.startPhaseCacheMiss, this.stats.startPhaseCacheReference] = (performance as any).perf_event('startPhase', 1);
+                }
                 this.stats.startPhase = performance.now() - this.stats.startPhase;
                 this.stats.updatePhase = performance.now();
                 // Update for components
@@ -808,6 +818,12 @@ export class Director extends EventTarget {
                     this.stats.sceneUpdate,
                     this.stats.pipelineRender,
                     this.stats.devicePresent,
+                    this.stats.startPhaseCacheMiss,
+                    this.stats.startPhaseCacheReference,
+                    this.stats.startPhaseCacheMiss / Math.max(1, this.stats.startPhaseCacheReference),
+                    this.stats.extractRenderCamerasCacheMiss,
+                    this.stats.extractRenderCamerasCacheReference,
+                    this.stats.extractRenderCamerasCacheMiss / Math.max(1, this.stats.extractRenderCamerasCacheReference),
                 );
             }
 
