@@ -1,3 +1,4 @@
+/* eslint-disable operator-assignment */
 /*
  Copyright (c) 2020 Xiamen Yaji Software Co., Ltd.
 
@@ -28,6 +29,7 @@
  * @module core/math
  */
 
+import { JSB } from 'internal:constants';
 import { ValueType } from '../value-types';
 import { IVec3Like } from './type-define';
 
@@ -277,4 +279,34 @@ export function enumerableProps (prototype: ValueType, attrs: string[]) {
     attrs.forEach((key) => {
         Object.defineProperty(prototype, key, { enumerable: true });
     });
+}
+
+// JSB only
+// Sync js attributes with native C++ object through arraybuffer
+export function bindPropsToNativeBuffer (prototype: ValueType, attrs: string[]) {
+    if (JSB) {
+        Object.defineProperty(prototype, '__buffer_view__', {
+            get (): Float32Array {
+                if (this.__data_cache__ && this.__data_cache__.length > 0) {
+                    return this.__data_cache__ as Float32Array;
+                }
+                this.__data_cache__ = new Float32Array(this.__self_buffer__);
+                return this.__data_cache__ as Float32Array;
+            },
+            enumerable: false,
+            configurable: false,
+        });
+        for (let i = 0; i < attrs.length; i++) {
+            Object.defineProperty(prototype, attrs[i], {
+                enumerable: true,
+                configurable: true,
+                get () {
+                    return this.__buffer_view__[i] as number;
+                },
+                set (v) {
+                    this.__buffer_view__[i] = v;
+                },
+            });
+        }
+    }
 }

@@ -33,7 +33,7 @@ import { CCClass } from '../data/class';
 import { ValueType } from '../value-types/value-type';
 import { Mat4 } from './mat4';
 import { IMat3Like, IMat4Like, IVec2Like } from './type-define';
-import { clamp, EPSILON, random } from './utils';
+import { clamp, EPSILON, random, bindPropsToNativeBuffer } from './utils';
 
 import { Vec3 } from './vec3';
 import { legacyCC } from '../global-exports';
@@ -837,5 +837,6 @@ export function v2 (x?: number | Vec2, y?: number) {
 legacyCC.v2 = v2;
 
 if (JSB) {
-    mixin(jsb.Vec2.prototype, Vec2.prototype);
+    Object.setPrototypeOf(jsb.Vec2.prototype, Vec2.prototype);
+    bindPropsToNativeBuffer(jsb.Vec2.prototype, ['x', 'y']);
 }

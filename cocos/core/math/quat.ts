@@ -32,7 +32,7 @@ import { CCClass } from '../data/class';
 import { ValueType } from '../value-types/value-type';
 import { Mat3 } from './mat3';
 import { IQuatLike, IVec3Like } from './type-define';
-import { EPSILON, toDegree } from './utils';
+import { bindPropsToNativeBuffer, EPSILON, toDegree } from './utils';
 import { Vec3 } from './vec3';
 import { legacyCC } from '../global-exports';
 import { mixin } from '../utils/js-typed';
@@ -841,3 +841,7 @@ legacyCC.quat = quat;
 // if (JSB) {
 //     mixin(jsb.Quat.prototype, Quat.prototype);
 // }
+if (JSB) {
+    Object.setPrototypeOf(jsb.Quat.prototype, Quat.prototype);
+    bindPropsToNativeBuffer(jsb.Quat.prototype, ['x', 'y', 'z', 'w']);
+}

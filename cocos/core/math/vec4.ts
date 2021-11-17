@@ -29,11 +29,12 @@
  * @module core/math
  */
 
+import { JSB } from 'internal:constants';
 import { CCClass } from '../data/class';
 import { ValueType } from '../value-types/value-type';
 import { Mat4 } from './mat4';
 import { IMat4Like, IQuatLike, IVec4Like } from './type-define';
-import { clamp, EPSILON, random } from './utils';
+import { bindPropsToNativeBuffer, clamp, EPSILON, random } from './utils';
 import { legacyCC } from '../global-exports';
 
 /**
@@ -905,3 +906,8 @@ export function v4 (x?: number | Vec4, y?: number, z?: number, w?: number) {
 }
 
 legacyCC.v4 = v4;
+
+if (JSB) {
+    Object.setPrototypeOf(jsb.Vec4.prototype, Vec4.prototype);
+    bindPropsToNativeBuffer(jsb.Vec4.prototype, ['x', 'y', 'z', 'w']);
+}

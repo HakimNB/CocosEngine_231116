@@ -28,12 +28,13 @@
  * @module core/math
  */
 
+import { JSB } from 'internal:constants';
 import { CCClass } from '../data/class';
 import { ValueType } from '../value-types/value-type';
 import { Mat3 } from './mat3';
 import { Quat } from './quat';
 import { IMat4Like, IVec3Like } from './type-define';
-import { EPSILON } from './utils';
+import { bindPropsToNativeBuffer, EPSILON } from './utils';
 import { Vec3 } from './vec3';
 import { legacyCC } from '../global-exports';
 
@@ -2191,3 +2192,8 @@ export function mat4 (
 }
 
 legacyCC.mat4 = mat4;
+if (JSB) {
+    Object.setPrototypeOf(jsb.Mat4.prototype, Mat4.prototype);
+    const attrs =  Array.from({ length: 16 }).map((_, x) => `m${(`0${x}`).slice(-2)}`);
+    bindPropsToNativeBuffer(jsb.Mat4.prototype, attrs);
+}
