@@ -47,6 +47,7 @@ import {
     generateTargetMap,
 } from '../utils/prefab/utils';
 import { getClassByName, isChildClassOf } from '../utils/js-typed';
+import { stack } from "./argument-stack.jsb";
 
 export const Node = jsb.Node;
 export type Node = jsb.Node;
@@ -580,6 +581,15 @@ nodeProto.getRight = function (out?: Vec3): Vec3 {
     }
     return Vec3.copy(this._rightCache || (this._rightCache = new Vec3()), r);
 };
+
+const SA = stack.ArgumentType;
+stack.bindFunction(nodeProto, 'setPosition', [], [SA.FLOAT, SA.FLOAT, SA.FLOAT])
+stack.bindFunction(nodeProto, 'setScale', [], [SA.FLOAT, SA.FLOAT, SA.FLOAT]);
+stack.bindFunction(nodeProto, 'setRotation', [], [SA.FLOAT, SA.FLOAT, SA.FLOAT, SA.FLOAT]);
+stack.bindFunction(nodeProto, 'rotateForJS', [], [SA.FLOAT, SA.FLOAT, SA.FLOAT, SA.FLOAT],
+    [SA.FLOAT, SA.FLOAT, SA.FLOAT, SA.FLOAT, SA.INT32]
+);
+
 Object.defineProperty(nodeProto, 'position', {
     configurable: true,
     enumerable: true,
@@ -587,7 +597,7 @@ Object.defineProperty(nodeProto, 'position', {
         return this.getPosition();
     },
     set(v: Readonly<Vec3>) {
-        this.setPosition(v as Vec3);
+        this.setPosition(v.x, v.y, v.z);
     },
 });
 
@@ -598,7 +608,7 @@ Object.defineProperty(nodeProto, 'rotation', {
         return this.getRotation();
     },
     set(v: Readonly<Quat>) {
-        this.setRotation(v as Quat);
+        this.setRotation(v.x, v.y, v.z, v.w);
     },
 });
 
@@ -609,7 +619,7 @@ Object.defineProperty(nodeProto, 'scale', {
         return this.getScale();
     },
     set(v: Readonly<Vec3>) {
-        this.setScale(v as Vec3);
+        this.setScale(v.x, v.y, v.z);
     },
 });
 
