@@ -581,7 +581,6 @@ nodeProto.getRight = function (out?: Vec3): Vec3 {
     }
     return Vec3.copy(this._rightCache || (this._rightCache = new Vec3()), r);
 };
-
 const SA = stack.ArgumentType;
 stack.bindFunction(nodeProto, 'setPosition', [], [SA.FLOAT, SA.FLOAT, SA.FLOAT])
 stack.bindFunction(nodeProto, 'setScale', [], [SA.FLOAT, SA.FLOAT, SA.FLOAT]);
@@ -589,7 +588,6 @@ stack.bindFunction(nodeProto, 'setRotation', [], [SA.FLOAT, SA.FLOAT, SA.FLOAT, 
 stack.bindFunction(nodeProto, 'rotateForJS', [], [SA.FLOAT, SA.FLOAT, SA.FLOAT, SA.FLOAT],
     [SA.FLOAT, SA.FLOAT, SA.FLOAT, SA.FLOAT, SA.INT32]
 );
-
 Object.defineProperty(nodeProto, 'position', {
     configurable: true,
     enumerable: true,

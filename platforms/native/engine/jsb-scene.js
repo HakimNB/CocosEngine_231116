@@ -24,6 +24,7 @@
  ****************************************************************************/
 
 
+
 // __fastMQ__, __fastMQInfo__ are created in engine-native\cocos\bindings\manual\jsb_scene_manual_ext.cpp
 const NULL_PTR = BigInt(0);
 // @ts-check
@@ -64,6 +65,10 @@ function beginTrans(fn, minBytes) {
             dataView.setUint32(startPos + offset, value, isLittleEndian);
             offset += 4;
         },
+        writeFloat32: (value) => {
+            dataView.setFloat32(startPos + offset, value, isLittleEndian);
+            offset+= 4;
+        },
         writeBigUint64: (value) => {
             dataView.setBigUint64(startPos + offset, value, isLittleEndian);
             offset += 8;
@@ -76,6 +81,9 @@ function beginTrans(fn, minBytes) {
         },
     };
 }
+
+
+
 
 // DrawBatch2D
 // const DRAW_BATCH_FN_TABLE = jsb.DrawBatch2D.fnTable;
