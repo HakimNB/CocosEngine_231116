@@ -43,7 +43,7 @@ import { v2, Vec2 } from './math';
 import { Root } from './root';
 import { Node, Scene } from './scene-graph';
 import { ComponentScheduler } from './scene-graph/component-scheduler';
-import NodeActivator from './scene-graph/node-activator';
+import { NodeActivator } from './scene-graph/node-activator';
 import { Scheduler } from './scheduler';
 import { js } from './utils';
 import { legacyCC } from './global-exports';
