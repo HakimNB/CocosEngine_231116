@@ -199,6 +199,7 @@ nodeProto.addComponent = function (typeOrClassName) {
     const component = new constructor();
     component.node = (this as unknown as Node); // TODO: HACK here
     this._components.push(component);
+    this.addComponentForJS(component);
     // if (EDITOR && EditorExtends.Node && EditorExtends.Component) {
     //     const node = EditorExtends.Node.getNode(this._id);
     //     if (node) {
