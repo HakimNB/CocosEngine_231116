@@ -64,7 +64,7 @@ const NullNode = null as unknown as Node;
 class Component extends CCObject {
     public static EventHandler = EventHandler;
 
-    get name () {
+    get name() {
         if (this._name) {
             return this._name;
         }
@@ -80,7 +80,7 @@ class Component extends CCObject {
             return className;
         }
     }
-    set name (value) {
+    set name(value) {
         this._name = value;
     }
 
@@ -94,7 +94,7 @@ class Component extends CCObject {
      * log(comp.uuid);
      * ```
      */
-    get uuid () {
+    get uuid() {
         return this._id;
     }
 
@@ -105,7 +105,7 @@ class Component extends CCObject {
     @type(Script)
     @tooltip('i18n:INSPECTOR.component.script')
     @disallowAnimation
-    get __scriptAsset () { return null; }
+    get __scriptAsset() { return null; }
 
     /**
      * @en Indicates whether this component is enabled or not.
@@ -118,10 +118,10 @@ class Component extends CCObject {
      * log(comp.enabled);
      * ```
      */
-    get enabled () {
+    get enabled() {
         return this._enabled;
     }
-    set enabled (value) {
+    set enabled(value) {
         if (this._enabled !== value) {
             this._enabled = value;
             if (this.node.activeInHierarchy) {
@@ -145,7 +145,7 @@ class Component extends CCObject {
      * log(comp.enabledInHierarchy);
      * ```
      */
-    get enabledInHierarchy () {
+    get enabledInHierarchy() {
         return this._enabled && this.node && this.node.activeInHierarchy;
     }
 
@@ -161,7 +161,7 @@ class Component extends CCObject {
      *
      * @legacyPublic
      */
-    get _isOnLoadCalled () {
+    get _isOnLoadCalled() {
         return this._objFlags & IsOnLoadCalled;
     }
 
@@ -206,7 +206,7 @@ class Component extends CCObject {
     /**
      * @legacyPublic
      */
-    public _getRenderScene (): RenderScene {
+    public _getRenderScene(): RenderScene {
         if (this._sceneGetter) {
             return this._sceneGetter();
         }
@@ -225,7 +225,7 @@ class Component extends CCObject {
      * const sprite = node.addComponent(Sprite);
      * ```
      */
-    public addComponent<T extends Component> (classConstructor: Constructor<T>): T | null;
+    public addComponent<T extends Component>(classConstructor: Constructor<T>): T | null;
 
     /**
      * @en Adds a component class to the node. You can also add component to node by passing in the name of the script.
@@ -236,9 +236,9 @@ class Component extends CCObject {
      * const test = node.addComponent("Test");
      * ```
      */
-    public addComponent (className: string): Component | null;
+    public addComponent(className: string): Component | null;
 
-    public addComponent (typeOrClassName: any) {
+    public addComponent(typeOrClassName: any) {
         return this.node.addComponent(typeOrClassName);
     }
 
@@ -257,7 +257,7 @@ class Component extends CCObject {
      * var sprite = node.getComponent(Sprite);
      * ```
      */
-    public getComponent<T extends Component> (classConstructor: Constructor<T>): T | null;
+    public getComponent<T extends Component>(classConstructor: Constructor<T>): T | null;
 
     /**
      * @en
@@ -273,9 +273,9 @@ class Component extends CCObject {
      * var test = node.getComponent("Test");
      * ```
      */
-    public getComponent (className: string): Component | null;
+    public getComponent(className: string): Component | null;
 
-    public getComponent (typeOrClassName: any) {
+    public getComponent(typeOrClassName: any) {
         return this.node.getComponent(typeOrClassName);
     }
 
@@ -289,7 +289,7 @@ class Component extends CCObject {
      * const sprites = node.getComponents(Sprite);
      * ```
      */
-    public getComponents<T extends Component> (classConstructor: Constructor<T>): T[];
+    public getComponents<T extends Component>(classConstructor: Constructor<T>): T[];
 
     /**
      * @en Returns all components of supplied type in the node.
@@ -300,9 +300,9 @@ class Component extends CCObject {
      * const tests = node.getComponents("Test");
      * ```
      */
-    public getComponents (className: string): Component[];
+    public getComponents(className: string): Component[];
 
-    public getComponents<T extends Component> (typeOrClassName: any) {
+    public getComponents<T extends Component>(typeOrClassName: any) {
         return this.node.getComponents(typeOrClassName);
     }
 
@@ -316,7 +316,7 @@ class Component extends CCObject {
      * const sprite = node.getComponentInChildren(Sprite);
      * ```
      */
-    public getComponentInChildren<T extends Component> (classConstructor: Constructor<T>): T | null;
+    public getComponentInChildren<T extends Component>(classConstructor: Constructor<T>): T | null;
 
     /**
      * @en Returns the component of supplied type in any of its children using depth first search.
@@ -327,9 +327,9 @@ class Component extends CCObject {
      * var Test = node.getComponentInChildren("Test");
      * ```
      */
-    public getComponentInChildren (className: string): Component | null;
+    public getComponentInChildren(className: string): Component | null;
 
-    public getComponentInChildren (typeOrClassName: any) {
+    public getComponentInChildren(typeOrClassName: any) {
         return this.node.getComponentInChildren(typeOrClassName);
     }
 
@@ -343,7 +343,7 @@ class Component extends CCObject {
      * const sprites = node.getComponentsInChildren(Sprite);
      * ```
      */
-    public getComponentsInChildren<T extends Component> (classConstructor: Constructor<T>): T[];
+    public getComponentsInChildren<T extends Component>(classConstructor: Constructor<T>): T[];
 
     /**
      * @en Returns all components of supplied type in self or any of its children.
@@ -354,15 +354,15 @@ class Component extends CCObject {
      * const tests = node.getComponentsInChildren("Test");
      * ```
      */
-    public getComponentsInChildren (className: string): Component[];
+    public getComponentsInChildren(className: string): Component[];
 
-    public getComponentsInChildren (typeOrClassName: any) {
+    public getComponentsInChildren(typeOrClassName: any) {
         return this.node.getComponentsInChildren(typeOrClassName);
     }
 
     // OVERRIDE
 
-    public destroy () {
+    public destroy() {
         if (EDITOR) {
             // @ts-expect-error private function access
             const depend = this.node._getDependComponent(this);
@@ -384,7 +384,7 @@ class Component extends CCObject {
     /**
      * @legacyPublic
      */
-    public _onPreDestroy () {
+    public _onPreDestroy() {
         // Schedules
         this.unscheduleAllCallbacks();
 
@@ -404,7 +404,7 @@ class Component extends CCObject {
     /**
      * @legacyPublic
      */
-    public _instantiate (cloned?: Component) {
+    public _instantiate(cloned?: Component) {
         if (!cloned) {
             cloned = legacyCC.instantiate._clone(this, this);
         }
@@ -435,7 +435,7 @@ class Component extends CCObject {
      * this.schedule((dt) => void log(`time: ${dt}`), 1);
      * ```
      */
-    public schedule (callback, interval = 0, repeat: number = legacyCC.macro.REPEAT_FOREVER, delay = 0) {
+    public schedule(callback, interval = 0, repeat: number = legacyCC.macro.REPEAT_FOREVER, delay = 0) {
         assertID(callback, 1619);
 
         interval = interval || 0;
@@ -468,7 +468,7 @@ class Component extends CCObject {
      * this.scheduleOnce((dt) => void log(`time: ${dt}`), 2);
      * ```
      */
-    public scheduleOnce (callback, delay = 0) {
+    public scheduleOnce(callback, delay = 0) {
         this.schedule(callback, 0, 0, delay);
     }
 
@@ -481,7 +481,7 @@ class Component extends CCObject {
      * this.unschedule(_callback);
      * ```
      */
-    public unschedule (callback_fn) {
+    public unschedule(callback_fn) {
         if (!callback_fn) {
             return;
         }
@@ -497,7 +497,7 @@ class Component extends CCObject {
      * this.unscheduleAllCallbacks();
      * ```
      */
-    public unscheduleAllCallbacks () {
+    public unscheduleAllCallbacks() {
         legacyCC.director.getScheduler().unscheduleAllForTarget(this);
     }
 
@@ -514,7 +514,7 @@ class Component extends CCObject {
      * 该方法为生命周期方法，父类未必会有实现。并且你只能在该方法内部调用父类的实现，不可在其它地方直接调用该方法。
      * @param dt - the delta time in seconds it took to complete the last frame
      */
-    protected update? (dt: number): void;
+    protected update?(dt: number): void;
 
     /**
      * @en LateUpdate is called every frame, if the Component is enabled.<br/>
@@ -524,7 +524,7 @@ class Component extends CCObject {
      * 该方法为生命周期方法，父类未必会有实现。并且你只能在该方法内部调用父类的实现，不可在其它地方直接调用该方法。
      * @param dt - the delta time in seconds it took to complete the last frame
      */
-    protected lateUpdate? (dt: number): void;
+    protected lateUpdate?(dt: number): void;
 
     /**
      * @en `__preload` is called before every onLoad.<br/>
@@ -537,7 +537,7 @@ class Component extends CCObject {
      * 如果支持脚本优先级，则应删除此方法。
      * @private
      */
-    protected __preload? (): void;
+    protected __preload?(): void;
 
     /**
      * @en
@@ -549,7 +549,7 @@ class Component extends CCObject {
      * 当附加到一个激活的节点上或者其节点第一次激活时候调用。onLoad 总是会在任何 start 方法调用前执行，这能用于安排脚本的初始化顺序。<br/>
      * 该方法为生命周期方法，父类未必会有实现。并且你只能在该方法内部调用父类的实现，不可在其它地方直接调用该方法。
      */
-    protected onLoad? (): void;
+    protected onLoad?(): void;
 
     /**
      * @en
@@ -561,7 +561,7 @@ class Component extends CCObject {
      * 如果该组件第一次启用，则在所有组件的 update 之前调用。通常用于需要在所有组件的 onLoad 初始化完毕后执行的逻辑。<br/>
      * 该方法为生命周期方法，父类未必会有实现。并且你只能在该方法内部调用父类的实现，不可在其它地方直接调用该方法。
      */
-    protected start? (): void;
+    protected start?(): void;
 
     /**
      * @en Called when this component becomes enabled and its node is active.<br/>
@@ -570,7 +570,7 @@ class Component extends CCObject {
      * @zh 当该组件被启用，并且它的节点也激活时。<br/>
      * 该方法为生命周期方法，父类未必会有实现。并且你只能在该方法内部调用父类的实现，不可在其它地方直接调用该方法。
      */
-    protected onEnable? (): void;
+    protected onEnable?(): void;
 
     /**
      * @en Called when this component becomes disabled or its node becomes inactive.<br/>
@@ -579,7 +579,7 @@ class Component extends CCObject {
      * @zh 当该组件被禁用或节点变为无效时调用。<br/>
      * 该方法为生命周期方法，父类未必会有实现。并且你只能在该方法内部调用父类的实现，不可在其它地方直接调用该方法。
      */
-    protected onDisable? (): void;
+    protected onDisable?(): void;
 
     /**
      * @en Called when this component will be destroyed.<br/>
@@ -588,18 +588,18 @@ class Component extends CCObject {
      * @zh 当该组件被销毁时调用<br/>
      * 该方法为生命周期方法，父类未必会有实现。并且你只能在该方法内部调用父类的实现，不可在其它地方直接调用该方法。
      */
-    protected onDestroy? (): void;
+    protected onDestroy?(): void;
 
-    public onFocusInEditor? (): void;
+    public onFocusInEditor?(): void;
 
-    public onLostFocusInEditor? (): void;
+    public onLostFocusInEditor?(): void;
 
     /**
      * @en Called to initialize the component or node’s properties when adding the component the first time or when the Reset command is used.
      * This function is only called in editor.<br/>
      * @zh 用来初始化组件或节点的一些属性，当该组件被第一次添加到节点上或用户点击了它的 Reset 菜单时调用。这个回调只会在编辑器下调用。
      */
-    public resetInEditor? (): void;
+    public resetInEditor?(): void;
 
     // VIRTUAL
 
@@ -613,7 +613,7 @@ class Component extends CCObject {
      * @param out_rect - The rect to store the result bounding rect
      * @private
      */
-    protected _getLocalBounds? (out_rect: Rect): void;
+    protected _getLocalBounds?(out_rect: Rect): void;
 
     /**
      * @en
@@ -655,7 +655,7 @@ class Component extends CCObject {
      * <br/>
      * 此方法仅在编辑器下会被调用。
      */
-    protected onRestore? (): void;
+    protected onRestore?(): void;
 }
 
 const proto = Component.prototype;
@@ -731,58 +731,58 @@ value(Component, '_registerEditorProps', (cls, props) => {
         for (const key in props) {
             const val = props[key];
             switch (key) {
-            case 'executeInEditMode':
-                cls._executeInEditMode = !!val;
-                break;
+                case 'executeInEditMode':
+                    cls._executeInEditMode = !!val;
+                    break;
 
-            case 'playOnFocus':
-                if (val) {
-                    const willExecuteInEditMode = ('executeInEditMode' in props) ? props.executeInEditMode : cls._executeInEditMode;
-                    if (willExecuteInEditMode) {
-                        cls._playOnFocus = true;
-                    } else {
-                        warnID(3601, name);
+                case 'playOnFocus':
+                    if (val) {
+                        const willExecuteInEditMode = ('executeInEditMode' in props) ? props.executeInEditMode : cls._executeInEditMode;
+                        if (willExecuteInEditMode) {
+                            cls._playOnFocus = true;
+                        } else {
+                            warnID(3601, name);
+                        }
                     }
-                }
-                break;
+                    break;
 
-            case 'inspector':
-                value(cls, '_inspector', val, true);
-                break;
+                case 'inspector':
+                    value(cls, '_inspector', val, true);
+                    break;
 
-            case 'icon':
-                value(cls, '_icon', val, true);
-                break;
+                case 'icon':
+                    value(cls, '_icon', val, true);
+                    break;
 
-            case 'menu':
-            {
-                const frame = RF.peek();
-                let menu = val;
-                if (frame) {
-                    menu = `i18n:menu.custom_script/${menu}`;
-                }
+                case 'menu':
+                    {
+                        const frame = RF.peek();
+                        let menu = val;
+                        if (frame) {
+                            menu = `i18n:menu.custom_script/${menu}`;
+                        }
 
-                EDITOR && EditorExtends.Component.removeMenu(cls);
-                EDITOR && EditorExtends.Component.addMenu(cls, menu, props.menuPriority);
-                break;
-            }
+                        EDITOR && EditorExtends.Component.removeMenu(cls);
+                        EDITOR && EditorExtends.Component.addMenu(cls, menu, props.menuPriority);
+                        break;
+                    }
 
-            case 'disallowMultiple':
-                cls._disallowMultiple = cls;
-                break;
+                case 'disallowMultiple':
+                    cls._disallowMultiple = cls;
+                    break;
 
-            case 'requireComponent':
-            case 'executionOrder':
-                // skip here
-                break;
+                case 'requireComponent':
+                case 'executionOrder':
+                    // skip here
+                    break;
 
-            case 'help':
-                cls._help = val;
-                break;
+                case 'help':
+                    cls._help = val;
+                    break;
 
-            default:
-                warnID(3602, key, name);
-                break;
+                default:
+                    warnID(3602, key, name);
+                    break;
             }
         }
     }

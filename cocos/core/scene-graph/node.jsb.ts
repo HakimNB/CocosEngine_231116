@@ -173,7 +173,7 @@ nodeProto.addComponent = function (typeOrClassName) {
     if (typeof constructor !== 'function') {
         throw TypeError(getError(3809));
     }
-    if (!isChildClassOf(constructor, Component)) {
+    if (!isChildClassOf(constructor, Component) && !constructor.isNativeComponent) {
         throw TypeError(getError(3810));
     }
 

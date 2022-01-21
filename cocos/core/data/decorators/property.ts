@@ -51,7 +51,7 @@ export type IPropertyOptions = IExposedAttributes
  * @zh 声明属性为 CCClass 属性。
  * @param options property options
  */
-export function property (options?: IPropertyOptions): LegacyPropertyDecorator;
+export function property(options?: IPropertyOptions): LegacyPropertyDecorator;
 
 /**
  * @en Declare as a CCClass property with the property type
@@ -59,22 +59,22 @@ export function property (options?: IPropertyOptions): LegacyPropertyDecorator;
  * 等价于`@property({type})`。
  * @param type A {{ccclass}} type or a {{ValueType}}
  */
-export function property (type: PropertyType): LegacyPropertyDecorator;
+export function property(type: PropertyType): LegacyPropertyDecorator;
 
 /**
  * @en Declare as a CCClass property
  * @zh 标注属性为 cc 属性。<br/>
  * 等价于`@property()`。
  */
-export function property (...args: Parameters<LegacyPropertyDecorator>): void;
+export function property(...args: Parameters<LegacyPropertyDecorator>): void;
 
-export function property (
+export function property(
     target?: Parameters<LegacyPropertyDecorator>[0],
     propertyKey?: Parameters<LegacyPropertyDecorator>[1],
     descriptor?: Parameters<LegacyPropertyDecorator>[2],
 ) {
     let options: IPropertyOptions | PropertyType | null = null;
-    function normalized (
+    function normalized(
         target: Parameters<LegacyPropertyDecorator>[0],
         propertyKey: Parameters<LegacyPropertyDecorator>[1],
         descriptor: Parameters<LegacyPropertyDecorator>[2],
@@ -103,7 +103,7 @@ export function property (
     }
 }
 
-function getDefaultFromInitializer (initializer) {
+function getDefaultFromInitializer(initializer) {
     let value;
     try {
         value = initializer();
@@ -121,7 +121,7 @@ function getDefaultFromInitializer (initializer) {
     }
 }
 
-function extractActualDefaultValues (ctor) {
+function extractActualDefaultValues(ctor) {
     let dummyObj;
     try {
         dummyObj = new ctor();
@@ -134,7 +134,7 @@ function extractActualDefaultValues (ctor) {
     return dummyObj;
 }
 
-function genProperty (
+function genProperty(
     ctor,
     properties,
     propertyKey: Parameters<LegacyPropertyDecorator>[1],
