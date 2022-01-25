@@ -67,24 +67,71 @@ MeshRenderer.isNativeComponent = true;
 
 const meshRendererProto = MeshRenderer.prototype;
 
-Object.defineProperty(meshRendererProto, 'lightmapSettings', {
-  configurable: true,
-  enumerable: true,
-  get: function () {
-    if (this._lightmapSettingsCache) {
-      return this._lightmapSettings;
+meshRendererProto._ctor = function () {
+  this.registerCallbacks(this);
+};
+
+meshRendererProto.syncMaterials = function () {
+  this._materials = this._materials;
+};
+
+function searchPropertyDescriptor(proto: any, key: string) {
+  let p = proto;
+  let desc;
+  while (p !== Object.prototype) {
+    desc = Object.getOwnPropertyDescriptor(p, key);
+    if (desc) {
+      return desc;
     }
-    return this._lightmapSettingsCache;
-  },
-  set: function (settings) {
-    if (Array.isArray(settings)) {
-      this._lightmapSettingsCache = settings;
-      return;
-    }
-    this._lightmapSettingsCache = null;
-    this._lightmapSettings = settings;
+    p = Object.getPrototypeOf(p);
   }
-})
+}
+
+
+function replaceMaybeArrayProperty(proto: any, key: string, oldKey: string) {
+  const CacheKey = `${key}_cache`;
+  Object.defineProperty(proto, key, {
+    configurable: true,
+    enumerable: true,
+    get: function () {
+      if (this[CacheKey]) {
+        return this[CacheKey];
+      }
+      return this[oldKey];
+    },
+    set: function (v) {
+      if (!v) return;
+      if (v.length > 0 && typeof v[0] === 'number') {
+        this[CacheKey] = v;
+        return;
+      }
+      this[CacheKey] = null;
+      this[oldKey] = v;
+    }
+  });
+}
+
+replaceMaybeArrayProperty(meshRendererProto, '_materials', '__materials');
+replaceMaybeArrayProperty(meshRendererProto, 'lightmapSettings', '_lightmapSettings');
+
+// Object.defineProperty(meshRendererProto, 'lightmapSettings', {
+//   configurable: true,
+//   enumerable: true,
+//   get: function () {
+//     if (this._lightmapSettingsCache) {
+//       return this._lightmapSettings;
+//     }
+//     return this._lightmapSettingsCache;
+//   },
+//   set: function (settings) {
+//     if (Array.isArray(settings)) {
+//       this._lightmapSettingsCache = settings;
+//       return;
+//     }
+//     this._lightmapSettingsCache = null;
+//     this._lightmapSettings = settings;
+//   }
+// });
 
 
 
