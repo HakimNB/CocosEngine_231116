@@ -64,11 +64,11 @@ export class SkinnedMeshRenderer extends MeshRenderer {
      * @zh 骨骼资源。
      */
     @type(Skeleton)
-    get skeleton () {
+    get skeleton() {
         return this._skeleton;
     }
 
-    set skeleton (val) {
+    set skeleton(val) {
         if (val === this._skeleton) { return; }
         this._skeleton = val;
         this._update();
@@ -80,38 +80,38 @@ export class SkinnedMeshRenderer extends MeshRenderer {
      */
     @type(Node)
     @tooltip('i18n:model.skinning_root')
-    get skinningRoot () {
+    get skinningRoot() {
         return this._skinningRoot;
     }
 
-    set skinningRoot (value) {
+    set skinningRoot(value) {
         if (value === this._skinningRoot) { return; }
         this._skinningRoot = value;
         this._updateModelType();
         this._update();
     }
 
-    get model () {
+    get model() {
         return this._model as SkinningModel | BakedSkinningModel | null;
     }
 
-    constructor () {
+    constructor() {
         super();
         this._modelType = BakedSkinningModel;
     }
 
-    public __preload () {
+    public __preload() {
         this._updateModelType();
     }
 
-    public uploadAnimation (clip: AnimationClip | null) {
+    public uploadAnimation(clip: AnimationClip | null) {
         this._clip = clip;
         if (this.model && this.model.uploadAnimation) {
             this.model.uploadAnimation(clip);
         }
     }
 
-    public setUseBakedAnimation (val = true, force = false) {
+    public setUseBakedAnimation(val = true, force = false) {
         const modelType = val ? BakedSkinningModel : SkinningModel;
         if (!force && this._modelType === modelType) { return; }
         this._modelType = modelType;
@@ -127,28 +127,30 @@ export class SkinnedMeshRenderer extends MeshRenderer {
         }
     }
 
-    public setMaterial (material: Material | null, index: number) {
+    public setMaterial(material: Material | null, index: number) {
         super.setMaterial(material, index);
         if (this._modelType === SkinningModel) {
             this.getMaterialInstance(index);
         }
     }
 
-    protected _updateModelParams () {
+    protected _updateModelParams() {
         this._update(); // should bind skeleton before super create pso
         super._updateModelParams();
     }
 
-    private _updateModelType () {
+    private _updateModelType() {
         if (!this._skinningRoot) { return; }
         const comp = this._skinningRoot.getComponent('cc.SkeletalAnimation') as SkeletalAnimation;
         if (comp) { this.setUseBakedAnimation(comp.useBakedAnimation); } else { this.setUseBakedAnimation(false); }
     }
 
-    private _update () {
+    private _update() {
         if (this.model) {
             this.model.bindSkeleton(this._skeleton, this._skinningRoot, this._mesh);
             if (this.model.uploadAnimation) { this.model.uploadAnimation(this._clip); }
         }
     }
 }
+
+legacyCC.SkinnedMeshRenderer = SkinnedMeshRenderer;

@@ -1,6 +1,7 @@
 
 import { ccclass, override, serializable } from 'cc.decorator';
 import { JSB } from 'internal:constants';
+import { CCClass } from '../../core/data/class';
 
 
 import {
@@ -65,15 +66,40 @@ const _class5 = jsb.MeshRenderer;
 MeshRenderer.isNativeComponent = true;
 
 
+function WatchArray<T>(array: T[], syncFun: (v: T[]) => void) {
+  return new Proxy(array, {
+    // apply: function (target, thisArg, argumentsList) {
+    //   return Reflect.get(target, thisArg).apply(this, argumentsList);
+    // },
+    set: function (target, property, value, receiver) {
+      // console.log(`set ${property} to ${value}`);
+      Reflect.set(target, property, value, receiver);
+      if (!isNaN(parseInt(property.toString())) || property === 'length') {
+        syncFun(target);
+      }
+      return true;
+    },
+    get: function (target, property, receiver) {
+      // console.log(`get ${property}`);
+      const ret = Reflect.get(target, property, receiver);
+      if (property === 'push' || property === 'pop') {
+        return (...args) => {
+          ret.call(target, args);
+          syncFun(target);
+        };
+      }
+      return ret;
+    },
+  });
+}
+
 const meshRendererProto = MeshRenderer.prototype;
 
 meshRendererProto._ctor = function () {
   this.registerCallbacks(this);
+  this.lightmapSettings = new jsb.ModelLightmapSettings();
 };
 
-meshRendererProto.syncMaterials = function () {
-  this._materials = this._materials;
-};
 
 function searchPropertyDescriptor(proto: any, key: string) {
   let p = proto;
@@ -87,9 +113,13 @@ function searchPropertyDescriptor(proto: any, key: string) {
   }
 }
 
+meshRendererProto.syncMaterials = function () {
+  this._materials = this._materials;
+};
 
-function replaceMaybeArrayProperty(proto: any, key: string, oldKey: string) {
+function replaceMaybeArrayProperty(proto: any, key: string, underlyKey: string) {
   const CacheKey = `${key}_cache`;
+  const ProxyKey = `${key}_proxy`;
   Object.defineProperty(proto, key, {
     configurable: true,
     enumerable: true,
@@ -97,7 +127,12 @@ function replaceMaybeArrayProperty(proto: any, key: string, oldKey: string) {
       if (this[CacheKey]) {
         return this[CacheKey];
       }
-      return this[oldKey];
+      if (!this[ProxyKey]) {
+        this[ProxyKey] = WatchArray(this[underlyKey], (arr) => {
+          this[underlyKey] = arr;
+        });
+      }
+      return this[ProxyKey];
     },
     set: function (v) {
       if (!v) return;
@@ -106,7 +141,12 @@ function replaceMaybeArrayProperty(proto: any, key: string, oldKey: string) {
         return;
       }
       this[CacheKey] = null;
-      this[oldKey] = v;
+      this[underlyKey] = v;
+      if (!this[ProxyKey]) {
+        this[ProxyKey] = WatchArray(this[underlyKey], (arr) => {
+          this[underlyKey] = arr;
+        });
+      }
     }
   });
 }
@@ -134,55 +174,65 @@ replaceMaybeArrayProperty(meshRendererProto, 'lightmapSettings', '_lightmapSetti
 // });
 
 
+// NOTE: use fastDefine instead 
+// _applyDecoratedDescriptor(_class2.prototype, "texture", [serializable], {
+//   configurable: true,
+//   enumerable: true,
+//   writable: true,
+//   initializer: function () {
+//     return null;
+//   }
+// });
+// _applyDecoratedDescriptor(_class2.prototype, "uvParam", [serializable], {
+//   configurable: true,
+//   enumerable: true,
+//   writable: true,
+//   initializer: function () {
+//     return new Vec4();
+//   }
+// });
+// const _descriptor3 = _applyDecoratedDescriptor(_class2.prototype, "_bakeable", [serializable], {
+//   configurable: true,
+//   enumerable: true,
+//   writable: true,
+//   initializer: function () {
+//     return false;
+//   }
+// });
+// const _descriptor4 = _applyDecoratedDescriptor(_class2.prototype, "_castShadow", [serializable], {
+//   configurable: true,
+//   enumerable: true,
+//   writable: true,
+//   initializer: function () {
+//     return false;
+//   }
+// });
+// const _descriptor5 = _applyDecoratedDescriptor(_class2.prototype, "_receiveShadow", [serializable], {
+//   configurable: true,
+//   enumerable: true,
+//   writable: true,
+//   initializer: function () {
+//     return false;
+//   }
+// });
+// const _descriptor6 = _applyDecoratedDescriptor(_class2.prototype, "_lightmapSize", [serializable], {
+//   configurable: true,
+//   enumerable: true,
+//   writable: true,
+//   initializer: function () {
+//     return 64;
+//   }
+// });
+// TODO: fastDefine
+CCClass.fastDefine("cc.ModelLightmapSettings", jsb.ModelLightmapSettings, {
+  texture: null,
+  uvParam: new Vec4(),
+  _bakeable: false,
+  _castShadow: false,
+  _receiveShadow: false,
+  _lightmapSize: 64,
+});
 
-_applyDecoratedDescriptor(_class2.prototype, "texture", [serializable], {
-  configurable: true,
-  enumerable: true,
-  writable: true,
-  initializer: function () {
-    return null;
-  }
-});
-_applyDecoratedDescriptor(_class2.prototype, "uvParam", [serializable], {
-  configurable: true,
-  enumerable: true,
-  writable: true,
-  initializer: function () {
-    return new Vec4();
-  }
-});
-const _descriptor3 = _applyDecoratedDescriptor(_class2.prototype, "_bakeable", [serializable], {
-  configurable: true,
-  enumerable: true,
-  writable: true,
-  initializer: function () {
-    return false;
-  }
-});
-const _descriptor4 = _applyDecoratedDescriptor(_class2.prototype, "_castShadow", [serializable], {
-  configurable: true,
-  enumerable: true,
-  writable: true,
-  initializer: function () {
-    return false;
-  }
-});
-const _descriptor5 = _applyDecoratedDescriptor(_class2.prototype, "_receiveShadow", [serializable], {
-  configurable: true,
-  enumerable: true,
-  writable: true,
-  initializer: function () {
-    return false;
-  }
-});
-const _descriptor6 = _applyDecoratedDescriptor(_class2.prototype, "_lightmapSize", [serializable], {
-  configurable: true,
-  enumerable: true,
-  writable: true,
-  initializer: function () {
-    return 64;
-  }
-});
 
 const _descriptor7 = _applyDecoratedDescriptor(_class5.prototype, "lightmapSettings", [serializable], {
   configurable: true,
@@ -239,6 +289,14 @@ _applyDecoratedDescriptor(_class5.prototype, "_visFlags", [serializable], {
   }
 });
 
+_applyDecoratedDescriptor(_class5.prototype, "_materials", [serializable], {
+  configurable: true,
+  enumerable: true,
+  writable: true,
+  initializer: function () {
+    return [];
+  }
+});
 // inherited from jsb.Component
 _applyDecoratedDescriptor(_class5.prototype, "node", [serializable], {
   configurable: true,
@@ -274,11 +332,11 @@ _applyDecoratedDescriptor(_class5.prototype, "__prefab", [serializable], {
   legacyCC.MeshRenderer = jsb.MeshRenderer;
 }
 
-{
-  const clsDecorator = ccclass('cc.ModelLightmapSettings');
-  clsDecorator(ModelLightmapSettings);
-  legacyCC.ModelLightmapSettings = jsb.ModelLightmapSettings;
-}
+// {
+//   const clsDecorator = ccclass('cc.ModelLightmapSettings');
+//   clsDecorator(ModelLightmapSettings);
+//   legacyCC.ModelLightmapSettings = jsb.ModelLightmapSettings;
+// }
 
 
 
