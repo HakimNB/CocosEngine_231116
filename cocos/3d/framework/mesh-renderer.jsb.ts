@@ -82,6 +82,9 @@ function WatchArray<T>(array: T[], syncFun: (v: T[]) => void) {
     get: function (target, property, receiver) {
       // console.log(`get ${property}`);
       const ret = Reflect.get(target, property, receiver);
+      if (property === 'target') {
+        return target;
+      }
       if (property === 'push' || property === 'pop') {
         return (...args) => {
           ret.call(target, args);
@@ -97,8 +100,50 @@ const meshRendererProto = MeshRenderer.prototype;
 
 meshRendererProto._ctor = function () {
   this.registerCallbacks(this);
-  this.lightmapSettings = new jsb.ModelLightmapSettings();
+  // this.lightmapSettings = new jsb.ModelLightmapSettings();
+  this.syncMaterialsInvoked = false;
 };
+
+/*
+   enum class Type {
+        DEFAULT,
+        SKINNING,
+        BAKED_SKINNING,
+        BATCH_2D,
+        PARTICLE_BATCH,
+        LINE,
+    };
+*/
+
+const ModelTypes = {
+  DEFAULT: 0,
+  SKINNING: 1,
+  BAKED_SKINNING: 2,
+  BATCH_2D: 3,
+  PARTICLE_BATCH: 4,
+  LINE: 5,
+};
+
+Object.defineProperty(meshRendererProto, '_modelType', {
+  enumerable: true,
+  configurable: true,
+  set(v) {
+    if (v === jsb.Model) {
+      this.__modelType = ModelTypes.DEFAULT;
+    } else if (v === jsb.SkinningModel) {
+      this.__modelType = ModelTypes.SKINNING;
+    } else if (v === jsb.BakedSkinningModel) {
+      this.__modelType = ModelTypes.BAKED_SKINNING;
+    } else {
+      //TODO(PatriceJiang)
+      this.__modelType = ModelTypes.DEFAULT;
+    }
+    this._$modelType = v;
+  },
+  get() {
+    return this._$modelType;
+  }
+})
 
 
 function searchPropertyDescriptor(proto: any, key: string) {
@@ -114,64 +159,74 @@ function searchPropertyDescriptor(proto: any, key: string) {
 }
 
 meshRendererProto.syncMaterials = function () {
+  this.lightmapSettings = this.lightmapSettings;
   this._materials = this._materials;
+  this.syncMaterialsInvoked = true;
 };
 
 function replaceMaybeArrayProperty(proto: any, key: string, underlyKey: string) {
-  const CacheKey = `${key}_cache`;
-  const ProxyKey = `${key}_proxy`;
+  const CACHE_KEY = `${key}_cache`;
+  const CACHE_KEY_BK = `${key}_cacheBackup`;
+  // const PROXY_KEY = `${key}_proxy`;
   Object.defineProperty(proto, key, {
     configurable: true,
     enumerable: true,
     get: function () {
-      if (this[CacheKey]) {
-        return this[CacheKey];
+      if (this[CACHE_KEY]) {
+        return this[CACHE_KEY];
       }
-      if (!this[ProxyKey]) {
-        this[ProxyKey] = WatchArray(this[underlyKey], (arr) => {
-          this[underlyKey] = arr;
-        });
-      }
-      return this[ProxyKey];
+      // if (!this[PROXY_KEY]) {
+      // this[PROXY_KEY] = WatchArray(this[underlyKey], (arr) => {
+      // this[underlyKey] = arr;
+      // });
+      // }
+      return this[underlyKey];
     },
     set: function (v) {
       if (!v) return;
-      if (v.length > 0 && typeof v[0] === 'number') {
-        this[CacheKey] = v;
+      let hasEmptySlot = false;
+      for (let i = 0; i < v.length; i++) {
+        if (v[i] === undefined || v[i] === null || typeof v[i] === 'number') {
+          hasEmptySlot = true;
+        }
+      }
+      if (v.length > 0 && hasEmptySlot) {
+        this[CACHE_KEY] = v;
+        this[CACHE_KEY_BK] = v;
         return;
       }
-      this[CacheKey] = null;
+      this[CACHE_KEY] = null;
       this[underlyKey] = v;
-      if (!this[ProxyKey]) {
-        this[ProxyKey] = WatchArray(this[underlyKey], (arr) => {
-          this[underlyKey] = arr;
-        });
-      }
+      // if (!this[PROXY_KEY]) {
+      // this[PROXY_KEY] = WatchArray(this[underlyKey], (arr) => {
+      // this[underlyKey] = arr;
+      // });
+      // }
     }
   });
 }
 
 replaceMaybeArrayProperty(meshRendererProto, '_materials', '__materials');
-replaceMaybeArrayProperty(meshRendererProto, 'lightmapSettings', '_lightmapSettings');
+// replaceMaybeArrayProperty(meshRendererProto, 'lightmapSettings', '_lightmapSettings');
 
-// Object.defineProperty(meshRendererProto, 'lightmapSettings', {
-//   configurable: true,
-//   enumerable: true,
-//   get: function () {
-//     if (this._lightmapSettingsCache) {
-//       return this._lightmapSettings;
-//     }
-//     return this._lightmapSettingsCache;
-//   },
-//   set: function (settings) {
-//     if (Array.isArray(settings)) {
-//       this._lightmapSettingsCache = settings;
-//       return;
-//     }
-//     this._lightmapSettingsCache = null;
-//     this._lightmapSettings = settings;
-//   }
-// });
+Object.defineProperty(meshRendererProto, 'lightmapSettings', {
+  configurable: true,
+  enumerable: true,
+  get: function () {
+    if (this._lightmapSettingsCache) {
+      return this._lightmapSettingsCache;
+    }
+    return this._lightmapSettings;
+  },
+  set: function (settings) {
+    if (Array.isArray(settings)) {
+      this._lightmapSettingsCache = settings;
+      return;
+    }
+    this._lightmapSettingsCache = null;
+    this._lightmapSettings = settings;
+  }
+});
 
 
 // NOTE: use fastDefine instead 

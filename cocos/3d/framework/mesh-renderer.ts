@@ -28,8 +28,10 @@
  * @module model
  */
 
-import { ccclass, help, executeInEditMode, executionOrder, menu, tooltip, visible, type,
-    formerlySerializedAs, serializable, editable, disallowAnimation } from 'cc.decorator';
+import {
+    ccclass, help, executeInEditMode, executionOrder, menu, tooltip, visible, type,
+    formerlySerializedAs, serializable, editable, disallowAnimation
+} from 'cc.decorator';
 import { Texture2D } from '../../core/assets';
 import { Material } from '../../core/assets/material';
 import { Mesh } from '../assets/mesh';
@@ -86,7 +88,7 @@ const ModelShadowReceivingMode = Enum({
 @ccclass('cc.ModelLightmapSettings')
 class ModelLightmapSettings {
     @serializable
-    public texture: Texture2D|null = null;
+    public texture: Texture2D | null = null;
     @serializable
     public uvParam: Vec4 = new Vec4();
     @serializable
@@ -103,11 +105,11 @@ class ModelLightmapSettings {
      * @zh 是否可烘培。
      */
     @editable
-    get bakeable () {
+    get bakeable() {
         return this._bakeable;
     }
 
-    set bakeable (val) {
+    set bakeable(val) {
         this._bakeable = val;
     }
 
@@ -116,11 +118,11 @@ class ModelLightmapSettings {
      * @zh 是否投射阴影。
      */
     @editable
-    get castShadow () {
+    get castShadow() {
         return this._castShadow;
     }
 
-    set castShadow (val) {
+    set castShadow(val) {
         this._castShadow = val;
     }
 
@@ -129,11 +131,11 @@ class ModelLightmapSettings {
      * @zh 是否接受阴影。
      */
     @editable
-    get receiveShadow () {
+    get receiveShadow() {
         return this._receiveShadow;
     }
 
-    set receiveShadow (val) {
+    set receiveShadow(val) {
         this._receiveShadow = val;
     }
 
@@ -142,11 +144,11 @@ class ModelLightmapSettings {
      * @zh 光照图大小
      */
     @editable
-    get lightmapSize () {
+    get lightmapSize() {
         return this._lightmapSize;
     }
 
-    set lightmapSize (val) {
+    set lightmapSize(val) {
         this._lightmapSize = val;
     }
 }
@@ -188,11 +190,11 @@ export class MeshRenderer extends RenderableComponent {
     @type(ModelShadowCastingMode)
     @tooltip('i18n:model.shadow_casting_model')
     @disallowAnimation
-    get shadowCastingMode () {
+    get shadowCastingMode() {
         return this._shadowCastingMode;
     }
 
-    set shadowCastingMode (val) {
+    set shadowCastingMode(val) {
         this._shadowCastingMode = val;
         this._updateCastShadow();
     }
@@ -204,11 +206,11 @@ export class MeshRenderer extends RenderableComponent {
     @type(ModelShadowReceivingMode)
     @tooltip('i18n:model.shadow_receiving_model')
     @disallowAnimation
-    get receiveShadow () {
+    get receiveShadow() {
         return this._shadowReceivingMode;
     }
 
-    set receiveShadow (val) {
+    set receiveShadow(val) {
         this._shadowReceivingMode = val;
         this._updateReceiveShadow();
     }
@@ -221,11 +223,11 @@ export class MeshRenderer extends RenderableComponent {
      */
     @type(Mesh)
     @tooltip('i18n:model.mesh')
-    get mesh () {
+    get mesh() {
         return this._mesh;
     }
 
-    set mesh (val) {
+    set mesh(val) {
         const old = this._mesh;
         const mesh = this._mesh = val;
         mesh?.initialize();
@@ -240,7 +242,7 @@ export class MeshRenderer extends RenderableComponent {
         this._updateReceiveShadow();
     }
 
-    get model () {
+    get model() {
         return this._model;
     }
 
@@ -253,11 +255,11 @@ export class MeshRenderer extends RenderableComponent {
         );
     })
     @disallowAnimation
-    get enableMorph () {
+    get enableMorph() {
         return this._enableMorph;
     }
 
-    set enableMorph (value) {
+    set enableMorph(value) {
         this._enableMorph = value;
     }
 
@@ -270,12 +272,12 @@ export class MeshRenderer extends RenderableComponent {
     @serializable
     private _enableMorph = true;
 
-    constructor () {
+    constructor() {
         super();
         this._modelType = scene.Model;
     }
 
-    public onLoad () {
+    public onLoad() {
         if (this._mesh) { this._mesh.initialize(); }
         if (!this._validateShapeWeights()) {
             this._initSubMeshShapesWeights();
@@ -287,7 +289,7 @@ export class MeshRenderer extends RenderableComponent {
     }
 
     // Redo, Undo, Prefab restore, etc.
-    public onRestore () {
+    public onRestore() {
         this._updateModels();
         if (this.enabledInHierarchy) {
             this._attachToScene();
@@ -296,7 +298,7 @@ export class MeshRenderer extends RenderableComponent {
         this._updateReceiveShadow();
     }
 
-    public onEnable () {
+    public onEnable() {
         if (!this._model) {
             this._updateModels();
         }
@@ -305,13 +307,13 @@ export class MeshRenderer extends RenderableComponent {
         this._attachToScene();
     }
 
-    public onDisable () {
+    public onDisable() {
         if (this._model) {
             this._detachFromScene();
         }
     }
 
-    public onDestroy () {
+    public onDestroy() {
         if (this._model) {
             legacyCC.director.root.destroyModel(this._model);
             this._model = null;
@@ -329,7 +331,7 @@ export class MeshRenderer extends RenderableComponent {
      * @param shapeIndex Index to the shape of the sub mesh.
      * @returns The weight.
      */
-    public getWeight (subMeshIndex: number, shapeIndex: number) {
+    public getWeight(subMeshIndex: number, shapeIndex: number) {
         const { _subMeshShapesWeights: subMeshShapesWeights } = this;
         assertIsTrue(subMeshIndex < subMeshShapesWeights.length);
         const shapeWeights = this._subMeshShapesWeights[subMeshIndex];
@@ -349,7 +351,7 @@ export class MeshRenderer extends RenderableComponent {
      * @param weights The weights.
      * @param subMeshIndex Index to the sub mesh.
      */
-    public setWeights (weights: number[], subMeshIndex: number) {
+    public setWeights(weights: number[], subMeshIndex: number) {
         const { _subMeshShapesWeights: subMeshShapesWeights } = this;
         if (subMeshIndex >= subMeshShapesWeights.length) {
             return;
@@ -374,7 +376,7 @@ export class MeshRenderer extends RenderableComponent {
      * @param subMeshIndex Index to the sub mesh.
      * @param shapeIndex Index to the shape of the sub mesh.
      */
-    public setWeight (weight: number, subMeshIndex: number, shapeIndex: number) {
+    public setWeight(weight: number, subMeshIndex: number, shapeIndex: number) {
         const { _subMeshShapesWeights: subMeshShapesWeights } = this;
         if (subMeshIndex >= subMeshShapesWeights.length) {
             return;
@@ -387,7 +389,7 @@ export class MeshRenderer extends RenderableComponent {
         this._uploadSubMeshShapesWeights(subMeshIndex);
     }
 
-    public setInstancedAttribute (name: string, value: ArrayLike<number>) {
+    public setInstancedAttribute(name: string, value: ArrayLike<number>) {
         if (!this.model) { return; }
         const { attributes, views } = this.model.instancedAttributes;
         for (let i = 0; i < attributes.length; i++) {
@@ -401,7 +403,7 @@ export class MeshRenderer extends RenderableComponent {
     /**
      * @legacyPublic
      */
-    public _updateLightmap (lightmap: Texture2D|null, uOff: number, vOff: number, uScale: number, vScale: number) {
+    public _updateLightmap(lightmap: Texture2D | null, uOff: number, vOff: number, uScale: number, vScale: number) {
         this.lightmapSettings.texture = lightmap;
         this.lightmapSettings.uvParam.x = uOff;
         this.lightmapSettings.uvParam.y = vOff;
@@ -411,7 +413,7 @@ export class MeshRenderer extends RenderableComponent {
         this._onUpdateLightingmap();
     }
 
-    protected _updateModels () {
+    protected _updateModels() {
         if (!this.enabledInHierarchy || !this._mesh) {
             return;
         }
@@ -432,7 +434,7 @@ export class MeshRenderer extends RenderableComponent {
         }
     }
 
-    protected _createModel () {
+    protected _createModel() {
         const preferMorphOverPlain = !!this._morphInstance;
         // Note we only change to use `MorphModel` if
         // we are required to render morph and the `this._modelType` is exactly the basic `Model`.
@@ -452,7 +454,7 @@ export class MeshRenderer extends RenderableComponent {
         }
     }
 
-    protected _attachToScene () {
+    protected _attachToScene() {
         if (!this.node.scene || !this._model) {
             return;
         }
@@ -463,13 +465,13 @@ export class MeshRenderer extends RenderableComponent {
         renderScene.addModel(this._model);
     }
 
-    protected _detachFromScene () {
+    protected _detachFromScene() {
         if (this._model && this._model.scene) {
             this._model.scene.removeModel(this._model);
         }
     }
 
-    protected _updateModelParams () {
+    protected _updateModelParams() {
         if (!this._mesh || !this._model) { return; }
         this.node.hasChangedFlags |= TransformBit.POSITION;
         this._model.transform.hasChangedFlags |= TransformBit.POSITION;
@@ -491,7 +493,7 @@ export class MeshRenderer extends RenderableComponent {
         this._model.enabled = true;
     }
 
-    protected _onUpdateLightingmap () {
+    protected _onUpdateLightingmap() {
         if (this.model !== null) {
             this.model.updateLightingmap(this.lightmapSettings.texture, this.lightmapSettings.uvParam);
         }
@@ -504,22 +506,22 @@ export class MeshRenderer extends RenderableComponent {
         ]);
     }
 
-    protected _onMaterialModified (idx: number, material: Material | null) {
+    protected _onMaterialModified(idx: number, material: Material | null) {
         if (!this._model || !this._model.inited) { return; }
         this._onRebuildPSO(idx, material || this._getBuiltinMaterial());
     }
 
-    protected _onRebuildPSO (idx: number, material: Material) {
+    protected _onRebuildPSO(idx: number, material: Material) {
         if (!this._model || !this._model.inited) { return; }
         this._model.isDynamicBatching = this._isBatchingEnabled();
         this._model.setSubModelMaterial(idx, material);
         this._onUpdateLightingmap();
     }
 
-    protected _onMeshChanged (old: Mesh | null) {
+    protected _onMeshChanged(old: Mesh | null) {
     }
 
-    protected _clearMaterials () {
+    protected _clearMaterials() {
         if (!this._model) { return; }
         const subModels = this._model.subModels;
         for (let i = 0; i < subModels.length; ++i) {
@@ -527,17 +529,17 @@ export class MeshRenderer extends RenderableComponent {
         }
     }
 
-    protected _getBuiltinMaterial () {
+    protected _getBuiltinMaterial() {
         // classic ugly pink indicating missing material
         return builtinResMgr.get<Material>('missing-material');
     }
 
-    protected _onVisibilityChange (val: number) {
+    protected _onVisibilityChange(val: number) {
         if (!this._model) { return; }
         this._model.visFlags = val;
     }
 
-    protected _updateCastShadow () {
+    protected _updateCastShadow() {
         if (!this._model) { return; }
         if (this._shadowCastingMode === ModelShadowCastingMode.OFF) {
             this._model.castShadow = false;
@@ -550,7 +552,7 @@ export class MeshRenderer extends RenderableComponent {
         }
     }
 
-    protected _updateReceiveShadow () {
+    protected _updateReceiveShadow() {
         if (!this._model) { return; }
         if (this._shadowReceivingMode === ModelShadowReceivingMode.OFF) {
             this._model.receiveShadow = false;
@@ -559,7 +561,7 @@ export class MeshRenderer extends RenderableComponent {
         }
     }
 
-    protected _isBatchingEnabled () {
+    protected _isBatchingEnabled() {
         for (let i = 0; i < this._materials.length; ++i) {
             const mat = this._materials[i];
             if (!mat) { continue; }
@@ -571,7 +573,7 @@ export class MeshRenderer extends RenderableComponent {
         return false;
     }
 
-    private _watchMorphInMesh () {
+    private _watchMorphInMesh() {
         if (this._morphInstance) {
             this._morphInstance.destroy();
             this._morphInstance = null;
@@ -598,7 +600,7 @@ export class MeshRenderer extends RenderableComponent {
         }
     }
 
-    private _initSubMeshShapesWeights () {
+    private _initSubMeshShapesWeights() {
         const { _mesh: mesh } = this;
 
         this._subMeshShapesWeights.length = 0;
@@ -627,7 +629,7 @@ export class MeshRenderer extends RenderableComponent {
         });
     }
 
-    private _validateShapeWeights () {
+    private _validateShapeWeights() {
         const {
             _mesh: mesh,
             _subMeshShapesWeights: subMeshShapesWeights,
@@ -647,7 +649,7 @@ export class MeshRenderer extends RenderableComponent {
         );
     }
 
-    private _uploadSubMeshShapesWeights (subMeshIndex: number) {
+    private _uploadSubMeshShapesWeights(subMeshIndex: number) {
         this._morphInstance?.setWeights(subMeshIndex, this._subMeshShapesWeights[subMeshIndex]);
     }
 }
