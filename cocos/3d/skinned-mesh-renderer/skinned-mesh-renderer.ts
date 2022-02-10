@@ -40,6 +40,7 @@ import { SkeletalAnimation } from '../skeletal-animation';
 import { legacyCC } from '../../core/global-exports';
 import { SkinningModel } from '../models/skinning-model';
 import { BakedSkinningModel } from '../models/baked-skinning-model';
+import { JSB } from '../../core/default-constants';
 
 /**
  * @en The skinned mesh renderer component.
@@ -154,3 +155,9 @@ export class SkinnedMeshRenderer extends MeshRenderer {
 }
 
 legacyCC.SkinnedMeshRenderer = SkinnedMeshRenderer;
+
+if (JSB) {
+    // ts-expect-error: new attribute
+    const proto: any = SkinnedMeshRenderer.prototype;
+    proto.isCppSubClass = true;
+}
