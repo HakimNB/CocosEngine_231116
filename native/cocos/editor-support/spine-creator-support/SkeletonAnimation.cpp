@@ -29,7 +29,7 @@
 
 #include "spine-creator-support/SkeletonAnimation.h"
 #include <algorithm>
-#include "base/Log.h"
+#include "base/log/Log.h"
 #include "spine-creator-support/spine-cocos2dx.h"
 #include "spine/Extension.h"
 

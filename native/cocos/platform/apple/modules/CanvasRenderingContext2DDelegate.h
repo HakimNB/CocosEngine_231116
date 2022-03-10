@@ -29,7 +29,7 @@
 
 #include "base/csscolorparser.h"
 #include "bindings/jswrapper/config.h"
-#include "math/Math.h"
+#include "math/MathDef.h"
 
 #ifdef __OBJC__
 @class CanvasRenderingContext2DDelegateImpl;

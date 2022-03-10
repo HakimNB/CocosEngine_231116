@@ -30,8 +30,8 @@
 #include "MTLCommandEncoder.h"
 #include "MTLStd.h"
 #include "MTLUtils.h"
-#include "base/Macros.h"
-#include "math/Math.h"
+#include "base/macro/Macros.h"
+#include "math/MathDef.h"
 
 namespace cc {
 namespace gfx {

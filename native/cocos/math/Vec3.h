@@ -23,7 +23,7 @@
 #ifndef MATH_VEC3_H
 #define MATH_VEC3_H
 
-#include "math/MathBase.h"
+#include "MathBase.h"
 
 /**
  * @addtogroup base
@@ -535,8 +535,8 @@ public:
     inline bool operator<(const Vec3 &rhs) const {
         bool temp = false;
         if (x < rhs.x && y < rhs.y && z < rhs.z) {
-            temp =  true;
-        }  
+            temp = true;
+        }
         return temp;
     }
 
@@ -612,6 +612,6 @@ NS_CC_MATH_END
  end of base group
  @}
  */
-#include "math/Vec3.inl"
+#include "Vec3.inl"
 
 #endif // MATH_VEC3_H

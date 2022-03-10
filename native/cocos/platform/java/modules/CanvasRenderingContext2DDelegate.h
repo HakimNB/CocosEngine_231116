@@ -29,7 +29,7 @@
 
 #include "base/csscolorparser.h"
 #include "bindings/jswrapper/config.h"
-#include "math/Math.h"
+#include "math/MathDef.h"
 
 #include "cocos/bindings/jswrapper/SeApi.h"
 #include "platform/java/jni/JniHelper.h"

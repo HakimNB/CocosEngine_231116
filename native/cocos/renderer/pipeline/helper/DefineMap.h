@@ -26,7 +26,7 @@
 #pragma once
 
 #include "base/CoreStd.h"
-#include "base/Macros.h"
+#include "base/macro/Macros.h"
 #include "cocos/bindings/jswrapper/Object.h"
 
 namespace cc {

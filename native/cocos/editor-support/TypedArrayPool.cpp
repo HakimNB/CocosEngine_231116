@@ -27,8 +27,8 @@
 #include <cmath>
 #include <functional>
 #include "MiddlewareMacro.h"
-#include "base/Log.h"
-#include "base/Macros.h"
+#include "base/log/Log.h"
+#include "base/macro/Macros.h"
 
 #define POOL_DEBUG 0
 

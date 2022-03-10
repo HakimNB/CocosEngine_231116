@@ -25,7 +25,7 @@
 
 #include "platform/ios/modules/Vibrator.h"
 
-#include "base/Macros.h"
+#include "base/macro/Macros.h"
 
 namespace cc {
 

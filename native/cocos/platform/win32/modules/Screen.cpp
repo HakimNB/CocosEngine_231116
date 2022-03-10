@@ -24,7 +24,7 @@
 ****************************************************************************/
 
 #include "platform/win32/modules/Screen.h"
-#include "base/Macros.h"
+#include "base/macro/Macros.h"
 #include "cocos/bindings/jswrapper/SeApi.h"
 
 #include <Windows.h>

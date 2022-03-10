@@ -190,7 +190,7 @@ With the preferred ordering, if `dir2/foo2.h` omits any necessary includes, the 
 
 Within each section the includes should be ordered alphabetically. Note that older code might not conform to this rule and should be fixed when convenient.
 
-For example, the includes in `engine-native/cocos/math/Math.cpp` might look like this:
+For example, the includes in `engine-native/cocos/math/MathDef.cpp` might look like this:
 
 ```cpp
 #include "math/Math.h"  // Preferred location.

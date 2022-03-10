@@ -28,7 +28,7 @@
 
 #include "audio/ohos/AudioDecoderWav.h"
 #include "audio/ohos/FsCallback.h"
-#include "base/Log.h"
+#include "base/log/Log.h"
 
 namespace {
 snd_callbacks wavCallbacks = {

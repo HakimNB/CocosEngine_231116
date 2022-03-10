@@ -25,7 +25,7 @@
 
 #include "platform/win32/modules/SystemWindow.h"
 
-#include "base/Log.h"
+#include "base/log/Log.h"
 // SDL headers
 #include <functional>
 #include "bindings/event/EventDispatcher.h"

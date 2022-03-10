@@ -27,7 +27,7 @@
 
 #include <array>
 #include <vector>
-#include "base/Macros.h"
+#include "base/macro/Macros.h"
 #include "math/Vec3.h"
 #include "scene/AABB.h"
 

@@ -29,9 +29,9 @@
 #include "Define.h"
 #include "PipelineStateManager.h"
 #include "RenderPipeline.h"
-#include "base/Log.h"
+#include "base/log/Log.h"
 #include "math/Mat4.h"
-#include "math/Math.h"
+#include "math/MathDef.h"
 #include "scene/AABB.h"
 #include "scene/Frustum.h"
 

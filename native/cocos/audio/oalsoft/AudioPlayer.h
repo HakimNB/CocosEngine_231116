@@ -40,7 +40,7 @@
 #elif CC_PLATFORM == CC_PLATFORM_LINUX || CC_PLATFORM == CC_PLATFORM_QNX
     #include <AL/al.h>
 #endif
-#include "base/Macros.h"
+#include "base/macro/Macros.h"
 
 namespace cc {
 

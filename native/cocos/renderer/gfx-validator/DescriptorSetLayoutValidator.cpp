@@ -26,7 +26,7 @@
 #include "base/CoreStd.h"
 #include "base/threading/MessageQueue.h"
 #include "gfx-base/GFXDef-common.h"
-#include "math/Math.h"
+#include "math/MathDef.h"
 
 #include "DescriptorSetLayoutValidator.h"
 #include "DeviceValidator.h"

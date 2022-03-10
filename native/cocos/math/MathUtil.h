@@ -27,7 +27,7 @@
     #include <xmmintrin.h>
 #endif
 
-#include "math/MathBase.h"
+#include "MathBase.h"
 
 /**
  * @addtogroup base

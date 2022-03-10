@@ -55,7 +55,7 @@
  */
 
 #include "storage/local-storage/LocalStorage.h"
-#include "base/Macros.h"
+#include "base/macro/Macros.h"
 
 #if (CC_PLATFORM != CC_PLATFORM_ANDROID)
 

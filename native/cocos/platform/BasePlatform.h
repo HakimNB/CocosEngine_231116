@@ -25,8 +25,8 @@
 
 #pragma once
 
-#include "base/Log.h"
-#include "base/Macros.h"
+#include "base/log/Log.h"
+#include "base/macro/Macros.h"
 
 #include "bindings/event/EventDispatcher.h"
 #include "platform/interfaces/modules/ISystem.h"

@@ -29,7 +29,7 @@
 #include <stack>
 
 #include "base/Data.h"
-#include "base/Log.h"
+#include "base/log/Log.h"
 #include "platform/SAXParser.h"
 
 #include "tinydir/tinydir.h"

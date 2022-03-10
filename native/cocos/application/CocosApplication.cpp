@@ -25,7 +25,7 @@
 
 #include "application/CocosApplication.h"
 
-#include "base/Macros.h"
+#include "base/macro/Macros.h"
 
 #include "cocos/bindings/event/CustomEventTypes.h"
 #include "cocos/bindings/event/EventDispatcher.h"

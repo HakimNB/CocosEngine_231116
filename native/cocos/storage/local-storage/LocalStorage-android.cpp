@@ -32,7 +32,7 @@
  Works on cocos2d-iphone and cocos2d-x.
  */
 
-#include "base/Macros.h"
+#include "base/macro/Macros.h"
 #include "storage/local-storage/LocalStorage.h"
 
 #if (CC_PLATFORM == CC_PLATFORM_ANDROID)

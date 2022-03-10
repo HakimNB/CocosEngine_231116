@@ -32,7 +32,7 @@
 #include <regex>
 #include "base/csscolorparser.h"
 #include "cocos/bindings/manual/jsb_platform.h"
-#include "math/Math.h"
+#include "math/MathDef.h"
 #include "platform/FileUtils.h"
 
 #include <X11/Xlib.h>

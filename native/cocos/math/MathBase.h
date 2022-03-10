@@ -26,9 +26,10 @@
 #ifndef __CCMATHBASE_H__
 #define __CCMATHBASE_H__
 
-#include <memory>
 #include <string.h>
-#include "base/Macros.h"
+#include <memory>
+#include "MathMacros.h"
+
 /**
  * @addtogroup base
  * @{

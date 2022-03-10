@@ -32,7 +32,7 @@
 #include <unordered_map>
 #include <vector>
 
-#include "base/Macros.h"
+#include "base/macro/Macros.h"
 
 //#define CC_DOWNLOADER_DEBUG
 #ifdef CC_DOWNLOADER_DEBUG

@@ -23,8 +23,9 @@
 #ifndef QUATERNION_H_
 #define QUATERNION_H_
 
-#include "math/Vec3.h"
-#include "math/Mat4.h"
+#include "Mat4.h"
+#include "Vec3.h"
+
 //#include "Plane.h"
 
 /**
@@ -413,6 +414,6 @@ NS_CC_MATH_END
  end of base group
  @}
  */
-#include "math/Quaternion.inl"
+#include "Quaternion.inl"
 
 #endif

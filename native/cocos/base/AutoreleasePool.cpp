@@ -26,7 +26,7 @@
 ****************************************************************************/
 
 #include "base/AutoreleasePool.h"
-#include "base/Log.h"
+#include "base/log/Log.h"
 
 namespace cc {
 

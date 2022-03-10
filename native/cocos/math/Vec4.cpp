@@ -20,13 +20,15 @@
  This file was modified to fit the cocos2d-x project
  */
 
-#include <boost/functional/hash.hpp>
+#if !CC_STANDALONE_BUILD
+    #include <boost/functional/hash.hpp>
+#endif
 
-#include "math/Vec4.h"
+#include "Vec4.h"
 
 #include <cmath>
-#include "base/Macros.h"
-#include "math/MathUtil.h"
+#include "MathMacros.h"
+#include "MathUtil.h"
 
 NS_CC_MATH_BEGIN
 
@@ -107,34 +109,34 @@ void Vec4::clamp(const Vec4 &min, const Vec4 &max) {
     // Clamp the x value.
     if (x < min.x) {
         x = min.x;
-}
+    }
     if (x > max.x) {
         x = max.x;
-}
+    }
 
     // Clamp the y value.
     if (y < min.y) {
         y = min.y;
-}
+    }
     if (y > max.y) {
         y = max.y;
-}
+    }
 
     // Clamp the z value.
     if (z < min.z) {
         z = min.z;
-}
+    }
     if (z > max.z) {
         z = max.z;
-}
+    }
 
     // Clamp the z value.
     if (w < min.w) {
         w = min.w;
-}
+    }
     if (w > max.w) {
         w = max.w;
-}
+    }
 }
 
 void Vec4::clamp(const Vec4 &v, const Vec4 &min, const Vec4 &max, Vec4 *dst) {
@@ -145,37 +147,37 @@ void Vec4::clamp(const Vec4 &v, const Vec4 &min, const Vec4 &max, Vec4 *dst) {
     dst->x = v.x;
     if (dst->x < min.x) {
         dst->x = min.x;
-}
+    }
     if (dst->x > max.x) {
         dst->x = max.x;
-}
+    }
 
     // Clamp the y value.
     dst->y = v.y;
     if (dst->y < min.y) {
         dst->y = min.y;
-}
+    }
     if (dst->y > max.y) {
         dst->y = max.y;
-}
+    }
 
     // Clamp the z value.
     dst->z = v.z;
     if (dst->z < min.z) {
         dst->z = min.z;
-}
+    }
     if (dst->z > max.z) {
         dst->z = max.z;
-}
+    }
 
     // Clamp the w value.
     dst->w = v.w;
     if (dst->w < min.w) {
         dst->w = min.w;
-}
+    }
     if (dst->w > max.w) {
         dst->w = max.w;
-}
+    }
 }
 
 float Vec4::distance(const Vec4 &v) const {
@@ -224,13 +226,13 @@ void Vec4::normalize() {
     // Already normalized.
     if (n == 1.0F) {
         return;
-}
+    }
 
     n = std::sqrt(n);
     // Too close to zero.
     if (n < MATH_TOLERANCE) {
         return;
-}
+    }
 
     n = 1.0F / n;
     x *= n;
@@ -305,10 +307,14 @@ const Vec4 Vec4::UNIT_Y = Vec4(0.0F, 1.0F, 0.0F, 0.0F);
 const Vec4 Vec4::UNIT_Z = Vec4(0.0F, 0.0F, 1.0F, 0.0F);
 const Vec4 Vec4::UNIT_W = Vec4(0.0F, 0.0F, 0.0F, 1.0F);
 
+#if !CC_STANDALONE_BUILD
+
 template <>
 size_t Hasher<Vec4>::operator()(const Vec4 &v) const {
     return boost::hash_range(reinterpret_cast<const uint64_t *>(&v.x),
                              reinterpret_cast<const uint64_t *>(&v.x + 4));
 }
+
+#endif
 
 NS_CC_MATH_END

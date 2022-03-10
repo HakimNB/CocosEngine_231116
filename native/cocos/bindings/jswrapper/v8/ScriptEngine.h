@@ -186,17 +186,18 @@ public:
          */
     class FileOperationDelegate {
     public:
-        FileOperationDelegate()
-        : onGetDataFromFile(nullptr),
-          onGetStringFromFile(nullptr),
-          onCheckFileExist(nullptr),
-          onGetFullPath(nullptr) {}
+        FileOperationDelegate() = default;
 
         /**
              *  @brief Tests whether delegate is valid.
              */
         bool isValid() const {
-            return onGetDataFromFile != nullptr && onGetStringFromFile != nullptr && onCheckFileExist != nullptr && onGetFullPath != nullptr;
+            return onGetDataFromFile != nullptr &&
+                   onGetStringFromFile != nullptr &&
+                   onCheckFileExist != nullptr &&
+                   onGetFullPath != nullptr &&
+                   onCreateDirectory != nullptr &&
+                   onWriteFile != nullptr;
         }
 
         // path, buffer, buffer size
@@ -207,6 +208,10 @@ public:
         std::function<bool(const std::string &)> onCheckFileExist;
         // path, return full path
         std::function<std::string(const std::string &)> onGetFullPath;
+        // path, return true on create directory success
+        std::function<bool(const std::string &)> onCreateDirectory;
+        // path, file content
+        std::function<bool(const std::string &, const std::string &)> onWriteFile;
     };
 
     /**

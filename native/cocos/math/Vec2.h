@@ -24,9 +24,10 @@
 #define MATH_VEC2_H
 
 #include <algorithm>
-#include <functional>
 #include <cmath>
-#include "math/MathBase.h"
+#include <functional>
+#include "MathBase.h"
+
 
 /**
  * @addtogroup base
@@ -42,7 +43,8 @@ inline float clampf(float value, float min_inclusive, float max_inclusive) {
     if (min_inclusive > max_inclusive) {
         std::swap(min_inclusive, max_inclusive);
     }
-    return value < min_inclusive ? min_inclusive : value < max_inclusive ? value : max_inclusive;
+    return value < min_inclusive ? min_inclusive : value < max_inclusive ? value
+                                                                         : max_inclusive;
 }
 
 class Mat4;
@@ -760,6 +762,6 @@ NS_CC_MATH_END
  @}
  */
 
-#include "math/Vec2.inl"
+#include "Vec2.inl"
 
 #endif // MATH_VEC2_H

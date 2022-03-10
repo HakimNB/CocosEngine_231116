@@ -30,8 +30,11 @@
 #include <vector>
 
 #include "HandleObject.h"
-#include "base/Macros.h"
-
+#ifdef CC_STANDALONE_BUILD
+    #include "SeMacros.h"
+#else
+    #include "base/macro/Macros.h"
+#endif
 namespace se {
 
 class Object;

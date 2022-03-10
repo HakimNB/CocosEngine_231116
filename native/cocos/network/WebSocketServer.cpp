@@ -32,9 +32,10 @@
     #include <iostream>
 
     #include "cocos/application/ApplicationManager.h"
-    #include "cocos/base/Log.h"
     #include "cocos/base/Scheduler.h"
+    #include "cocos/base/log/Log.h"
     #include "cocos/network/WebSocketServer.h"
+
 
     #define MAX_MSG_PAYLOAD 2048
     #define SEND_BUFF       1024

@@ -24,7 +24,7 @@
 ****************************************************************************/
 
 #include "BufferAllocator.h"
-#include "base/Log.h"
+#include "base/log/Log.h"
 #include "base/memory/Memory.h"
 
 namespace se {

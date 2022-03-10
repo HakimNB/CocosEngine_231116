@@ -20,11 +20,11 @@
  This file was modified to fit the cocos2d-x project
  */
 
-#include "math/Vec3.h"
-#include "math/Mat3.h"
-#include "math/MathUtil.h"
-#include "base/Macros.h"
-#include "math/Quaternion.h"
+#include "Vec3.h"
+#include "Mat3.h"
+#include "MathMacros.h"
+#include "MathUtil.h"
+#include "Quaternion.h"
 
 NS_CC_MATH_BEGIN
 
@@ -48,7 +48,7 @@ Vec3::Vec3(const Vec3 &copy) {
 
 Vec3 Vec3::fromColor(unsigned int color) {
     float components[3];
-    int componentIndex = 0;
+    int   componentIndex = 0;
     for (int i = 2; i >= 0; --i) {
         const unsigned int component = (color >> i * 8) & 0x0000ff;
 
@@ -81,18 +81,18 @@ void Vec3::clamp(const Vec3 &min, const Vec3 &max) {
     // Clamp the x value.
     if (x < min.x) {
         x = min.x;
-    }    
+    }
     if (x > max.x) {
         x = max.x;
     }
-       
+
     // Clamp the y value.
     if (y < min.y) {
         y = min.y;
-    }    
+    }
     if (y > max.y) {
         y = max.y;
-    }  
+    }
 
     // Clamp the z value.
     if (z < min.z) {
@@ -100,7 +100,7 @@ void Vec3::clamp(const Vec3 &min, const Vec3 &max) {
     }
     if (z > max.z) {
         z = max.z;
-    }    
+    }
 }
 
 void Vec3::clamp(const Vec3 &v, const Vec3 &min, const Vec3 &max, Vec3 *dst) {
@@ -129,7 +129,7 @@ void Vec3::clamp(const Vec3 &v, const Vec3 &min, const Vec3 &max, Vec3 *dst) {
     dst->z = v.z;
     if (dst->z < min.z) {
         dst->z = min.z;
-    } 
+    }
     if (dst->z > max.z) {
         dst->z = max.z;
     }
@@ -171,17 +171,17 @@ void Vec3::transformMat3(const Vec3 &v, const Mat3 &m) {
     const float ix = v.x;
     const float iy = v.y;
     const float iz = v.z;
-    x = ix * m.m[0] + iy * m.m[3] + iz * m.m[6];
-    y = ix * m.m[1] + iy * m.m[4] + iz * m.m[7];
-    z = ix * m.m[2] + iy * m.m[5] + iz * m.m[8];
+    x              = ix * m.m[0] + iy * m.m[3] + iz * m.m[6];
+    y              = ix * m.m[1] + iy * m.m[4] + iz * m.m[7];
+    z              = ix * m.m[2] + iy * m.m[5] + iz * m.m[8];
 }
 
 void Vec3::transformMat4(const Vec3 &v, const Mat4 &m) {
-    const float ix = v.x;
-    const float iy = v.y;
-    const float iz = v.z;
-    float rhw = m.m[3] * ix + m.m[7] * iy + m.m[11] * iz + m.m[15];
-    rhw = static_cast<bool>(rhw) ? 1.0F / rhw : 1.0F;
+    const float ix  = v.x;
+    const float iy  = v.y;
+    const float iz  = v.z;
+    float       rhw = m.m[3] * ix + m.m[7] * iy + m.m[11] * iz + m.m[15];
+    rhw             = static_cast<bool>(rhw) ? 1.0F / rhw : 1.0F;
 
     x = (m.m[0] * ix + m.m[4] * iy + m.m[8] * iz + m.m[12]) * rhw;
     y = (m.m[1] * ix + m.m[5] * iy + m.m[9] * iz + m.m[13]) * rhw;
@@ -241,7 +241,7 @@ void Vec3::normalize() {
     // Too close to zero.
     if (n < MATH_TOLERANCE) {
         return;
-    } 
+    }
 
     n = 1.0F / n;
     x *= n;
@@ -264,7 +264,6 @@ void Vec3::subtract(const Vec3 &v1, const Vec3 &v2, Vec3 *dst) {
 }
 
 void Vec3::max(const Vec3 &v1, const Vec3 &v2, Vec3 *dst) {
-
     GP_ASSERT(dst);
 
     dst->x = std::fmaxf(v1.x, v2.x);
@@ -273,7 +272,6 @@ void Vec3::max(const Vec3 &v1, const Vec3 &v2, Vec3 *dst) {
 }
 
 void Vec3::min(const Vec3 &v1, const Vec3 &v2, Vec3 *dst) {
-
     GP_ASSERT(dst);
 
     dst->x = std::fminf(v1.x, v2.x);

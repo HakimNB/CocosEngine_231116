@@ -30,7 +30,7 @@
 #include <rawfile/raw_dir.h>
 #include <rawfile/raw_file.h>
 #include <rawfile/resource_manager.h>
-#include "base/Macros.h"
+#include "base/macro/Macros.h"
 #include "cocos/platform/FileUtils.h"
 
 namespace cc {

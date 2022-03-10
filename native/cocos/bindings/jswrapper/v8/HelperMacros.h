@@ -35,8 +35,11 @@
 #include <typeinfo>
 #include <vector>
 #include "../config.h"
-#include "base/Log.h"
-
+#if CC_STANDALONE_BUILD
+    #include "SeMacros.h"
+#else
+    #include "base/log/Log.h"
+#endif
 //#define RECORD_JSB_INVOKING
 
 #ifndef CC_DEBUG

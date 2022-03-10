@@ -29,7 +29,7 @@
 #include <cstdio>
 #include <regex>
 #include <string>
-#include "cocos/base/Log.h"
+#include "cocos/base/log/Log.h"
 #include "cocos/platform/java/jni/JniHelper.h"
 
 #include <sys/syscall.h>

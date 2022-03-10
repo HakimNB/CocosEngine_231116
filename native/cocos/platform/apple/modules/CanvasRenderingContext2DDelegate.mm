@@ -26,7 +26,7 @@
 #include "platform/apple/modules/CanvasRenderingContext2DDelegate.h"
 #include "base/UTF8.h"
 #include "base/csscolorparser.h"
-#include "math/Math.h"
+#include "math/MathDef.h"
 
 
 #include "cocos/bindings/jswrapper/SeApi.h"

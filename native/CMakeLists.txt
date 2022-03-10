@@ -26,6 +26,7 @@ cc_set_if_undefined(USE_JOB_SYSTEM_TBB       OFF)
 cc_set_if_undefined(USE_PHYSICS_PHYSX        OFF)
 cc_set_if_undefined(USE_MODULES              OFF)
 cc_set_if_undefined(USE_SERVER_MODE          OFF)
+cc_set_if_undefined(SE_STANDALONE_BUILD      ON)
 
 add_definitions()
 
@@ -124,6 +125,7 @@ cc_inspect_values(
     USE_JOB_SYSTEM_TBB
     USE_JOB_SYSTEM_TASKFLOW
     USE_SERVER_MODE
+    SE_STANDALONE_BUILD
 )
 
 ################################# external source code ################################
@@ -134,6 +136,12 @@ if(NOT EXISTS ${CMAKE_CURRENT_LIST_DIR}/external/CMakeLists.txt)
 endif()
 
 include(${CMAKE_CURRENT_LIST_DIR}/external/CMakeLists.txt)
+
+
+add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/cocos/base/macro ccmacros)
+add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/cocos/base/log cclogs)
+add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/cocos/math ccmath)
+add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/cocos/bindings/jswrapper bindings)
 
 ##### audio
 if(USE_AUDIO)
@@ -309,7 +317,6 @@ cocos_source_files(
     cocos/base/etc2.h
     cocos/base/IndexHandle.h
     cocos/base/Locked.h
-    cocos/base/Macros.h
     cocos/base/Map.h
     cocos/base/Object.h
     cocos/base/Random.h
@@ -638,11 +645,6 @@ elseif(QNX)
     )
 endif()
 
-############ module log
-cocos_source_files(MODULE cclog
-    cocos/base/Log.cpp
-    cocos/base/Log.h
-)
 
 ############ module log
 cocos_source_files(MODULE ccunzip
@@ -725,40 +727,6 @@ else()
         cocos/base/job-system/job-system-dummy/DummyJobSystem.cpp
     )
 endif()
-
-######### module math
-cocos_source_files(MODULE ccmath
-    cocos/math/Geometry.cpp
-    cocos/math/Geometry.h
-    cocos/math/Math.h
-    cocos/math/Math.cpp
-    cocos/math/MathBase.h
-    cocos/math/Vertex.cpp
-    cocos/math/Vertex.h
-    cocos/math/Mat3.cpp
-    cocos/math/Mat3.h
-    cocos/math/Mat4.cpp
-    cocos/math/Mat4.h
-    cocos/math/Mat4.inl
-    cocos/math/MathUtil.cpp
-    cocos/math/MathUtil.h
-    cocos/math/MathUtil.inl
-    cocos/math/MathUtilNeon.inl
-    cocos/math/MathUtilNeon64.inl
-    cocos/math/MathUtilSSE.inl
-    cocos/math/Quaternion.cpp
-    cocos/math/Quaternion.h
-    cocos/math/Quaternion.inl
-    cocos/math/Vec2.cpp
-    cocos/math/Vec2.h
-    cocos/math/Vec2.inl
-    cocos/math/Vec3.cpp
-    cocos/math/Vec3.h
-    cocos/math/Vec3.inl
-    cocos/math/Vec4.cpp
-    cocos/math/Vec4.h
-    cocos/math/Vec4.inl
-)
 
 ##### network
 cocos_source_files(
@@ -1944,93 +1912,7 @@ elseif(QNX)
     )
 endif()
 
-############# module bindings
-if(USE_SE_V8)
-    cocos_source_files(MODULE ccbindings
-                     cocos/bindings/jswrapper/v8/Base.h
-                     cocos/bindings/jswrapper/v8/Class.cpp
-                     cocos/bindings/jswrapper/v8/Class.h
-                     cocos/bindings/jswrapper/v8/HelperMacros.h
-                     cocos/bindings/jswrapper/v8/HelperMacros.cpp
-                     cocos/bindings/jswrapper/v8/Object.cpp
-                     cocos/bindings/jswrapper/v8/Object.h
-                     cocos/bindings/jswrapper/v8/ObjectWrap.cpp
-                     cocos/bindings/jswrapper/v8/ObjectWrap.h
-                     cocos/bindings/jswrapper/v8/ScriptEngine.cpp
-                     cocos/bindings/jswrapper/v8/ScriptEngine.h
-                     cocos/bindings/jswrapper/v8/SeApi.h
-        NO_WERROR    cocos/bindings/jswrapper/v8/Utils.cpp
-                     cocos/bindings/jswrapper/v8/Utils.h
-                     cocos/bindings/jswrapper/v8/MissingSymbols.cpp
-                     cocos/bindings/jswrapper/v8/MissingSymbols.h
-    )
-    if(USE_V8_DEBUGGER)
-    cocos_source_files(MODULE ccbindings
-                     cocos/bindings/jswrapper/v8/debugger/base64.h
-        NO_WERROR    cocos/bindings/jswrapper/v8/debugger/env.cpp
-                     cocos/bindings/jswrapper/v8/debugger/env.h
-        NO_WERROR    cocos/bindings/jswrapper/v8/debugger/http_parser.cpp
-                     cocos/bindings/jswrapper/v8/debugger/http_parser.h
-        NO_WERROR    cocos/bindings/jswrapper/v8/debugger/inspector_agent.cpp
-                     cocos/bindings/jswrapper/v8/debugger/inspector_agent.h
-        NO_WERROR    cocos/bindings/jswrapper/v8/debugger/inspector_io.cpp
-                     cocos/bindings/jswrapper/v8/debugger/inspector_io.h
-        NO_WERROR    cocos/bindings/jswrapper/v8/debugger/inspector_socket.cpp
-                     cocos/bindings/jswrapper/v8/debugger/inspector_socket.h
-        NO_WERROR    cocos/bindings/jswrapper/v8/debugger/inspector_socket_server.cpp
-                     cocos/bindings/jswrapper/v8/debugger/inspector_socket_server.h
-        NO_WERROR    cocos/bindings/jswrapper/v8/debugger/node.cpp
-                     cocos/bindings/jswrapper/v8/debugger/node.h
-        NO_WERROR    cocos/bindings/jswrapper/v8/debugger/node_debug_options.cpp
-                     cocos/bindings/jswrapper/v8/debugger/node_debug_options.h
-                     cocos/bindings/jswrapper/v8/debugger/node_mutex.h
-        NO_WERROR    cocos/bindings/jswrapper/v8/debugger/SHA1.cpp
-                     cocos/bindings/jswrapper/v8/debugger/SHA1.h
-                     cocos/bindings/jswrapper/v8/debugger/util-inl.h
-        NO_WERROR    cocos/bindings/jswrapper/v8/debugger/util.cpp
-                     cocos/bindings/jswrapper/v8/debugger/util.h
-                     cocos/bindings/jswrapper/v8/debugger/v8_inspector_protocol_json.h
-    )
-    endif()
-endif()
-
-if(USE_SE_JSC)
-    cocos_source_files(MODULE ccbindings
-                     cocos/bindings/jswrapper/jsc/Class.h
-                     cocos/bindings/jswrapper/jsc/EJConvert.h
-                     cocos/bindings/jswrapper/jsc/HelperMacros.h
-        NO_WERROR    cocos/bindings/jswrapper/jsc/Utils.cpp
-                     cocos/bindings/jswrapper/jsc/EJConvertTypedArray.h
-                     cocos/bindings/jswrapper/jsc/PlatformUtils.h
-        NO_WERROR    cocos/bindings/jswrapper/jsc/EJConvertTypedArray.m
-        NO_WERROR    cocos/bindings/jswrapper/jsc/EJConvert.m
-                     cocos/bindings/jswrapper/jsc/Object.h
-        NO_WERROR    cocos/bindings/jswrapper/jsc/Object.mm
-                     cocos/bindings/jswrapper/jsc/ScriptEngine.h
-        NO_WERROR    cocos/bindings/jswrapper/jsc/ScriptEngine.mm
-        NO_WERROR    cocos/bindings/jswrapper/jsc/PlatformUtils.mm
-                     cocos/bindings/jswrapper/jsc/SeApi.h
-        NO_WERROR    cocos/bindings/jswrapper/jsc/Class.cpp
-                     cocos/bindings/jswrapper/jsc/Utils.h
-                     cocos/bindings/jswrapper/jsc/Base.h
-    )
-endif()
-
 cocos_source_files(MODULE ccbindings
-                 cocos/bindings/jswrapper/config.cpp
-                 cocos/bindings/jswrapper/config.h
-                 cocos/bindings/jswrapper/HandleObject.cpp
-                 cocos/bindings/jswrapper/HandleObject.h
-                 cocos/bindings/jswrapper/MappingUtils.cpp
-                 cocos/bindings/jswrapper/MappingUtils.h
-                 cocos/bindings/jswrapper/Object.h
-                 cocos/bindings/jswrapper/RefCounter.cpp
-                 cocos/bindings/jswrapper/RefCounter.h
-                 cocos/bindings/jswrapper/SeApi.h
-                 cocos/bindings/jswrapper/State.cpp
-                 cocos/bindings/jswrapper/State.h
-                 cocos/bindings/jswrapper/Value.cpp
-                 cocos/bindings/jswrapper/Value.h
     NO_WERROR    cocos/bindings/manual/jsb_global_init.cpp
                  cocos/bindings/manual/jsb_global_init.h
 )
@@ -2170,16 +2052,12 @@ list(APPEND COCOS2D_SOURCE_LIST ${CC_EXTERNAL_SOURCES})
 
 
 if(USE_MODULES)
-    add_library(ccmath ${ccmath_SOURCE_LIST})
     add_library(cclog ${cclog_SOURCE_LIST})
     add_library(ccfilesystem ${ccfilesystem_SOURCE_LIST} ${CC_TINYDIR_SOURCES})
     add_library(ccutils ${ccutils_SOURCE_LIST} ${CC_UTILS_SOURCES})
     add_library(ccunzip ${ccunzip_SOURCE_LIST} ${CC_UNZIP_SOURCES})
     add_library(ccbindings ${ccbindings_SOURCE_LIST})
 
-    target_include_directories(ccmath PRIVATE
-        ${CWD}/cocos
-    )
     target_include_directories(ccunzip PRIVATE
         ${CWD}/external/sources/unzip
         ${CWD}/external/sources
@@ -2212,12 +2090,12 @@ if(USE_MODULES)
         ccutils
         cclog
     )
-    target_link_libraries(ccbindings PUBLIC
-        ccfilesystem
-        cclog
-        ${se_libs_name}
-        uv
-    )
+    # target_link_libraries(ccbindings PUBLIC
+    #     ccfilesystem
+    #     cclog
+    #     ${se_libs_name}
+    #     uv
+    # )
     if(ANDROID)
         target_link_libraries(ccmath PUBLIC
             android_platform
@@ -2266,6 +2144,13 @@ if(USE_MODULES)
         ccbindings
         ccutils
     )
+else()
+    target_link_libraries(cocos2d PUBLIC
+        bindings
+        ccmath
+        ccmacros
+        cclogs
+    )
 endif()
 
 
@@ -2275,6 +2160,9 @@ if(ANDROID OR OHOS)
     target_include_directories(cocos2d_jni PUBLIC
         ${CWD}
         ${CWD}/cocos
+    )
+    target_link_libraries(cocos2d_jni PUBLIC
+        cclogs
     )
     if(ANDROID)
         target_link_libraries(cocos2d_jni PUBLIC
@@ -2315,6 +2203,7 @@ if(USE_MODULES)
     cc_apply_definations(ccfilesystem)
     cc_apply_definations(ccunzip)
     cc_apply_definations(ccbindings)
+    cc_apply_definations(ccutils)
     cc_apply_definations(ccutils)
 endif()
 

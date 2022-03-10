@@ -30,7 +30,7 @@
 #include <string>
 #include <vector>
 #include "android/asset_manager.h"
-#include "base/Macros.h"
+#include "base/macro/Macros.h"
 #include "jni.h"
 #include "platform/FileUtils.h"
 

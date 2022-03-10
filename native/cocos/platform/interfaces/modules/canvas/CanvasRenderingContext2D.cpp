@@ -31,7 +31,7 @@
 #include "base/csscolorparser.h"
 #include "cocos/bindings/jswrapper/SeApi.h"
 #include "cocos/bindings/manual/jsb_platform.h"
-#include "math/Math.h"
+#include "math/MathDef.h"
 #include "platform/FileUtils.h"
 
 #if (CC_PLATFORM == CC_PLATFORM_WINDOWS)

@@ -32,10 +32,11 @@
     #include <cstdlib>
     #include "android/asset_manager.h"
     #include "android/asset_manager_jni.h"
-    #include "base/Log.h"
     #include "base/ZipUtils.h"
+    #include "base/log/Log.h"
     #include "platform/java/jni/JniHelper.h"
     #include "platform/java/jni/JniImp.h"
+
 
     #define LOG_TAG   "FileUtils-android.cpp"
     #define LOGD(...) __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, __VA_ARGS__)

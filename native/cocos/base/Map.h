@@ -36,9 +36,10 @@
     #include <map>
 #endif
 
-#include "base/Log.h"
 #include "base/Random.h"
 #include "base/Ref.h"
+#include "base/log/Log.h"
+
 
 namespace cc {
 

@@ -25,7 +25,7 @@
 
 #include "scene/RenderScene.h"
 #include <utility>
-#include "base/Log.h"
+#include "base/log/Log.h"
 #include "renderer/pipeline/RenderPipeline.h"
 #include "scene/Octree.h"
 

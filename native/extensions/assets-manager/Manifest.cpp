@@ -25,13 +25,14 @@
  ****************************************************************************/
 
 #include "Manifest.h"
-#include "base/Log.h"
+#include "base/log/Log.h"
 #include "json/prettywriter.h"
 #include "json/stringbuffer.h"
 
-#include <cstdio>
 #include <algorithm>
+#include <cstdio>
 #include <fstream>
+
 
 #define KEY_VERSION          "version"
 #define KEY_PACKAGE_URL      "packageUrl"
@@ -56,10 +57,10 @@ NS_CC_EXT_BEGIN
 
 static int cmpVersion(const std::string &v1, const std::string &v2) {
     int i;
-    int octV1[4] = {0}; 
+    int octV1[4] = {0};
     int octV2[4] = {0};
-    int filled1 = std::sscanf(v1.c_str(), "%d.%d.%d.%d", &octV1[0], &octV1[1], &octV1[2], &octV1[3]);
-    int filled2 = std::sscanf(v2.c_str(), "%d.%d.%d.%d", &octV2[0], &octV2[1], &octV2[2], &octV2[3]);
+    int filled1  = std::sscanf(v1.c_str(), "%d.%d.%d.%d", &octV1[0], &octV1[1], &octV1[2], &octV1[3]);
+    int filled2  = std::sscanf(v2.c_str(), "%d.%d.%d.%d", &octV2[0], &octV2[1], &octV2[2], &octV2[3]);
 
     if (filled1 == 0 || filled2 == 0) {
         return strcmp(v1.c_str(), v2.c_str());
@@ -208,9 +209,9 @@ bool Manifest::versionEquals(const Manifest *b) const {
 }
 
 bool Manifest::versionGreaterOrEquals(const Manifest *b, const std::function<int(const std::string &versionA, const std::string &versionB)> &handle) const {
-    std::string localVersion = getVersion();
-    const std::string& bVersion     = b->getVersion();
-    bool        greater;
+    std::string        localVersion = getVersion();
+    const std::string &bVersion     = b->getVersion();
+    bool               greater;
     if (handle) {
         greater = handle(localVersion, bVersion) >= 0;
     } else {
@@ -220,9 +221,9 @@ bool Manifest::versionGreaterOrEquals(const Manifest *b, const std::function<int
 }
 
 bool Manifest::versionGreater(const Manifest *b, const std::function<int(const std::string &versionA, const std::string &versionB)> &handle) const {
-    std::string localVersion = getVersion();
-    const std::string& bVersion     = b->getVersion();
-    bool        greater;
+    std::string        localVersion = getVersion();
+    const std::string &bVersion     = b->getVersion();
+    bool               greater;
     if (handle) {
         greater = handle(localVersion, bVersion) > 0;
     } else {
@@ -313,9 +314,9 @@ std::vector<std::string> Manifest::getSearchPaths() const {
 }
 
 void Manifest::prependSearchPaths() {
-    std::vector<std::string>           searchPaths           = FileUtils::getInstance()->getSearchPaths();
-    auto iter                  = searchPaths.begin();
-    bool                               needChangeSearchPaths = false;
+    std::vector<std::string> searchPaths           = FileUtils::getInstance()->getSearchPaths();
+    auto                     iter                  = searchPaths.begin();
+    bool                     needChangeSearchPaths = false;
     if (std::find(searchPaths.begin(), searchPaths.end(), _manifestRoot) == searchPaths.end()) {
         searchPaths.insert(iter, _manifestRoot);
         needChangeSearchPaths = true;

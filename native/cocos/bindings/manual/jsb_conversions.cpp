@@ -30,7 +30,7 @@
 
 #include "base/TypeDef.h"
 #include "gfx-base/GFXDef.h"
-#include "math/Math.h"
+#include "math/MathDef.h"
 
 // seval to native
 

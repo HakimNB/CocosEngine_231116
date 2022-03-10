@@ -30,7 +30,7 @@
 #include <CoreText/CoreText.h>
 #import <UIKit/UIKit.h>
 
-#include "base/Macros.h"
+#include "base/macro/Macros.h"
 #include "cocos/bindings/jswrapper/SeApi.h"
 
 namespace cc {

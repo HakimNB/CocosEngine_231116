@@ -27,8 +27,8 @@ THE SOFTWARE.
 #ifndef __MATH_CCGEOMETRY_H__
 #define __MATH_CCGEOMETRY_H__
 
-#include "base/Macros.h"
-#include "math/Vec2.h"
+#include "MathMacros.h"
+#include "Vec2.h"
 
 /**
  * @addtogroup base

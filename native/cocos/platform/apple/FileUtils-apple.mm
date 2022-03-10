@@ -37,7 +37,7 @@
 
 #include "platform/FileUtils.h"
 #include "platform/SAXParser.h"
-#include "base/Log.h"
+#include "base/log/Log.h"
 
 namespace cc {
 

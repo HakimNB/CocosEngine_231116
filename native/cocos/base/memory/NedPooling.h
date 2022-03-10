@@ -27,7 +27,7 @@ THE SOFTWARE.
 #ifndef CC_CORE_NED_POOLING_H_
 #define CC_CORE_NED_POOLING_H_
 
-#include "base/Macros.h"
+#include "base/macro/Macros.h"
 
 #if (CC_MEMORY_ALLOCATOR == CC_MEMORY_ALLOCATOR_NEDPOOLING)
 
@@ -39,7 +39,7 @@ public:
     static CC_DECL_MALLOC void *AllocBytes(size_t count, const char *file, int line, const char *func);
     static CC_DECL_MALLOC void *ReallocBytes(void *ptr, size_t count, const char *file, int line, const char *func);
     static CC_DECL_MALLOC void *AllocBytesAligned(size_t align, size_t count, const char *file, int line, const char *func);
-    static void DeallocBytes(void *ptr);
+    static void                 DeallocBytes(void *ptr);
 };
 
 /**	An allocation policy for use with AllocatedObject and

@@ -24,7 +24,7 @@
 ****************************************************************************/
 
 #include "application/ApplicationManager.h"
-#include "base/Macros.h"
+#include "base/macro/Macros.h"
 
 namespace cc {
 // static

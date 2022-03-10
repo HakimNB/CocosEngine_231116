@@ -26,7 +26,7 @@
 #include "engine/Engine.h"
 #include <functional>
 #include "base/AutoreleasePool.h"
-#include "base/Macros.h"
+#include "base/macro/Macros.h"
 #include "platform/BasePlatform.h"
 
 #include "cocos/bindings/jswrapper/SeApi.h"

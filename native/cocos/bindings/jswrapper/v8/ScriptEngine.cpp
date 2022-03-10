@@ -33,7 +33,11 @@
     #include "MissingSymbols.h"
     #include "Object.h"
     #include "Utils.h"
-    #include "platform/FileUtils.h"
+    #if CC_STANDALONE_BUILD
+        #include "SeMacros.h"
+    #else
+        #include "platform/FileUtils.h"
+    #endif
 
     #include <sstream>
 
@@ -815,8 +819,7 @@ const ScriptEngine::FileOperationDelegate &ScriptEngine::getFileOperationDelegat
 }
 
 bool ScriptEngine::saveByteCodeToFile(const std::string &path, const std::string &pathBc) {
-    bool  success = false;
-    auto *fu      = cc::FileUtils::getInstance();
+    bool success = false;
 
     if (pathBc.length() > 3 && pathBc.substr(pathBc.length() - 3) != ".bc") {
         SE_LOGE("ScriptEngine::generateByteCode bytecode file path should endwith \".bc\"\n");
@@ -824,7 +827,7 @@ bool ScriptEngine::saveByteCodeToFile(const std::string &path, const std::string
         return false;
     }
 
-    if (fu->isFileExist(pathBc)) {
+    if (_fileOperationDelegate.onCheckFileExist(pathBc)) {
         SE_LOGE("ScriptEngine::generateByteCode file already exists, it will be rewrite!\n");
     }
 
@@ -840,7 +843,7 @@ bool ScriptEngine::saveByteCodeToFile(const std::string &path, const std::string
             return false;
         }
         std::string pathBcDir = pathBc.substr(0, lastSep);
-        success               = fu->createDirectory(pathBcDir);
+        success               = _fileOperationDelegate.onCreateDirectory(pathBcDir);
         if (!success) {
             SE_LOGE("ScriptEngine::generateByteCode failed to create bytecode for %s\n", path.c_str());
             return success;
@@ -862,9 +865,8 @@ bool ScriptEngine::saveByteCodeToFile(const std::string &path, const std::string
     // create CachedData
     v8::ScriptCompiler::CachedData *cd = v8::ScriptCompiler::CreateCodeCache(v8Script);
     // save to file
-    cc::Data writeData;
-    writeData.copy(cd->data, cd->length);
-    success = fu->writeDataToFile(writeData, pathBc);
+    std::string writeData(reinterpret_cast<const char *>(cd->data), cd->length);
+    success = _fileOperationDelegate.onWriteFile(pathBc, writeData);
     if (!success) {
         SE_LOGE("ScriptEngine::generateByteCode write %s\n", pathBc.c_str());
     }
@@ -872,13 +874,10 @@ bool ScriptEngine::saveByteCodeToFile(const std::string &path, const std::string
 }
 
 bool ScriptEngine::runByteCodeFile(const std::string &pathBc, Value *ret /* = nullptr */) {
-    auto *fu = cc::FileUtils::getInstance();
-
-    cc::Data cachedData;
-    fu->getContents(pathBc, &cachedData);
+    std::string cachedData = _fileOperationDelegate.onGetStringFromFile(pathBc);
 
     // read origin source file length from .bc file
-    uint8_t *p        = cachedData.getBytes() + 8;
+    uint8_t *p        = reinterpret_cast<uint8_t *>(const_cast<char *>(cachedData.data())) + 8;
     int      filesize = p[0] + (p[1] << 8) + (p[2] << 16) + (p[3] << 24);
 
     {
@@ -898,7 +897,8 @@ bool ScriptEngine::runByteCodeFile(const std::string &pathBc, Value *ret /* = nu
     v8::ScriptOrigin origin(_isolate, scriptPath, 0, 0, true);
 
     // restore CacheData
-    auto *                v8CacheData = new v8::ScriptCompiler::CachedData(cachedData.getBytes(), static_cast<int>(cachedData.getSize()));
+    auto *                v8CacheData = new v8::ScriptCompiler::CachedData(reinterpret_cast<const uint8_t *>(cachedData.data()),
+                                                           static_cast<int>(cachedData.size()));
     v8::Local<v8::String> dummyCode;
 
     // generate dummy code
@@ -956,7 +956,7 @@ bool ScriptEngine::runScript(const std::string &path, Value *ret /* = nullptr */
     assert(!path.empty());
     assert(_fileOperationDelegate.isValid());
 
-    if (!cc::FileUtils::getInstance()->isFileExist(path)) {
+    if (!_fileOperationDelegate.onCheckFileExist(path)) {
         std::stringstream ss;
         ss << "throw new Error(\"Failed to require file '"
            << path << "', not found!\");";

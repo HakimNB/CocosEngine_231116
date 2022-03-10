@@ -20,12 +20,11 @@
  This file was modified to fit the cocos2d-x project
  */
 
-#include "math/Mat4.h"
+#include "Mat4.h"
 
 #include <cmath>
-#include "base/Log.h"
-#include "math/MathUtil.h"
-#include "math/Quaternion.h"
+#include "MathUtil.h"
+#include "Quaternion.h"
 
 NS_CC_MATH_BEGIN
 
@@ -455,7 +454,7 @@ void Mat4::fromRT(const Quaternion &rotation, const Vec3 &translation, Mat4 *dst
     dst->m[15] = 1;
 }
 
-void Mat4::fromRTS(const Quaternion& rotation, const Vec3& translation, const Vec3& scale, Mat4* dst) {
+void Mat4::fromRTS(const Quaternion &rotation, const Vec3 &translation, const Vec3 &scale, Mat4 *dst) {
     const float x  = rotation.x;
     const float y  = rotation.y;
     const float z  = rotation.z;
@@ -477,16 +476,16 @@ void Mat4::fromRTS(const Quaternion& rotation, const Vec3& translation, const Ve
     const float sy = scale.y;
     const float sz = scale.z;
 
-    dst->m[0] = (1 - (yy + zz)) * sx;
-    dst->m[1] = (xy + wz) * sx;
-    dst->m[2] = (xz - wy) * sx;
-    dst->m[3] = 0;
-    dst->m[4] = (xy - wz) * sy;
-    dst->m[5] = (1 - (xx + zz)) * sy;
-    dst->m[6] = (yz + wx) * sy;
-    dst->m[7] = 0;
-    dst->m[8] = (xz + wy) * sz;
-    dst->m[9] = (yz - wx) * sz;
+    dst->m[0]  = (1 - (yy + zz)) * sx;
+    dst->m[1]  = (xy + wz) * sx;
+    dst->m[2]  = (xz - wy) * sx;
+    dst->m[3]  = 0;
+    dst->m[4]  = (xy - wz) * sy;
+    dst->m[5]  = (1 - (xx + zz)) * sy;
+    dst->m[6]  = (yz + wx) * sy;
+    dst->m[7]  = 0;
+    dst->m[8]  = (xz + wy) * sz;
+    dst->m[9]  = (yz - wx) * sz;
     dst->m[10] = (1 - (xx + yy)) * sz;
     dst->m[11] = 0;
     dst->m[12] = translation.x;
@@ -614,11 +613,23 @@ float Mat4::determinant() const {
     return (a0 * b5 - a1 * b4 + a2 * b3 + a3 * b2 - a4 * b1 + a5 * b0);
 }
 
-void Mat4::inverseTranspose(const Mat4& mat, Mat4 *dst) {
-    float a00 = mat.m[0]; float a01 = mat.m[1]; float a02 = mat.m[2]; float a03 = mat.m[3];
-    float a10 = mat.m[4]; float a11 = mat.m[5]; float a12 = mat.m[6]; float a13 = mat.m[7];
-    float a20 = mat.m[8]; float a21 = mat.m[9]; float a22 = mat.m[10]; float a23 = mat.m[11];
-    float a30 = mat.m[12]; float a31 = mat.m[13]; float a32 = mat.m[14]; float a33 = mat.m[15];
+void Mat4::inverseTranspose(const Mat4 &mat, Mat4 *dst) {
+    float a00 = mat.m[0];
+    float a01 = mat.m[1];
+    float a02 = mat.m[2];
+    float a03 = mat.m[3];
+    float a10 = mat.m[4];
+    float a11 = mat.m[5];
+    float a12 = mat.m[6];
+    float a13 = mat.m[7];
+    float a20 = mat.m[8];
+    float a21 = mat.m[9];
+    float a22 = mat.m[10];
+    float a23 = mat.m[11];
+    float a30 = mat.m[12];
+    float a31 = mat.m[13];
+    float a32 = mat.m[14];
+    float a33 = mat.m[15];
 
     float b00 = a00 * a11 - a01 * a10;
     float b01 = a00 * a12 - a02 * a10;
@@ -651,8 +662,8 @@ void Mat4::inverseTranspose(const Mat4& mat, Mat4 *dst) {
     dst->m[6] = (a01 * b08 - a00 * b10 - a03 * b06) * det;
     dst->m[7] = 0;
 
-    dst->m[8] = (a31 * b05 - a32 * b04 + a33 * b03) * det;
-    dst->m[9] = (a32 * b02 - a30 * b05 - a33 * b01) * det;
+    dst->m[8]  = (a31 * b05 - a32 * b04 + a33 * b03) * det;
+    dst->m[9]  = (a32 * b02 - a30 * b05 - a33 * b01) * det;
     dst->m[10] = (a30 * b04 - a31 * b02 + a33 * b00) * det;
     dst->m[11] = 0;
 

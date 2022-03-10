@@ -32,8 +32,8 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
-#include "base/Log.h"
-#include "base/Macros.h"
+#include "base/log/Log.h"
+#include "base/macro/Macros.h"
 #include "math/Vec3.h"
 
 //The macro must be used this way to find the native method. The principle is not well understood.

@@ -30,8 +30,8 @@
 #include <functional>
 #include <thread>
 #include <vector>
-#include "base/Log.h"
-#include "base/Macros.h"
+#include "base/log/Log.h"
+#include "base/macro/Macros.h"
 #include "platform/java/jni/JniImp.h"
 #include "platform/java/jni/glue/JniNativeGlue.h"
 

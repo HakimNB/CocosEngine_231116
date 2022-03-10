@@ -28,7 +28,7 @@
     #include <xmmintrin.h>
 #endif
 
-#include "math/MathBase.h"
+#include "MathBase.h"
 
 /**
  * @addtogroup base
@@ -459,6 +459,6 @@ NS_CC_MATH_END
  end of base group
  @}
  */
-#include "math/Vec4.inl"
+#include "Vec4.inl"
 
 #endif // MATH_VEC4_H

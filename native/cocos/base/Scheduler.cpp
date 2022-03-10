@@ -33,8 +33,8 @@
 #include <vector>
 
 #include <climits>
-#include "base/Log.h"
-#include "base/Macros.h"
+#include "base/log/Log.h"
+#include "base/macro/Macros.h"
 
 namespace {
 constexpr unsigned CC_REPEAT_FOREVER{UINT_MAX - 1};

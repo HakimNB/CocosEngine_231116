@@ -27,7 +27,7 @@
 
 #include "platform/win32/Utils-win32.h"
 #include <sstream>
-#include "base/Log.h"
+#include "base/log/Log.h"
 #include "platform/StdC.h"
 
 namespace cc {

@@ -27,8 +27,8 @@
 #ifndef __CCVERTEX_H__
 #define __CCVERTEX_H__
 
-#include "base/Macros.h"
-#include "math/Vec2.h"
+#include "MathMacros.h"
+#include "Vec2.h"
 
 /**
  * @addtogroup base

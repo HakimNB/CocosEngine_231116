@@ -1,8 +1,9 @@
 #pragma once
 #include <webgpu/webgpu.h>
-#include "cocos/base/Macros.h"
 #include "cocos/base/TypeDef.h"
+#include "cocos/base/macro/Macros.h"
 #include "gfx-base/GFXDef-common.h"
+
 namespace cc {
 namespace gfx {
 

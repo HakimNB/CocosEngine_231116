@@ -23,10 +23,9 @@
 #ifndef MATH_MAT4_H
 #define MATH_MAT4_H
 
-#include "base/Macros.h"
-
-#include "math/Vec3.h"
-#include "math/Vec4.h"
+#include "MathMacros.h"
+#include "Vec3.h"
+#include "Vec4.h"
 
 #undef __SSE__
 #ifdef __SSE__
@@ -897,7 +896,7 @@ public:
     /**
     * Calculates the inverse transpose of a matrix and save the results to out matrix
     */
-    static void inverseTranspose(const Mat4& mat, Mat4 *dst);
+    static void inverseTranspose(const Mat4 &mat, Mat4 *dst);
     /**
      * Calculates the sum of this matrix with the given matrix.
      *
@@ -1021,6 +1020,6 @@ NS_CC_MATH_END
  end of base group
  @}
  */
-#include "math/Mat4.inl"
+#include "Mat4.inl"
 
 #endif // MATH_MAT4_H

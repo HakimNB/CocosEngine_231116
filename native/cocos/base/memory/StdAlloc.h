@@ -29,9 +29,10 @@ THE SOFTWARE.
 
 #if (CC_MEMORY_ALLOCATOR == CC_MEMORY_ALLOCATOR_STD)
 
-    #include "base/Macros.h"
-    #include <limits>
     #include <stdlib.h>
+    #include <limits>
+    #include "base/macro/Macros.h"
+
 
 namespace cc {
 
@@ -46,9 +47,9 @@ class CC_DLL StdAllocPolicy {
 public:
     static inline CC_DECL_MALLOC void *AllocateBytes(size_t count,
     #ifdef CC_MEMORY_TRACKER
-                                                        const char *file = nullptr, int line = 0, const char *func = nullptr
+                                                     const char *file = nullptr, int line = 0, const char *func = nullptr
     #else
-                                                        const char * = nullptr, int = 0, const char * = nullptr
+                                                     const char * = nullptr, int = 0, const char * = nullptr
     #endif
     ) {
         void *ptr = malloc(count);
@@ -60,9 +61,9 @@ public:
 
     static inline CC_DECL_MALLOC void *ReallocateBytes(void *ptr, size_t count,
     #ifdef CC_MEMORY_TRACKER
-                                                          const char *file = nullptr, int line = 0, const char *func = nullptr
+                                                       const char *file = nullptr, int line = 0, const char *func = nullptr
     #else
-                                                          const char * = nullptr, int = 0, const char * = nullptr
+                                                       const char * = nullptr, int = 0, const char * = nullptr
     #endif
     ) {
     #ifdef CC_MEMORY_TRACKER
@@ -111,21 +112,21 @@ public:
 
     static inline CC_DECL_MALLOC void *AllocateBytesAligned(size_t alignment, size_t count,
     #ifdef CC_MEMORY_TRACKER
-                                                               const char *file = NULL, int line = 0, const char *func = NULL
+                                                            const char *file = NULL, int line = 0, const char *func = NULL
     #else
-                                                               const char * = NULL, int = 0, const char * = NULL
+                                                            const char * = NULL, int = 0, const char * = NULL
     #endif
     ) {
     #ifdef _MSC_VER
         void *ptr = _aligned_malloc(count, alignment);
     #elif defined(__ANDROID__)
         //void* ptr = memalign(alignment, count);
-        unsigned char *p = (unsigned char *)malloc(count + alignment);
-        size_t offset = alignment - (size_t(p) & (alignment - 1));
-        unsigned char *ptr = p + offset;
-        ptr[-1] = (unsigned char)offset;
+        unsigned char *p      = (unsigned char *)malloc(count + alignment);
+        size_t         offset = alignment - (size_t(p) & (alignment - 1));
+        unsigned char *ptr    = p + offset;
+        ptr[-1]               = (unsigned char)offset;
     #else
-        CCASSERT(alignment % sizeof(void*) == 0, "alignment is not multiple of sizeof(void*)");
+        CCASSERT(alignment % sizeof(void *) == 0, "alignment is not multiple of sizeof(void*)");
         void *ptr = NULL;
         posix_memalign(&ptr, alignment, count);
     #endif
@@ -146,7 +147,7 @@ public:
     #elif defined(__ANDROID__)
         if (ptr) {
             unsigned char *mem = (unsigned char *)ptr;
-            mem = mem - mem[-1];
+            mem                = mem - mem[-1];
             free(mem);
         }
     #else

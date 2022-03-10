@@ -24,7 +24,7 @@
 ****************************************************************************/
 
 // clang-format off
-#include "base/Macros.h"
+#include "base/macro/Macros.h"
 // clang-format: off
 #include <string>
 #include "uv.h"
@@ -193,6 +193,14 @@ void jsb_init_file_operation_delegate() { //NOLINT
         delegate.onCheckFileExist = [](const std::string &path) -> bool {
             assert(!path.empty());
             return FileUtils::getInstance()->isFileExist(path);
+        };
+
+        delegate.onCreateDirectory = [](const std::string &path) -> bool {
+            return FileUtils::getInstance()->createDirectory(path);
+        };
+
+        delegate.onWriteFile = [](const std::string &path, const std::string &content) -> bool {
+            return FileUtils::getInstance()->writeStringToFile(content, path);
         };
 
         assert(delegate.isValid());

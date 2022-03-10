@@ -36,14 +36,15 @@
 #include <thread>
 #include <unordered_map>
 
+#include "application/ApplicationManager.h"
 #include "audio/include/AudioEngine.h"
-#include "base/Log.h"
 #include "base/Scheduler.h"
 #include "base/UTF8.h"
-#include "application/ApplicationManager.h"
+#include "base/log/Log.h"
 #include "platform/android/FileUtils-android.h"
 #include "platform/java/jni/JniHelper.h"
 #include "platform/java/jni/JniImp.h"
+
 
 #include "audio/android/AudioPlayerProvider.h"
 #include "audio/android/IAudioPlayer.h"
@@ -102,7 +103,7 @@ static int fdGetter(const std::string &url, off_t *start, off_t *length) {
         *length = static_cast<off_t>(lenV);
     }
     if (fd <= 0) {
-        auto* asset = AAssetManager_open(cc::FileUtilsAndroid::getAssetManager(), url.c_str(), AASSET_MODE_UNKNOWN);
+        auto *asset = AAssetManager_open(cc::FileUtilsAndroid::getAssetManager(), url.c_str(), AASSET_MODE_UNKNOWN);
         // open asset as file descriptor
         fd = AAsset_openFileDescriptor(asset, start, length);
         AAsset_close(asset);
@@ -211,7 +212,7 @@ int AudioEngineImpl::play2d(const std::string &filePath, bool loop, float volume
 
         audioId = _audioIDIndex++;
 
-        auto* player = _audioPlayerProvider->getAudioPlayer(fullPath);
+        auto *player = _audioPlayerProvider->getAudioPlayer(fullPath);
         if (player != nullptr) {
             player->setId(audioId);
             _audioPlayers.insert(std::make_pair(audioId, player));
@@ -261,7 +262,7 @@ int AudioEngineImpl::play2d(const std::string &filePath, bool loop, float volume
 void AudioEngineImpl::setVolume(int audioID, float volume) {
     auto iter = _audioPlayers.find(audioID);
     if (iter != _audioPlayers.end()) {
-        auto* player = iter->second;
+        auto *player = iter->second;
         player->setVolume(volume);
     }
 }
@@ -269,7 +270,7 @@ void AudioEngineImpl::setVolume(int audioID, float volume) {
 void AudioEngineImpl::setLoop(int audioID, bool loop) {
     auto iter = _audioPlayers.find(audioID);
     if (iter != _audioPlayers.end()) {
-        auto* player = iter->second;
+        auto *player = iter->second;
         player->setLoop(loop);
     }
 }
@@ -277,7 +278,7 @@ void AudioEngineImpl::setLoop(int audioID, bool loop) {
 void AudioEngineImpl::pause(int audioID) {
     auto iter = _audioPlayers.find(audioID);
     if (iter != _audioPlayers.end()) {
-        auto* player = iter->second;
+        auto *player = iter->second;
         player->pause();
     }
 }
@@ -285,7 +286,7 @@ void AudioEngineImpl::pause(int audioID) {
 void AudioEngineImpl::resume(int audioID) {
     auto iter = _audioPlayers.find(audioID);
     if (iter != _audioPlayers.end()) {
-        auto* player = iter->second;
+        auto *player = iter->second;
         player->resume();
     }
 }
@@ -293,7 +294,7 @@ void AudioEngineImpl::resume(int audioID) {
 void AudioEngineImpl::stop(int audioID) {
     auto iter = _audioPlayers.find(audioID);
     if (iter != _audioPlayers.end()) {
-        auto* player = iter->second;
+        auto *player = iter->second;
         player->stop();
     }
 }
@@ -313,7 +314,7 @@ void AudioEngineImpl::stopAll() {
         players.push_back(e.second);
     }
 
-    for (auto* p : players) {
+    for (auto *p : players) {
         p->stop();
     }
 }
@@ -321,7 +322,7 @@ void AudioEngineImpl::stopAll() {
 float AudioEngineImpl::getDuration(int audioID) {
     auto iter = _audioPlayers.find(audioID);
     if (iter != _audioPlayers.end()) {
-        auto* player = iter->second;
+        auto *player = iter->second;
         return player->getDuration();
     }
     return 0.0F;
@@ -338,7 +339,7 @@ float AudioEngineImpl::getDurationFromFile(const std::string &filePath) {
 float AudioEngineImpl::getCurrentTime(int audioID) {
     auto iter = _audioPlayers.find(audioID);
     if (iter != _audioPlayers.end()) {
-        auto* player = iter->second;
+        auto *player = iter->second;
         return player->getPosition();
     }
     return 0.0F;
@@ -347,7 +348,7 @@ float AudioEngineImpl::getCurrentTime(int audioID) {
 bool AudioEngineImpl::setCurrentTime(int audioID, float time) {
     auto iter = _audioPlayers.find(audioID);
     if (iter != _audioPlayers.end()) {
-        auto* player = iter->second;
+        auto *player = iter->second;
         return player->setPosition(time);
     }
     return false;

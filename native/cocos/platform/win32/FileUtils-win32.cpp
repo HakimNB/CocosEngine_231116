@@ -31,7 +31,7 @@
     #include <cstdlib>
     #include <regex>
     #include <sstream>
-    #include "base/Log.h"
+    #include "base/log/Log.h"
     #include "platform/win32/Utils-win32.h"
 
 using namespace std;

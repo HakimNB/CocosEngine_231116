@@ -27,12 +27,12 @@
 
 #define MATRIX3_SIZE (sizeof(float) * 9)
 
-#include "base/Macros.h"
+#include "MathMacros.h"
 
-#include "math/Vec2.h"
-#include "math/Vec3.h"
-#include "math/Vec4.h"
-#include "math/Mat4.h"
+#include "Mat4.h"
+#include "Vec2.h"
+#include "Vec3.h"
+#include "Vec4.h"
 
 /**
  * @addtogroup base

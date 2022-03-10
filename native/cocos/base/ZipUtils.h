@@ -28,7 +28,7 @@
 #pragma once
 
 #include <string>
-#include "base/Macros.h"
+#include "base/macro/Macros.h"
 #include "platform/FileUtils.h"
 
 #if (CC_PLATFORM == CC_PLATFORM_ANDROID)

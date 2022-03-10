@@ -25,8 +25,8 @@
 
 #include "platform/empty/modules/SystemWindow.h"
 
-#include "base/Log.h"
-#include "base/Macros.h"
+#include "base/log/Log.h"
+#include "base/macro/Macros.h"
 
 // SDL headers
 #include <functional>
