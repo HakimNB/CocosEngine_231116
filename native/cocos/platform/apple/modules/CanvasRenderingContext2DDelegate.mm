@@ -26,10 +26,10 @@
 #include "platform/apple/modules/CanvasRenderingContext2DDelegate.h"
 #include "base/UTF8.h"
 #include "base/csscolorparser.h"
-#include "math/MathDef.h"
+#include "math/Math.h"
 
 
-#include "cocos/bindings/jswrapper/SeApi.h"
+#include "jswrapper/SeApi.h"
 #include "cocos/bindings/manual/jsb_platform.h"
 
 #import <Foundation/Foundation.h>

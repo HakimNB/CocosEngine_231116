@@ -38,13 +38,12 @@
 
 #include "application/ApplicationManager.h"
 #include "audio/include/AudioEngine.h"
+#include "base/Log.h"
 #include "base/Scheduler.h"
 #include "base/UTF8.h"
-#include "base/log/Log.h"
 #include "platform/android/FileUtils-android.h"
 #include "platform/java/jni/JniHelper.h"
 #include "platform/java/jni/JniImp.h"
-
 
 #include "audio/android/AudioPlayerProvider.h"
 #include "audio/android/IAudioPlayer.h"

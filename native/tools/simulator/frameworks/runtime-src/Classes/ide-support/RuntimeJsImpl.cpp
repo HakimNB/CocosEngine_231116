@@ -39,18 +39,20 @@
 
 #if (CC_CODE_IDE_DEBUG_SUPPORT > 0)
 
-    #include "runtime/ConfigParser.h"   // config
-    #include "runtime/Runtime.h"
-    #include "runtime/FileServer.h"
+    #include "runtime/ConfigParser.h" // config
     #include "runtime/ConfigParser.h"
+    #include "runtime/FileServer.h"
+    #include "runtime/Runtime.h"
+
 
     // js
-    #include "cocos/bindings/jswrapper/SeApi.h"
     #include "cocos/bindings/auto/jsb_cocos_auto.h"
     #include "cocos/bindings/manual/jsb_classtype.h"
     #include "cocos/bindings/manual/jsb_conversions.h"
-    #include "cocos/bindings/manual/jsb_module_register.h"
     #include "cocos/bindings/manual/jsb_global.h"
+    #include "cocos/bindings/manual/jsb_module_register.h"
+    #include "jswrapper/SeApi.h"
+
 
 static bool reloadScript(const string& file) {
     CC_LOG_DEBUG("------------------------------------------------");

@@ -26,7 +26,7 @@
 #pragma once
 #if (USE_SOCKET > 0) && (USE_WEBSOCKET_SERVER > 0)
 
-    #include "cocos/bindings/jswrapper/SeApi.h"
+    #include "jswrapper/SeApi.h"
 namespace se {
 class Object;
 class Value;

@@ -32,7 +32,6 @@
 #include "cocos/bindings/auto/jsb_pipeline_auto.h"
 #include "cocos/bindings/auto/jsb_scene_auto.h"
 #include "cocos/bindings/dop/jsb_dop.h"
-#include "cocos/bindings/jswrapper/SeApi.h"
 #include "cocos/bindings/manual/jsb_cocos_manual.h"
 #include "cocos/bindings/manual/jsb_conversions.h"
 #include "cocos/bindings/manual/jsb_gfx_manual.h"
@@ -42,6 +41,8 @@
 #include "cocos/bindings/manual/jsb_platform.h"
 #include "cocos/bindings/manual/jsb_scene_manual.h"
 #include "cocos/bindings/manual/jsb_xmlhttprequest.h"
+#include "jswrapper/SeApi.h"
+
 
 #if USE_GFX_RENDERER
 #endif

@@ -25,7 +25,7 @@
 
 #pragma once
 
-#include "bindings/jswrapper/SeApi.h"
+#include "jswrapper/SeApi.h"
 
 #include <typeinfo>
 

@@ -25,10 +25,11 @@
 
 #include "cocos/base/CCThreadPool.h"
 #include "cocos/scripting/js-bindings/auto/jsb_cocos2dx_extension_auto.h"
-#include "cocos/scripting/js-bindings/jswrapper/SeApi.h"
 #include "cocos/scripting/js-bindings/manual/jsb_conversions.h"
 #include "cocos/scripting/js-bindings/manual/jsb_global.h"
+#include "cocos/scripting/js-jswrapper/SeApi.h"
 #include "jsb_cocos2dx_extension_manual.h"
+
 
 #include "cocos2d.h"
 #include "extensions/cocos-ext.h"

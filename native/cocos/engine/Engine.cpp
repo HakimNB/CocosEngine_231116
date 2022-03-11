@@ -26,12 +26,13 @@
 #include "engine/Engine.h"
 #include <functional>
 #include "base/AutoreleasePool.h"
-#include "base/macro/Macros.h"
+#include "base/Macros.h"
 #include "platform/BasePlatform.h"
 
-#include "cocos/bindings/jswrapper/SeApi.h"
 #include "cocos/renderer/GFXDeviceManager.h"
+#include "jswrapper/SeApi.h"
 #include "pipeline/RenderPipeline.h"
+
 
 #if USE_AUDIO
     #include "cocos/audio/include/AudioEngine.h"

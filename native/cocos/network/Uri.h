@@ -19,12 +19,11 @@
 
 #pragma once
 
-#include "base/macro/Macros.h"
+#include "base/Macros.h"
 
 #include <stdint.h>
 #include <string>
 #include <vector>
-
 
 /**
   * @addtogroup network

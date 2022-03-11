@@ -24,7 +24,7 @@
 ****************************************************************************/
 
 #include "base/CoreStd.h"
-#include "base/log/Log.h"
+#include "base/Log.h"
 #include "base/threading/MessageQueue.h"
 
 #include "BufferValidator.h"

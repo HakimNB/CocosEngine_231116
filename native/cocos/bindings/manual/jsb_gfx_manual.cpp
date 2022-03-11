@@ -25,9 +25,10 @@
 
 #include "jsb_gfx_manual.h"
 #include "bindings/auto/jsb_gfx_auto.h"
-#include "bindings/jswrapper/SeApi.h"
 #include "bindings/manual/jsb_conversions.h"
 #include "bindings/manual/jsb_global.h"
+#include "jswrapper/SeApi.h"
+
 
 #include <fstream>
 #include <sstream>

@@ -25,8 +25,8 @@
 
 #include "platform/qnx/modules/SystemWindow.h"
 
-#include "base/log/Log.h"
-#include "base/macro/Macros.h"
+#include "base/Log.h"
+#include "base/Macros.h"
 
 // SDL headers
 #include <functional>

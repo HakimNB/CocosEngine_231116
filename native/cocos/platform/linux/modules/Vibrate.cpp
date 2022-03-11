@@ -25,7 +25,7 @@
 
 #include "platform/linux/modules/Vibrate.h"
 
-#include "base/macro/Macros.h"
+#include "base/Macros.h"
 
 namespace cc {
 

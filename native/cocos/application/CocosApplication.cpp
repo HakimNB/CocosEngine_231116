@@ -25,16 +25,17 @@
 
 #include "application/CocosApplication.h"
 
-#include "base/macro/Macros.h"
+#include "base/Macros.h"
 
 #include "cocos/bindings/event/CustomEventTypes.h"
 #include "cocos/bindings/event/EventDispatcher.h"
-#include "cocos/bindings/jswrapper/SeApi.h"
 #include "cocos/bindings/manual/jsb_classtype.h"
 #include "cocos/bindings/manual/jsb_global.h"
 #include "cocos/bindings/manual/jsb_module_register.h"
 #include "cocos/engine/BaseEngine.h"
 #include "cocos/platform/interfaces/modules/IScreen.h"
+#include "jswrapper/SeApi.h"
+
 
 namespace cc {
 

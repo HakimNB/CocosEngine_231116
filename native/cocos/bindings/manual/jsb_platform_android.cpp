@@ -25,11 +25,12 @@
 
 #include "jsb_platform.h"
 
-#include "cocos/bindings/jswrapper/SeApi.h"
 #include "cocos/bindings/manual/jsb_conversions.h"
 #include "cocos/bindings/manual/jsb_global.h"
 #include "cocos/platform/FileUtils.h"
 #include "cocos/platform/java/jni/JniHelper.h"
+#include "jswrapper/SeApi.h"
+
 
 #include <regex>
 

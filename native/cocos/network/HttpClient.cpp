@@ -31,7 +31,7 @@
 #include <errno.h>
 #include <queue>
 #include "application/ApplicationManager.h"
-#include "base/log/Log.h"
+#include "base/Log.h"
 #include "platform/FileUtils.h"
 #include "platform/StdC.h"
 

@@ -26,15 +26,16 @@
 #if (USE_SOCKET > 0) && (USE_WEBSOCKET_SERVER > 0)
 
     // clang-format off
-    #include "base/macro/Macros.h"
+    #include "base/Macros.h"
     #include "uv.h"
 // clang-format on
 
     #include "cocos/bindings/manual/jsb_websocket_server.h"
-    #include "cocos/bindings/jswrapper/SeApi.h"
     #include "cocos/bindings/manual/jsb_conversions.h"
     #include "cocos/bindings/manual/jsb_global.h"
     #include "cocos/network/WebSocketServer.h"
+    #include "jswrapper/SeApi.h"
+
 
 using namespace cc;
 using namespace cc::network;

@@ -26,7 +26,7 @@
 
 #pragma once
 
-#include "base/log/Log.h"
+#include "base/Log.h"
 
 #define QUEUEBUFFER_NUM       (3)
 #define QUEUEBUFFER_TIME_STEP (0.1f)

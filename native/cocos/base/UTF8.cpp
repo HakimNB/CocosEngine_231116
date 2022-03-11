@@ -31,7 +31,7 @@
 #include <cstdlib>
 
 #include "ConvertUTF/ConvertUTF.h"
-#include "base/log/Log.h"
+#include "base/Log.h"
 
 namespace cc {
 

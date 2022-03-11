@@ -27,7 +27,7 @@ THE SOFTWARE.
 #ifndef CC_CORE_NED_POOLING_H_
 #define CC_CORE_NED_POOLING_H_
 
-#include "base/macro/Macros.h"
+#include "base/Macros.h"
 
 #if (CC_MEMORY_ALLOCATOR == CC_MEMORY_ALLOCATOR_NEDPOOLING)
 

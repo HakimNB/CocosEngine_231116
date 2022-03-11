@@ -27,7 +27,7 @@
 
 #include "base/TypeDef.h"
 #include "base/memory/Memory.h"
-#include "math/MathDef.h"
+#include "math/Math.h"
 
 /**
  * Some general guide lines:

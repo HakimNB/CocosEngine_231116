@@ -27,7 +27,7 @@
 
 #include "DeviceValidator.h"
 #ifndef CC_WGPU_WASM
-    #include "bindings/jswrapper/SeApi.h"
+    #include "jswrapper/SeApi.h"
 #endif
 
 #include "gfx-base/GFXInputAssembler.h"

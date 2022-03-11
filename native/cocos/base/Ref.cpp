@@ -27,7 +27,7 @@
 
 #include "base/Ref.h"
 #include "base/AutoreleasePool.h"
-#include "base/macro/Macros.h"
+#include "base/Macros.h"
 
 #if CC_REF_LEAK_DETECTION
     #include <algorithm> // std::find

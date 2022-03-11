@@ -31,7 +31,7 @@
 *****************************************************************************/
 
 // clang-format off
-#include "base/macro/Macros.h"
+#include "base/Macros.h"
 #include "uv.h"
 // clang-format on
 
@@ -157,7 +157,7 @@ static void wsLog(const char *format, ...) {
 
     #define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)
 #elif defined(__OHOS__)
-    #include "cocos/base/log/Log.h"
+    #include "cocos/base/Log.h"
     #define LOGD(...) CC_LOG_DEBUG(__VA_ARGS__)
     #define LOGE(...) CC_LOG_ERROR(__VA_ARGS__)
 #else

@@ -28,10 +28,10 @@
 #include "platform/interfaces/modules/canvas/ICanvasRenderingContext2D.h"
 
 #include "base/csscolorparser.h"
-#include "bindings/jswrapper/config.h"
-#include "math/MathDef.h"
+#include "jswrapper/config.h"
+#include "math/Math.h"
 
-#include "cocos/bindings/jswrapper/SeApi.h"
+#include "jswrapper/SeApi.h"
 #include "platform/java/jni/JniHelper.h"
 #include "platform/java/jni/JniImp.h"
 

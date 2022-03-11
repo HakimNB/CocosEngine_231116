@@ -31,7 +31,7 @@
 #include "audio/oalsoft/AudioDecoder.h"
 #include "audio/oalsoft/AudioDecoderManager.h"
 
-#include "base/log/Log.h"
+#include "base/Log.h"
 
 #include <cstdlib>
 #include <cstring>

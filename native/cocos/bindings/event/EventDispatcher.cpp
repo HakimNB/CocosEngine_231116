@@ -25,8 +25,9 @@
 
 #include "EventDispatcher.h"
 #include "cocos/bindings/event/CustomEventTypes.h"
-#include "cocos/bindings/jswrapper/SeApi.h"
 #include "cocos/bindings/manual/jsb_global_init.h"
+#include "jswrapper/SeApi.h"
+
 #if CC_PLATFORM == CC_PLATFORM_WINDOWS
     #include "cocos/application/ApplicationManager.h"
     #include "cocos/platform/interfaces/modules/ISystemWindow.h"

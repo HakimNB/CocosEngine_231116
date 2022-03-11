@@ -25,14 +25,13 @@
  ****************************************************************************/
 
 #include "Manifest.h"
-#include "base/log/Log.h"
+#include "base/Log.h"
 #include "json/prettywriter.h"
 #include "json/stringbuffer.h"
 
 #include <algorithm>
 #include <cstdio>
 #include <fstream>
-
 
 #define KEY_VERSION          "version"
 #define KEY_PACKAGE_URL      "packageUrl"

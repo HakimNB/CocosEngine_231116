@@ -26,12 +26,11 @@
 #pragma once
 
 #include "PoolType.h"
+#include "base/Macros.h"
 #include "cocos/base/Object.h"
 #include "cocos/base/TypeDef.h"
-#include "cocos/base/macro/Macros.h"
 #include "cocos/base/memory/StlAlloc.h"
-#include "cocos/bindings/jswrapper/Object.h"
-
+#include "jswrapper/Object.h"
 
 namespace se {
 

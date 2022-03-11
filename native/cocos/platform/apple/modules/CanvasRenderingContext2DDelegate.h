@@ -28,8 +28,8 @@
 #include "platform/interfaces/modules/canvas/ICanvasRenderingContext2D.h"
 
 #include "base/csscolorparser.h"
-#include "bindings/jswrapper/config.h"
-#include "math/MathDef.h"
+#include "jswrapper/config.h"
+#include "math/Math.h"
 
 #ifdef __OBJC__
 @class CanvasRenderingContext2DDelegateImpl;

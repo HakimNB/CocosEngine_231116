@@ -17,7 +17,7 @@
  */
 
 #include "network/Uri.h"
-#include "base/log/Log.h" // For CC_LOG_ERROR macro
+#include "base/Log.h" // For CC_LOG_ERROR macro
 
 #include <regex>
 #include <sstream>

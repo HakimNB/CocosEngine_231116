@@ -30,7 +30,7 @@
 #include <sstream>
 #include <string>
 #include <vector>
-#include "base/macro/Macros.h"
+#include "base/Macros.h"
 
 #if (CC_PLATFORM == CC_PLATFORM_ANDROID || CC_PLATFORM == CC_PLATFORM_OHOS)
     #include "platform/java/jni/JniHelper.h"

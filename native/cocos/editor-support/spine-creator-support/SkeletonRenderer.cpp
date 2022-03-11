@@ -35,11 +35,10 @@
 #include "base/TypeDef.h"
 #include "base/memory/Memory.h"
 #include "gfx-base/GFXDef.h"
-#include "math/MathDef.h"
+#include "math/Math.h"
 #include "math/Vec3.h"
 #include "spine-creator-support/AttachmentVertices.h"
 #include "spine-creator-support/spine-cocos2dx.h"
-
 
 USING_NS_MW;             // NOLINT(google-build-using-namespace)
 using namespace spine;   // NOLINT(google-build-using-namespace)

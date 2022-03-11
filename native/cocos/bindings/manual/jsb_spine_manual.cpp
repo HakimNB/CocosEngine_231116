@@ -29,10 +29,11 @@
 #if USE_SPINE > 0
 
     #include "cocos/bindings/auto/jsb_spine_auto.h"
-    #include "cocos/bindings/jswrapper/SeApi.h"
     #include "cocos/bindings/manual/jsb_conversions.h"
     #include "cocos/bindings/manual/jsb_global.h"
     #include "cocos/bindings/manual/jsb_helper.h"
+    #include "jswrapper/SeApi.h"
+
 
     #include "middleware-adapter.h"
     #include "spine-creator-support/SkeletonDataMgr.h"

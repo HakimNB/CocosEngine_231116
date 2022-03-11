@@ -29,7 +29,7 @@
 #include <map>
 #include <vector>
 #include "StringHandle.h"
-#include "base/macro/Macros.h"
+#include "base/Macros.h"
 #include "threading/ReadWriteLock.h"
 
 namespace cc {

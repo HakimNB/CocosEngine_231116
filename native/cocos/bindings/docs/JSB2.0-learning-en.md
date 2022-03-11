@@ -1014,7 +1014,7 @@ classes_owned_by_cpp =
 
 ## Remote Debugging and Profile
 
-The remote debugging and profile are valid in debug mode, if you need to enable in release mode, you need to manually modify the macro in `cocos/scripting/js-bindings/jswrapper/config.h`.
+The remote debugging and profile are valid in debug mode, if you need to enable in release mode, you need to manually modify the macro in `cocos/scripting/js-jswrapper/config.h`.
 
 ```c++
 #if defined(CC_DEBUG) && CC_DEBUG > 0

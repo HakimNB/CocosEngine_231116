@@ -31,12 +31,11 @@
 #include <sstream>
 #include <utility>
 #include "application/ApplicationManager.h"
+#include "base/Log.h"
 #include "base/UTF8.h"
-#include "base/log/Log.h"
 #include "network/HttpClient.h"
 #include "network/Uri.h"
 #include "network/WebSocket.h"
-
 
 #include "json/document-wrapper.h"
 #include "json/rapidjson.h"

@@ -25,9 +25,10 @@
 
 #include "EditBox.h"
 #include "cocos/application/ApplicationManager.h"
-#include "cocos/bindings/jswrapper/SeApi.h"
 #include "cocos/bindings/manual/jsb_global.h"
 #include "cocos/platform/interfaces/modules/ISystemWindow.h"
+#include "jswrapper/SeApi.h"
+
 
 #include <stdlib.h>
 #include <windows.h>

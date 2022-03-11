@@ -25,7 +25,7 @@
 
 #pragma once
 
-#include "base/macro/Macros.h"
+#include "base/Macros.h"
 
 // STD includes
 #include <cassert>
@@ -56,14 +56,13 @@
 #include <vector>
 
 #include "base/CachedArray.h"
+#include "base/Log.h"
 #include "base/Object.h"
 #include "base/StringUtil.h"
 #include "base/TypeDef.h"
-#include "base/log/Log.h"
 #include "base/memory/Memory.h"
 
-
-#include "math/MathDef.h"
+#include "math/Math.h"
 
 #define CC_JOB_SYSTEM_TASKFLOW 1
 #define CC_JOB_SYSTEM_TBB      2

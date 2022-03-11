@@ -28,9 +28,8 @@
 #ifndef __HTTP_REQUEST_H__
 #define __HTTP_REQUEST_H__
 
+#include "base/Macros.h"
 #include "base/Ref.h"
-#include "base/macro/Macros.h"
-
 
 #include <functional>
 #include <string>

@@ -29,7 +29,7 @@
 #if ANDROID
     #include <android/log.h>
 #else
-    #include "cocos/base/log/Log.h"
+    #include "cocos/base/Log.h"
 #endif
 #include <pthread.h>
 #include <cstring>

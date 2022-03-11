@@ -24,7 +24,7 @@
 ****************************************************************************/
 
 #pragma once
-#include "cocos/bindings/jswrapper/SeApi.h"
+#include "jswrapper/SeApi.h"
 
 namespace se {
 class Object;

@@ -24,8 +24,9 @@
 ****************************************************************************/
 
 #include "Define.h"
-#include "bindings/jswrapper/SeApi.h"
 #include "gfx-base/GFXDevice.h"
+#include "jswrapper/SeApi.h"
+
 
 namespace cc {
 namespace pipeline {

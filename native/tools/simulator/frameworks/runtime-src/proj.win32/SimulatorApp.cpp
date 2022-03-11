@@ -57,7 +57,7 @@
 #include "platform/win32/PlayerMenuServiceWin.h"
 #include "platform/win32/PlayerWin.h"
 
-#include "cocos/bindings/jswrapper/SeApi.h"
+#include "jswrapper/SeApi.h"
 #include "platform/StdC.h"
 #include "resource.h"
 

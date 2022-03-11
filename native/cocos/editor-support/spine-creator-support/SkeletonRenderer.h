@@ -32,10 +32,10 @@
 #include <vector>
 #include "IOTypedArray.h"
 #include "MiddlewareManager.h"
-#include "Object.h"
+#include "base/Macros.h"
 #include "base/Map.h"
+#include "base/Object.h"
 #include "base/Ref.h"
-#include "base/macro/Macros.h"
 #include "middleware-adapter.h"
 #include "spine-creator-support/VertexEffectDelegate.h"
 #include "spine/spine.h"

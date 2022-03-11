@@ -25,9 +25,8 @@
 
 #pragma once
 
+#include "base/Macros.h"
 #include "cocos/base/TypeDef.h"
-#include "cocos/base/macro/Macros.h"
-
 
 namespace cc {
 

@@ -26,8 +26,8 @@
 #pragma once
 
 #include "base/CoreStd.h"
-#include "base/macro/Macros.h"
-#include "cocos/bindings/jswrapper/Object.h"
+#include "base/Macros.h"
+#include "jswrapper/Object.h"
 
 namespace cc {
 namespace pipeline {

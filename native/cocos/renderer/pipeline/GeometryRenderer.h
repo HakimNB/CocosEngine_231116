@@ -26,7 +26,7 @@
 #pragma once
 
 #include <vector>
-#include "base/macro/Macros.h"
+#include "base/Macros.h"
 #include "gfx-base/GFXDef-common.h"
 #include "gfx-base/GFXDevice.h"
 #include "math/Vec2.h"

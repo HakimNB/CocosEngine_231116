@@ -25,9 +25,10 @@
 
 #include "jsb_socketio.h"
 
-#include "cocos/bindings/jswrapper/SeApi.h"
 #include "cocos/bindings/manual/jsb_conversions.h"
 #include "cocos/bindings/manual/jsb_global.h"
+#include "jswrapper/SeApi.h"
+
 
 #include "application/ApplicationManager.h"
 #include "base/UTF8.h"

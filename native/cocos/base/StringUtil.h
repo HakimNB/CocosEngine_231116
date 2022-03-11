@@ -26,9 +26,10 @@
 #pragma once
 
 #include <cstdarg>
-#include "Macros.h"
 #include "TypeDef.h"
+#include "base/Macros.h"
 #include "memory/Memory.h"
+
 
 namespace cc {
 

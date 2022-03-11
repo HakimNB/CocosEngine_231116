@@ -138,10 +138,20 @@ endif()
 include(${CMAKE_CURRENT_LIST_DIR}/external/CMakeLists.txt)
 
 
-add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/cocos/base/macro ccmacros)
-add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/cocos/base/log cclogs)
-add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/cocos/math ccmath)
-add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/cocos/bindings/jswrapper bindings)
+add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/cocos/modules/macro ccmacros)
+add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/cocos/modules/math ccmath)
+add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/cocos/modules/log cclogs)
+add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/cocos/modules/jswrapper bindings)
+
+add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/external/sources/unzip ccunzip)
+add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/external/sources/tinyxml2 cctinyxml2)
+add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/external/sources/tinydir tinydir)
+add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/external/sources/ConvertUTF ConvertUTF)
+add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/external/sources/xxtea xxtea)
+add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/external/sources/MurmurHash2 MurmurHash2)
+add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/external/sources/tommyds tommyds)
+
+
 
 ##### audio
 if(USE_AUDIO)
@@ -847,8 +857,8 @@ if(WINDOWS)
                      cocos/platform/win32/inet_pton_mingw.h
     )
     cocos_source_files(MODULE ccfilesystem
-        cocos/platform/win32/FileUtils-win32.cpp
-        cocos/platform/win32/FileUtils-win32.h
+        # cocos/platform/win32/FileUtils-win32.cpp
+        # cocos/platform/win32/FileUtils-win32.h
     )
 elseif(ANDROID)
     set(CC_JNI_SRC_FILES
@@ -2027,7 +2037,7 @@ elseif(LINUX)
 elseif(QNX)
     if(USE_EDIT_BOX)
         cocos_source_files(
-            NO_WERROR    cocos/ui/edit-box/EditBox-linux.cpp
+            NO_WERROR    cocos/ui/edit/-box/EditBox-linux.cpp
         )
     endif()
 endif()
@@ -2150,6 +2160,13 @@ else()
         ccmath
         ccmacros
         cclogs
+        ccunzip
+        tinyxml2
+        tinydir
+        ConvertUTF
+        xxtea
+        MurmurHash2
+        tommyds
     )
 endif()
 
@@ -2163,6 +2180,8 @@ if(ANDROID OR OHOS)
     )
     target_link_libraries(cocos2d_jni PUBLIC
         cclogs
+        ccmacros
+        ccmath
     )
     if(ANDROID)
         target_link_libraries(cocos2d_jni PUBLIC
@@ -2203,7 +2222,6 @@ if(USE_MODULES)
     cc_apply_definations(ccfilesystem)
     cc_apply_definations(ccunzip)
     cc_apply_definations(ccbindings)
-    cc_apply_definations(ccutils)
     cc_apply_definations(ccutils)
 endif()
 

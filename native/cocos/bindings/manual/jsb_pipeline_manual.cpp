@@ -25,13 +25,14 @@
 
 #include "cocos/bindings/auto/jsb_gfx_auto.h"
 #include "cocos/bindings/auto/jsb_pipeline_auto.h"
-#include "cocos/bindings/jswrapper/SeApi.h"
 #include "cocos/bindings/manual/jsb_conversions.h"
 #include "cocos/bindings/manual/jsb_global.h"
 #include "gfx-base/GFXPipelineState.h"
+#include "jswrapper/SeApi.h"
 #include "renderer/pipeline/Define.h"
 #include "renderer/pipeline/PipelineStateManager.h"
 #include "renderer/pipeline/RenderPipeline.h"
+
 
 static bool js_pipeline_RenderPipeline_getMacros(se::State &s) { // NOLINT(readability-identifier-naming)
     auto *cobj = static_cast<cc::pipeline::RenderPipeline *>(s.nativeThisObject());

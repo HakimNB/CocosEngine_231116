@@ -35,7 +35,7 @@
 #include <future>
 #include <thread>
 #include <vector>
-#include "base/log/Log.h"
+#include "base/Log.h"
 
 #include "platform/java/jni/JniHelper.h"
 #include "platform/java/jni/glue/JniNativeGlue.h"

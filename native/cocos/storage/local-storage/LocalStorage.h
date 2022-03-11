@@ -29,7 +29,7 @@
 #define __JSB_LOCALSTORAGE_H
 
 #include <string>
-#include "base/macro/Macros.h"
+#include "base/Macros.h"
 
 /**
  * @addtogroup storage

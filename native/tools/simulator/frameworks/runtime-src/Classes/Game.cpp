@@ -26,15 +26,16 @@
 #include "cocos/application/ApplicationManager.h"
 #include "cocos/bindings/event/CustomEventTypes.h"
 #include "cocos/bindings/event/EventDispatcher.h"
-#include "cocos/bindings/jswrapper/SeApi.h"
 #include "cocos/bindings/manual/jsb_classtype.h"
 #include "cocos/bindings/manual/jsb_global.h"
 #include "cocos/bindings/manual/jsb_module_register.h"
+#include "jswrapper/SeApi.h"
+
 
 #if (CC_PLATFORM == CC_PLATFORM_WINDOWS)
-#include "SimulatorApp.h"
+    #include "SimulatorApp.h"
 #elif (CC_PLATFORM == CC_PLATFORM_MAC_OSX)
-#include "../proj.ios_mac/mac/SimulatorApp.h"
+    #include "../proj.ios_mac/mac/SimulatorApp.h"
 #endif
 
 #include "ide-support/CodeIDESupport.h"

@@ -26,9 +26,10 @@
 #include "jsb_cocos_manual.h"
 
 #include "cocos/bindings/auto/jsb_cocos_auto.h"
-#include "cocos/bindings/jswrapper/SeApi.h"
 #include "cocos/bindings/manual/jsb_conversions.h"
 #include "cocos/bindings/manual/jsb_global_init.h"
+#include "jswrapper/SeApi.h"
+
 
 #include "storage/local-storage/LocalStorage.h"
 

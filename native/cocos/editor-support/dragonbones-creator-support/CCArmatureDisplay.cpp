@@ -28,9 +28,8 @@
 #include "base/memory/Memory.h"
 #include "dragonbones-creator-support/CCSlot.h"
 #include "gfx-base/GFXDef.h"
-#include "math/MathDef.h"
+#include "math/Math.h"
 #include "math/Vec3.h"
-
 
 USING_NS_MW;
 using namespace cc;

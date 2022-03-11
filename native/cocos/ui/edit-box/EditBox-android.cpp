@@ -25,9 +25,10 @@
 
 #include "EditBox.h"
 #include "cocos/bindings/event/EventDispatcher.h"
-#include "cocos/bindings/jswrapper/SeApi.h"
 #include "cocos/bindings/manual/jsb_global.h"
+#include "jswrapper/SeApi.h"
 #include "platform/java/jni/JniHelper.h"
+
 
 #ifndef JCLS_EDITBOX
     #define JCLS_EDITBOX "com/cocos/lib/CocosEditBoxActivity"

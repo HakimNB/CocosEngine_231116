@@ -28,15 +28,15 @@
 #include <cassert>
 #include <cstdint>
 #include <type_traits>
-#include "bindings/jswrapper/SeApi.h"
 #include "bindings/manual/jsb_classtype.h"
 #include "cocos/base/Map.h"
 #include "cocos/base/Vector.h"
-#include "cocos/math/Geometry.h"
-#include "cocos/math/Quaternion.h"
-#include "cocos/math/Vec2.h"
-#include "cocos/math/Vec3.h"
 #include "extensions/cocos-ext.h"
+#include "jswrapper/SeApi.h"
+#include "math/Geometry.h"
+#include "math/Quaternion.h"
+#include "math/Vec2.h"
+#include "math/Vec3.h"
 #include "network/Downloader.h"
 
 #if USE_SPINE
@@ -1508,15 +1508,15 @@ inline bool nativevalue_to_se(const bool &from, se::Value &to, se::Object * /*ct
 }
 
 #if CC_PLATFORM == CC_PLATFORM_MAC_IOS || CC_PLATFORM == CC_PLATFORM_MAC_OSX
-template<>
-inline bool nativevalue_to_se(const unsigned long &from, se::Value &to,  se::Object * /*ctx*/) {
+template <>
+inline bool nativevalue_to_se(const unsigned long &from, se::Value &to, se::Object * /*ctx*/) {
     // on mac: unsiged long  === uintptr_t
     CC_STATIC_ASSERT(sizeof(from) == 8);
     to.setDouble(static_cast<double>(from));
     return true;
 }
-template<>
-inline bool nativevalue_to_se(const long &from, se::Value &to,  se::Object * /*ctx*/) {
+template <>
+inline bool nativevalue_to_se(const long &from, se::Value &to, se::Object * /*ctx*/) {
     // on mac: unsiged long  === uintptr_t
     CC_STATIC_ASSERT(sizeof(from) == 8);
     to.setDouble(static_cast<double>(from));

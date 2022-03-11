@@ -29,7 +29,7 @@
 
 #pragma once
 
-#include "base/macro/Macros.h"
+#include "base/Macros.h"
 #include "middleware-adapter.h"
 
 namespace spine {

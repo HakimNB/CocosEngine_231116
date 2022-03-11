@@ -26,9 +26,10 @@
 #include "jsb_websocket.h"
 #include "base/Config.h"
 #if (USE_SOCKET > 0)
-    #include "cocos/bindings/jswrapper/SeApi.h"
     #include "cocos/bindings/manual/jsb_conversions.h"
     #include "cocos/bindings/manual/jsb_global.h"
+    #include "jswrapper/SeApi.h"
+
 
     #include "application/ApplicationManager.h"
     #include "base/UTF8.h"

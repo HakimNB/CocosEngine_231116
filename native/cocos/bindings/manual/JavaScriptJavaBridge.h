@@ -26,7 +26,7 @@
 #pragma once
 #include <string>
 #include <vector>
-#include "cocos/bindings/jswrapper/SeApi.h"
+#include "jswrapper/SeApi.h"
 #include "platform/java/jni/JniHelper.h"
 namespace se {
 class Object;

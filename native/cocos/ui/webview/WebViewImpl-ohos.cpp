@@ -33,7 +33,7 @@
 #include "platform/FileUtils.h"
 #include "platform/java/jni/JniHelper.h"
 
-#include "cocos/base/log/Log.h"
+#include "cocos/base/Log.h"
 
 static const std::string CLASS_NAME = "com/cocos/lib/CocosWebViewHelper";
 

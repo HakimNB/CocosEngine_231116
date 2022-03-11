@@ -27,7 +27,7 @@
 #include <map>
 #include <vector>
 #include "MiddlewareMacro.h"
-#include "SeApi.h"
+#include "jswrapper/SeApi.h"
 
 MIDDLEWARE_BEGIN
 /** 

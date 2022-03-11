@@ -38,9 +38,10 @@
 #include <unordered_map>
 #include "base/Config.h"
 #include "cocos/base/Data.h"
-#include "cocos/bindings/jswrapper/SeApi.h"
 #include "cocos/bindings/manual/jsb_conversions.h"
 #include "cocos/network/HttpClient.h"
+#include "jswrapper/SeApi.h"
+
 
 #include "application/ApplicationManager.h"
 

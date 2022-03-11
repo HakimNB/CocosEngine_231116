@@ -25,8 +25,9 @@
 
 #pragma once
 
-#include "cocos/bindings/jswrapper/SeApi.h"
 #include "cocos/network/WebSocket.h"
+#include "jswrapper/SeApi.h"
+
 
 namespace se {
 class Object;
