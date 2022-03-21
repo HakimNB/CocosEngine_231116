@@ -5,12 +5,12 @@ import path from 'path';
 const dir = path.normalize(path.join(__dirname, '../../../../cocos/bindings/auto'));
 const jsonFiles = fs.readdirSync(dir).filter(x => x.endsWith('.json')).map(x => path.join(dir, x));
 const outFilePath = path.join(__dirname, 'jsb_auto.d.ts');
-let copyTo = path.normalize(path.join(__dirname, '../../../../../engine/@types/jsb.auto.d.ts'));
+let copyTo = path.normalize(path.join(__dirname, '../../../../../@types/jsb.auto.d.ts'));
 const copyFiles: string[] = [path.join(__dirname, '../decl/predefine.d.ts'), outFilePath];
 
-if(process.argv.length >= 3) {
+if (process.argv.length >= 3) {
     const argv = process.argv;
-    if( !fs.existsSync(path.join(argv[2], '@types'))) {
+    if (!fs.existsSync(path.join(argv[2], '@types'))) {
         console.error(`Directory '${argv[2]}/@types' does not exists, not a engine path?`);
         process.exit(-2);
     }
@@ -33,7 +33,7 @@ for (let f of jsonFiles) {
 let nameToClass: { [key: string]: NativeClass } = {};
 let nsToClass: { [key: string]: NativeClass[] } = {};
 let fullNameToClass: { [key: string]: NativeClass } = {};
-let enumClassMap: {[key:string]:boolean} ={};
+let enumClassMap: { [key: string]: boolean } = {};
 
 
 interface TypeRecursive {
@@ -50,10 +50,10 @@ namespace utils {
         'cc::Mat3': 'jsb.Mat3',
         'cc::Mat4': 'jsb.Mat4',
         'cc::Color': 'jsb.Color',
-        'cc::Quaternion':'jsb.Quaternion',
+        'cc::Quaternion': 'jsb.Quaternion',
         // 'cc::Que': 'jsb.Mat4',
         'cc::gfx::AccessType': 'number',
-        'cc::gfx::DescriptorType':'number',
+        'cc::gfx::DescriptorType': 'number',
         'cc::Value': 'any',
         'jsb.Device::MotionValue': 'any',
     }
@@ -101,12 +101,16 @@ namespace utils {
     }
 
     function walk_through_type_tree(info: TypeRecursive, type_convert: (d: string) => string | undefined): string | undefined {
-        
-        if(/(const)?\s*void\s*\*/.test(info.name)) {
+
+        if (/(const)?\s*void\s*\*/.test(info.name)) {
             return 'ArrayBuffer';
         }
-        if(info.name == 'void') {
+        if (info.name == 'void') {
             return 'void';
+        }
+        if (/.*monostate/.test(info.name)) {
+            info.is_optional = true;
+            return `undefined`;
         }
         if (/char\s*\*/.test(info.name)) {
             return 'string';
@@ -114,13 +118,16 @@ namespace utils {
         if (info.name.startsWith('std::string')) {
             return 'string';
         }
-        if (info.name.startsWith('std::optional')) {
+        if (info.name.startsWith('std::optional') || /boost.*optional/.test(info.name)) {
             info.is_optional = true;
             return walk_through_type_tree(info.children[0], type_convert);
         }
+        if (/IntrusivePtr/.test(info.name)) {
+            return walk_through_type_tree(info.children[0], type_convert);
+        }
 
-        if(info.name.startsWith('std::array') && info.children[0].name.indexOf('::') < 0) {
-    
+        if (info.name.startsWith('std::array') && info.children[0].name.indexOf('::') < 0) {
+
             return convert_typed_array(info.children[0].name.match(/(.*)/)!)
         }
 
@@ -130,13 +137,14 @@ namespace utils {
         if (info.name.startsWith('std::tuple')) {
             return '[' + info.children.map(x => walk_through_type_tree(x, type_convert)).join(', ') + ']'
         }
-        if (info.name.startsWith('std::variant')) {
-            return '(' + info.children.map(x => walk_through_type_tree(x, type_convert)).filter(onlyUnique as any).join('|') + ')'
+        if (info.name.startsWith('std::variant') || /boost.*variant/.test(info.name)) {
+            const full_types = info.children.map(x => walk_through_type_tree(x, type_convert));
+            return '(' + full_types.filter(onlyUnique as any).join('|') + ')'
         }
         if (info.name.startsWith('std::unordered_map')) {
             return `{[key:${walk_through_type_tree(info.children[0], type_convert)}]:${walk_through_type_tree(info.children[1], type_convert)}}`;
         }
-        if (info.name.startsWith('std::any')) {
+        if (info.name.startsWith('std::any') || /boost.*any/.test(info.name)) {
             return `any`;
         }
         if (info.name.startsWith('std::map')) {
@@ -144,10 +152,6 @@ namespace utils {
         }
         if (info.name.startsWith('std::shared_ptr')) {
             return walk_through_type_tree(info.children[0], type_convert);
-        }
-        if (info.name.startsWith('std::monostate')) {
-            info.is_optional = true;
-            return `undefined`;
         }
 
         if (/char|int|long|short|float|double/.test(info.name)) {
@@ -163,7 +167,7 @@ namespace utils {
             return convert_typed_array(info.children[0].name.match(/(.*)/)!)
         }
 
-        if(info.name.indexOf('ArrayBuffer') >= 0) {
+        if (info.name.indexOf('ArrayBuffer') >= 0) {
             return 'ArrayBuffer';
         }
 
@@ -172,7 +176,9 @@ namespace utils {
         }
 
         if (info.children.length > 1) {
-            throw new Error(`dont know how to handle ${JSON.stringify(info, null, 2)}`);
+            // throw new Error(`dont know how to handle ${JSON.stringify(info, null, 2)}`);
+            console.error(`dont know how to handle ${JSON.stringify(info, null, 2)}`);
+            return 'any';
         }
 
         return type_convert(info.name);
@@ -184,12 +190,12 @@ namespace utils {
         name = name.replace(/(\*|&)/g, '').trim();
         let m = fullNameToClass[name];
         if (m) {
-            return `${m.script_ns.replace(/::/g,'.')}`;
+            return `${m.script_ns.replace(/::/g, '.')}`;
         }
         let s = additional_type_mape[name];
         if (s) return s;
 
-        if(enumClassMap[name] && name.indexOf('::') > 0) {
+        if (enumClassMap[name] && name.indexOf('::') > 0) {
             return `number`;
         }
 
@@ -225,30 +231,30 @@ namespace utils {
     }
 
     interface IType {
-        script_ns:string;
-        is_enum?:boolean;
-        namespace_name?:string;
-        whole_name?:string;
+        script_ns: string;
+        is_enum?: boolean;
+        namespace_name?: string;
+        whole_name?: string;
     }
 
     export function fix_type_name(t: IType): string {
-        let r:string|undefined;
-        if(t.namespace_name !== undefined && t.namespace_name.length == 0) {
+        let r: string | undefined;
+        if (t.namespace_name !== undefined && t.namespace_name.length == 0) {
             r = parse_type_string(t.whole_name!, fallback_step.bind(null, t));
-        }else {
+        } else {
             r = parse_type_string(t.script_ns, fallback_step.bind(null, t));
         }
         if (r)
             r = r.trim();
         r = fallback_step(t, r!);
-        r = r.replace(/::/g,'.').replace(/\*|&/,'').replace(/^const /,'').trim();
+        r = r.replace(/::/g, '.').replace(/\*|&/, '').replace(/^const /, '').trim();
         if (r.startsWith('?:') || r.startsWith(':')) return r;
         return ': ' + r;
     }
 
 
     function fallback_step(t: IType, r: string): string {
-        if(r.startsWith("const ")) {
+        if (r.startsWith("const ")) {
             r = r.slice(6);
         }
         let full = cpptype_to_script_ns(r);
@@ -363,11 +369,17 @@ namespace utils {
             return x;
         }).map(x => x.trim()); //.filter(x=> x.length > 0);
     }
+    const keywords = ['let', 'const', 'function', 'var', 'if', 'else', 'then', 'while'];
+    export function reserverKeyNames(n: string) {
+        if (keywords.includes(n)) return n + '_';
+        return n;
+    }
 }
 
 const UF = utils.fix_type_name;
 const UFC = utils.fix_type_name_clean;
 const UFU = utils.fix_type_name_undefined;
+const R = utils.reserverKeyNames;
 
 function processMethod(m: NativeFunction | NativeOverloadedFunction): string[] {
     let overloaded = m as NativeOverloadedFunction;
@@ -381,7 +393,7 @@ function processMethod(m: NativeFunction | NativeOverloadedFunction): string[] {
         return ret;
     } else {
         let tips = method.argumentTips || [];
-        let args = method.arguments.map((x, i) => `${tips[i] || ('arg' + i)}${UF(x)}`);//.join(', ');
+        let args = method.arguments.map((x, i) => `${R(tips[i]) || ('arg' + i)}${UF(x)}`);//.join(', ');
         if (method.is_constructor) {
             //return [`new (${args}): ${method.current_class_name};`];
             return [`constructor(${args.join(', ')});`];
@@ -389,8 +401,8 @@ function processMethod(m: NativeFunction | NativeOverloadedFunction): string[] {
         const prefix = args.join(', ').indexOf('??') > 0 ? '// ' : '';
         const comment = method.comment.length > 0 ? `/**\n${utils.formatComment(method.comment).map(x => ' * ' + x).join('\n')}\n */\n` : '';
         const static_prefix = method.static ? 'static ' : '';
-        let functions:string[] = []; // [`// min_args ${method.min_args} - ${method.arguments.length}`];
-        for(let i = method.min_args; i  <= method.arguments.length;i++) {
+        let functions: string[] = []; // [`// min_args ${method.min_args} - ${method.arguments.length}`];
+        for (let i = method.min_args; i <= method.arguments.length; i++) {
             functions.push(`${prefix}${static_prefix}${name}(${args.slice(0, i).join(', ')}):${UFU(method.ret_type)}; // ${method.ret_type.namespaced_class_name}`)
         }
         return [`${comment}${functions.join('\n')}`];
@@ -403,7 +415,7 @@ function processClass(klass: NativeClass): string {
 
 
     const extends_field = klass.parents.length == 0 ? '' :
-        `extends ${klass.parents.map(x => UFC({ script_ns: utils.cpptype_to_script_ns(x) || x, is_enum: false, namespace_name:"???" }))} `;
+        `extends ${klass.parents.map(x => UFC({ script_ns: utils.cpptype_to_script_ns(x) || x, is_enum: false, namespace_name: "???" }))} `;
 
     buffer.push('\n');
 
@@ -458,7 +470,7 @@ function processClass(klass: NativeClass): string {
             let maxMiddle = 0;
             let lines: [string, string, string][] = [];
             for (let attr of klass.public_fields) {
-                let p: [string, string, string] = [`${attr.is_static?"static ":""}${attr.is_static_const?"readonly ":""}${attr.name}`, `${UF(attr.type)};`, `// ${attr.type.namespaced_class_name}`];
+                let p: [string, string, string] = [`${attr.is_static ? "static " : ""}${attr.is_static_const ? "readonly " : ""}${attr.name}`, `${UF(attr.type)};`, `// ${attr.type.namespaced_class_name}`];
                 maxLeft = Math.max(maxLeft, p[0].length);
                 maxMiddle = Math.max(maxMiddle, p[1].length);
                 lines.push(p);
@@ -512,28 +524,32 @@ function processClass(klass: NativeClass): string {
 
 
 all_classes.reduce((prev, curr) => {
-    let ns = curr.script_ns.split('.');
-    if (ns.length > 1) {
-        ns.pop();
-        prev[ns[0]] = prev[ns[0]] ? prev[ns[0]].concat(curr) : [curr];
+    if (curr.target_ns) {
+        prev[curr.target_ns] = prev[curr.target_ns] ? prev[curr.target_ns].concat(curr) : [curr];
     } else {
-        console.error(`Skip bad namespace '${curr.script_ns}' from class ${curr.namespaced_class_name}`);
+        let ns = curr.script_ns.split('.');
+        if (ns.length > 1) {
+            ns.pop();
+            prev[ns[0]] = prev[ns[0]] ? prev[ns[0]].concat(curr) : [curr];
+        } else {
+            console.error(`Skip bad namespace '${curr.script_ns}' from class ${curr.namespaced_class_name}`);
+        }
     }
     return prev;
 }, nsToClass);
 
 
-const register_all_enums = (fn :NativeFunction|NativeOverloadedFunction) => {
+const register_all_enums = (fn: NativeFunction | NativeOverloadedFunction) => {
     let ol = fn as NativeOverloadedFunction;
     let sf = fn as NativeFunction;
-    if(ol.implementations) {
+    if (ol.implementations) {
         ol.implementations.forEach(x => register_all_enums(x));
-    }else{
-        if(sf.ret_type && sf.ret_type.is_enum) {
+    } else {
+        if (sf.ret_type && sf.ret_type.is_enum) {
             enumClassMap[sf.ret_type.namespaced_class_name] = true;
         }
-        for(let t of sf.arguments) {
-            if(t.is_enum) {
+        for (let t of sf.arguments) {
+            if (t.is_enum) {
                 enumClassMap[sf.ret_type.namespaced_class_name] = true;
             }
         }
@@ -542,13 +558,13 @@ const register_all_enums = (fn :NativeFunction|NativeOverloadedFunction) => {
 
 // setup table
 all_classes.forEach(kls => {
-    nameToClass[kls.script_ns] = kls;
+    nameToClass[kls.target_ns] = kls;
     fullNameToClass[kls.namespaced_class_name] = kls;
 
-    for(let name in kls.methods) {
+    for (let name in kls.methods) {
         register_all_enums(kls.methods[name]);
     }
-    for(let name in kls.static_methods) {
+    for (let name in kls.static_methods) {
         register_all_enums(kls.static_methods[name]);
     }
 });

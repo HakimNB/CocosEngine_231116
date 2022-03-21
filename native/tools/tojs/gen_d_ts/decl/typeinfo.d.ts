@@ -18,7 +18,7 @@ declare interface NativeType {
     is_numeric: boolean;
     enum_declare_type: string;
     param_types: NativeType[];
-    ret_type: NativeType|null;
+    ret_type: NativeType | null;
 }
 
 
@@ -28,7 +28,7 @@ declare interface NativeField {
     signature_name: string;
     type: NativeType;
     is_static: boolean;
-    is_static_const:boolean;
+    is_static_const: boolean;
 }
 
 
@@ -38,14 +38,14 @@ declare interface NativeFunction {
     arguments: NativeType[];
     argumentTips: string[];
     static: boolean;
-    min_args:number;
+    min_args: number;
     is_overloaded: boolean;
     is_constructor: boolean;
     not_supported: boolean;
     ret_type: NativeType;
     current_class_name: string;
     comment: string;
-    should_skip_function:boolean;
+    should_skip_function: boolean;
 }
 
 
@@ -55,9 +55,9 @@ declare interface NativeOverloadedFunction {
     min_args: number;
     comment: string;
     is_ctor: boolean;
-    current_class_name: string|null;
+    current_class_name: string | null;
     implementations: NativeFunction[];
-    should_skip_function:boolean;
+    should_skip_function: boolean;
 }
 
 declare interface NativeAttribute {
@@ -67,12 +67,13 @@ declare interface NativeAttribute {
 }
 
 type MethodMap = {
-    [key: string]: NativeFunction|NativeOverloadedFunction
+    [key: string]: NativeFunction | NativeOverloadedFunction
 };
 
 declare interface NativeClass {
     namespace_name: string;
     script_ns: string;
+    target_ns: string;
     parents: string[];
     nested_classes: string[];
     class_name: string;

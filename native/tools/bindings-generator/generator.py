@@ -444,6 +444,7 @@ class NativeType(object):
         return {
             "name": self.name,
             "script_ns": self.generator.scriptname_from_native(self.namespaced_class_name, self.namespace_name),
+            "target_ns": self.generator.target_ns,
             "whole_name": self.whole_name,
             "namespace_name": self.namespace_name,
             "namespaced_class_name": self.namespaced_class_name,
@@ -1267,6 +1268,7 @@ class NativeClass(object):
         return {
             "namespace_name" : self.namespace_name,
             "script_ns": self.generator.scriptname_from_native(self.namespaced_class_name, self.namespace_name),
+            "target_ns": self.generator.target_ns,
             "parents": list(map(lambda x: x.namespaced_class_name, self.parents)),
             "nested_classes": self.nested_classes,
             "class_name" : self.class_name,
