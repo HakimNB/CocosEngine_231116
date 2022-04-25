@@ -1,6 +1,7 @@
 name: <Native> Compile
 
-on: [pull_request]
+## FIXME: remove this when create a pull request
+on: push
 
 jobs:
   compile_windows:
