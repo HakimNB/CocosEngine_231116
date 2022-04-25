@@ -11,10 +11,10 @@ jobs:
     steps:
       #- uses: actions/checkout@v2
       - name: Copy Local git repo
-        shell: C:/MinGW/bin/bash.exe
+        # shell: C:/MinGW/bin/bash.exe
+        shell: bash
         run: |
-          cd ${GITHUB_WORKSPACE}/..
-          cp -r I:/Github/engine/ engine/*
+          cp -r i:/Github/engine/* engine/*
           git -C engine fetch --all
           git -C engine checkout ${GITHUB_SHA}
       - name: Download external libraries
