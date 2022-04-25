@@ -12,7 +12,7 @@ jobs:
       - name: Copy Local git repo
         shell: bash
         run: |
-          echo `pwd`
+          cd ${GITHUB_WORKSPACE}/..
           cp -r I:/Github/engine/ engine/*
           git -C engine fetch --all
           git -C engine checkout ${GITHUB_SHA}
