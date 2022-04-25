@@ -11,7 +11,7 @@ jobs:
     steps:
       #- uses: actions/checkout@v2
       - name: Copy Local git repo
-        shell: bash
+        shell: C:/MinGW/bin/bash.exe
         run: |
           cd ${GITHUB_WORKSPACE}/..
           cp -r I:/Github/engine/ engine/*
