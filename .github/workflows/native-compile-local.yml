@@ -1,9 +1,6 @@
 name: <Native> Compile Local Windows
 
-on:
-  pull_request:
-    paths:
-    - 'native/**'
+on: push
 
 jobs:
   compile_windows:
