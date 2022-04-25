@@ -6,11 +6,11 @@ jobs:
   compile_windows:
     name: "Windows"  
     runs-on: self-hosted
-
+    env:
+      PATH: C:/MinGW/bin:$PATH
     steps:
       #- uses: actions/checkout@v2
       - name: Copy Local git repo
-        shell: bash
         run: |
           cd ${GITHUB_WORKSPACE}/..
           cp -r I:/Github/engine/ engine/*
