@@ -11,9 +11,11 @@ jobs:
         shell: bash
         run: |
           set -x
+          echo `pwd`
           if [[ ! -f "${GITHUB_WORKSPACE}/tsconfig.json" ]]; then
             cp -r /Users/pt/Github/engine/* ${GITHUB_WORKSPACE}
           fi
+          echo `pwd`
           retry git fetch --all
           git checkout -f $GITHUB_SHA
           cd native
@@ -30,6 +32,7 @@ jobs:
           COCOS_ENGINE_DEV: 1
         run: |
           set -x
+          echo `pwd`
           NUM_OF_CORES=`getconf _NPROCESSORS_ONLN`
           COCOS2DX_ROOT=$GITHUB_WORKSPACE/native
           echo "Compiling MacOSX ... "
