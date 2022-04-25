@@ -13,11 +13,11 @@ jobs:
           if [[ ! -f "${GITHUB_WORKSPACE}/tsconfig.json" ]]; then
             cp -r /Users/pt/Github/engine/* ${GITHUB_WORKSPACE}
           fi
-          git -C engine fetch --all
+          retry git -C engine fetch --all
           git -C engine checkout -f $GITHUB_SHA
           cd engine/native
           EXT_VERSION=`grep version external-config.json  |awk -F'"' '{print $4}'`
-          git -C external fetch --all
+          retry git -C external fetch --all
           git -C external checkout -f $EXT_VERSION
       # - name: Generate bindings
       #   run: |
