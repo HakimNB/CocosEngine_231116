@@ -10,7 +10,7 @@ jobs:
       - name: Download Source
         shell: bash
         run: |
-          cp -r /Users/pt/Github/engine engine
+          cp -r /Users/pt/Github/engine/* ${GITHUB_WORKSPACE}
           git -C engine fetch --all
           git -C engine checkout -f $GITHUB_SHA
           cd engine/native
