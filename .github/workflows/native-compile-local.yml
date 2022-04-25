@@ -31,7 +31,7 @@ jobs:
           NUM_OF_CORES=`getconf _NPROCESSORS_ONLN`
           COCOS2DX_ROOT=$GITHUB_WORKSPACE/native
           echo "Compiling MacOSX ... "
-          cd  $GITHUB_WORKSPACE/templates/
+          cd  $GITHUB_WORKSPACE/templates/mac
           rm -rf build-mac
           mkdir -p build-mac/proj
           touch build-mac/proj/cfg.cmake
