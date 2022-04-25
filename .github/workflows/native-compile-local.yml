@@ -5,7 +5,7 @@ on: push
 jobs:
   compile_mac_arm64:
     name: "MacOS arm64"
-    runs-on: macos-latest
+    runs-on: self-hosted
     steps:
       - name: Download Source
         shell: bash
