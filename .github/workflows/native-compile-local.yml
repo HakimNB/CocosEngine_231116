@@ -10,7 +10,7 @@ jobs:
       - name: Download Source
         shell: bash
         run: |
-          if [ ! -f ${GITHUB_WORKSPACE}/tsconfig.json ]; then
+          if [[ ! -f "${GITHUB_WORKSPACE}/tsconfig.json ]]; then
             cp -r /Users/pt/Github/engine/* ${GITHUB_WORKSPACE}
           fi
           git -C engine fetch --all
