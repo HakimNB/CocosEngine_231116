@@ -10,7 +10,9 @@ jobs:
       - name: Download Source
         shell: bash
         run: |
-          cp -r /Users/pt/Github/engine/* ${GITHUB_WORKSPACE}
+          if [ ! -f ${GITHUB_WORKSPACE}/tsconfig.json ]; then
+            cp -r /Users/pt/Github/engine/* ${GITHUB_WORKSPACE}
+          fi
           git -C engine fetch --all
           git -C engine checkout -f $GITHUB_SHA
           cd engine/native
