@@ -18,4 +18,5 @@
     "editor.codeActionsOnSave": {
         "source.fixAll": true,
     },
+    "cmake.configureOnOpen": false,
 }
