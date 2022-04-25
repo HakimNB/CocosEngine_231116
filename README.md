@@ -27,6 +27,8 @@
     </a>
 </p>
 
+[![<Native> Compile](https://github.com/PatriceJiang/engine/actions/workflows/native-compile-platforms.yml/badge.svg)](https://github.com/PatriceJiang/engine/actions/workflows/native-compile-platforms.yml)
+
 # Cocos Creator
 
 ![image](https://user-images.githubusercontent.com/1503156/111035862-53548000-8457-11eb-8e8b-52d854caf627.png)
