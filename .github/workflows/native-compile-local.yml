@@ -31,7 +31,8 @@ jobs:
           NUM_OF_CORES=`getconf _NPROCESSORS_ONLN`
           COCOS2DX_ROOT=$GITHUB_WORKSPACE/native
           echo "Compiling MacOSX ... "
-          cd  $GITHUB_WORKSPACE/templates/mac
+          cd  $GITHUB_WORKSPACE/templates/
+          rm -rf build-mac
           mkdir -p build-mac/proj
           touch build-mac/proj/cfg.cmake
           echo "set(CC_USE_VULKAN OFF)" >> build-mac/proj/cfg.cmake
