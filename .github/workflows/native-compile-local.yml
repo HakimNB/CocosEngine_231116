@@ -13,7 +13,7 @@ jobs:
           set -x
           echo `pwd`
           if [[ ! -f "${GITHUB_WORKSPACE}/tsconfig.json" ]]; then
-            cp -r /Users/pt/Github/engine/* ${GITHUB_WORKSPACE}
+            rsync -r /Users/pt/Github/engine/* ${GITHUB_WORKSPACE}
           fi
           echo `pwd`
           retry git fetch --all
