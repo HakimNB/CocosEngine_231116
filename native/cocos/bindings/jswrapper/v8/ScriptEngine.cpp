@@ -509,7 +509,7 @@ bool ScriptEngine::postInit() {
     _isolate->SetFatalErrorHandler(onFatalErrorCallback);
     _isolate->SetOOMErrorHandler(onOOMErrorCallback);
     _isolate->AddMessageListener(onMessageCallback);
-    _isolate->SetPromiseRejectCallback(onPromiseRejectCallback);
+//    _isolate->SetPromiseRejectCallback(onPromiseRejectCallback);
 
     NativePtrToObjectMap::init();
     Object::setup();

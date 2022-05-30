@@ -39,6 +39,11 @@ endmacro()
 
 
 macro(cc_common_after_target target_name)
+
+    if(TARGET plugin_registry)
+        target_link_libraries(${target_name} plugin_registry)
+    endif()
+
     target_compile_definitions(${target_name} PRIVATE
         GAME_NAME="${APP_NAME}"
     )
