@@ -2,8 +2,16 @@
 
 #include <functional>
 #include <memory>
+#include <tuple>
 #include <typeinfo>
 #include <utility>
+#include <cassert>
+#include <string>
+
+#include <unordered_map>
+#include <vector>
+
+#include "./BusTypes.h"
 
 namespace cc {
 
@@ -11,89 +19,192 @@ namespace bus {
 
 struct EventBase {
     const char *eventName;
+    virtual const char *signature() = 0;
+};
+
+template <typename T>
+struct EventParam : std::conditional<std::is_enum<T>::value, std::true_type, std::false_type>::type {
+    constexpr static bool IS_ENUM = std::is_enum<T>::value;
+    using type = typename std::conditional<IS_ENUM, T, void>::type;
+};
+
+template <typename T>
+struct Signature {
+    template <bool>
+    struct Char;
+    template <>
+    struct Char<true> {
+        static constexpr char VALUE{'E'};
+    };
+    template <>
+    struct Char<false> {
+        static constexpr char VALUE{'?'};
+    };
+    constexpr static char name() { return Char<std::is_enum<T>::value>::VALUE; }
+};
+
+#define USE_EVENT_PARAMETER_TYPE(tp, sig_name) \
+    template <>                                \
+    struct EventParam<tp> : std::true_type {   \
+        using type = tp;                       \
+    };                                         \
+    template <>                                \
+    struct Signature<tp> {                     \
+        constexpr static char name() {         \
+            return (#sig_name)[0];             \
+        }                                      \
+    }
+
+#define PARAMETER_TYPES(F) \
+    F(char, c);            \
+    F(int8_t, b);          \
+    F(uint8_t, B);         \
+    F(uint16_t, S);        \
+    F(int16_t, s);         \
+    F(uint32_t, I);        \
+    F(int32_t, i);         \
+    F(uint64_t, J);        \
+    F(int64_t, j);         \
+    F(float, f);           \
+    F(double, d);          \
+    F(const char *, s);    \
+    F(void *, v);
+
+PARAMETER_TYPES(USE_EVENT_PARAMETER_TYPE)
+
+template <typename T>
+struct ExactSignature;
+
+template <typename... ARGS>
+struct ExactSignature<std::tuple<ARGS...>> {
+    constexpr static char SIGNATURE[sizeof...(ARGS) + 1] = {Signature<ARGS>::name()..., '\0'};
 };
 
 template <typename T>
 struct Event : EventBase {
     T info;
+    explicit Event(const T &info) : info(info) {}
+    explicit Event(T &&event) : info(std::move(event)) {}
+    const char *signature() override {
+        return ExactSignature<T>::SIGNATURE;
+    }
 };
 
 template <typename T>
-struct EventParam : std::false_type {};
+constexpr bool validateParameterType() {
+    static_assert(EventParam<T>::value, "invalidate parameter type");
+    return true;
+}
 
-#define USE_EVENT_PARAMETER_TYPE(tp)         \
-    template <>                              \
-    struct EventParam<tp> : std::true_type { \
-        using type = tp;                     \
-    }
+template <typename... ARGS>
+constexpr void validateParameterTypes(const std::tuple<ARGS...> *) {
+    std::array<bool, sizeof...(ARGS)> result = {
+        validateParameterType<ARGS>()...};
+}
 
-#define PARAMETER_TYPES(F) \
-    F(char);               \
-    F(int8_t);             \
-    F(uint16_t);           \
-    F(int16_t);            \
-    F(uint32_t);           \
-    F(int32_t);            \
-    F(uint64_t);           \
-    F(int64_t);            \
-    F(float);              \
-    F(double);             \
-    F(const char *);       \
-    F(void *);
 
-PARAMETER_TYPES(USE_EVENT_PARAMETER_TYPE)
+template <typename T>
+struct ListEntry {
+    ListEntry<T> *prevEntry{nullptr};
+    ListEntry<T> *nextEntry{nullptr};
+    T * prev() { return static_cast<T*>(prevEntry); }
+    T * next() { return static_cast<T*>(nextEntry); }
+};
+
+class EventBus;
+struct EventCallbackBase;
+
+class Listener : public ListEntry<Listener> {
+public:
+    explicit Listener(BusType type);
+    Listener(BusType type, const char *name);
+    ~Listener();
+
+    template <typename C>
+    void receive(C callback);
+
+    Listener(const Listener &) = delete;
+    Listener &operator=(const Listener &) = delete;
+
+private:
+    explicit Listener(EventBus *bus);
+
+    EventBus *_bus{nullptr};
+    std::vector<std::shared_ptr<EventCallbackBase>> _handles;
+    friend class EventBus;
+#if CC_DEBUG
+    bool _callbackAdded{false};
+    std::string _name;
+#endif
+};
 
 class EventBus {
 public:
-    static EventBus *accquire(const char *busName);
-    template <typename... ARGS>
-    void send(ARGS... args);
+    static EventBus *accquire(BusType type);
 
-    void dispatch(std::unique_ptr<EventBase> event);
+    EventBus();
+
+    template <typename... ARGS>
+    void send(ARGS&&... args);
+
+private:
+    void dispatch(EventBase *event);
+    void addListener(Listener *);
+    void removeListener(Listener *);
+
+    union {
+        ListEntry<Listener> _entry;
+        struct {
+            ListEntry<Listener> *first{nullptr};
+            ListEntry<Listener> *last{nullptr};
+        } _list;
+    };
+
+    friend class Listener;
 };
 
 template <typename... ARGS>
-void EventBus::send(ARGS... args) {
+void EventBus::send(ARGS &&... args) {
     using arg_type = std::tuple<typename std::remove_cv<typename EventParam<ARGS>::type>::type...>;
-    auto event = std::make_unique<Event<arg_type>>(std::make_tuple<ARGS...>(args...));
-    dispatch(event);
+    constexpr static arg_type TMP;
+    validateParameterTypes(&TMP);
+    Event<arg_type> event(std::make_tuple<typename std::remove_cv<typename EventParam<ARGS>::type>::type...>(std::forward<ARGS>(args)...));
+    dispatch(&event);
 }
-
-// class PersistentBus {
-// };
-
-struct EventCallbackBase {
-};
 
 template <typename T>
 struct EventCallbackImpl;
 
 template <typename... ARGS>
-struct EventCallbackImpl<void (*)(ARGS...)> : EventCallbackBase {
+struct EventCallbackImpl<void (*)(ARGS...)> {
     using arg_tuple_type = std::tuple<ARGS...>;
     using func_type = std::function<void(ARGS...)>;
-    static constexpr size_t argN = sizeof...(ARGS);
+    static constexpr size_t ARG_N = sizeof...(ARGS);
+    static constexpr char SIGNATURE[ARG_N + 1] = {Signature<ARGS>::name()..., '\0'};
 };
 
 template <typename... ARGS>
-struct EventCallbackImpl<std::function<void(ARGS...)>> : EventCallbackBase {
+struct EventCallbackImpl<std::function<void(ARGS...)>> {
     using arg_tuple_type = std::tuple<ARGS...>;
     using func_type = std::function<void(ARGS...)>;
-    static constexpr size_t argN = sizeof...(ARGS);
+    static constexpr size_t ARG_N = sizeof...(ARGS);
+    static constexpr char SIGNATURE[ARG_N + 1] = {Signature<ARGS>::name()..., '\0'};
 };
 
 template <typename C, typename... ARGS>
-struct EventCallbackImpl<void (C::*)(ARGS...)> : EventCallbackBase {
+struct EventCallbackImpl<void (C::*)(ARGS...)> {
     using arg_tuple_type = std::tuple<ARGS...>;
     using func_type = std::function<void(ARGS...)>;
-    static constexpr size_t argN = sizeof...(ARGS);
+    static constexpr size_t ARG_N = sizeof...(ARGS);
+    static constexpr char SIGNATURE[ARG_N + 1] = {Signature<ARGS>::name()..., '\0'};
 };
 
 template <typename C, typename... ARGS>
-struct EventCallbackImpl<void (C::*)(ARGS...) const> : EventCallbackBase {
+struct EventCallbackImpl<void (C::*)(ARGS...) const> {
     using arg_tuple_type = std::tuple<ARGS...>;
     using func_type = std::function<void(ARGS...)>;
-    static constexpr size_t argN = sizeof...(ARGS);
+    static constexpr size_t ARG_N = sizeof...(ARGS);
+    static constexpr char SIGNATURE[ARG_N + 1] = {Signature<ARGS>::name()..., '\0'};
 };
 template <typename T>
 struct FunctionSignature {
@@ -115,39 +226,59 @@ struct FunctionSignature<R (C::*)(ARGS...) const> {
     using type = R (C::*)(ARGS...) const;
 };
 
+struct EventCallbackBase {
+    virtual void invoke(EventBase *) = 0;
+    virtual const char *signature() = 0;
+};
+
 template <typename L>
-struct EventCallback {
-    using fn_type = EventCallbackImpl<typename FunctionSignature<L>::type>;
-    using arg_tuple_type = typename fn_type::arg_tuple_type;
-    static constexpr size_t argN = fn_type::argN;
+struct EventCallback : EventCallbackBase {
+    using impl = EventCallbackImpl<typename FunctionSignature<L>::type>;
+    using fn_type = typename impl::func_type;
+    using arg_tuple_type = typename impl::arg_tuple_type;
+    using wrap_fn_type = std::function<void(const arg_tuple_type &)>;
+    static constexpr size_t ARG_N = impl::ARG_N;
+
+    wrap_fn_type fun;
+    void invoke(EventBase *base) override {
+        using event_type = Event<arg_tuple_type>;
+        auto *event = reinterpret_cast<event_type *>(base);
+        fun(event->info);
+    }
+
+    const char *signature() override {
+        //return typeid(arg_tuple_type).name();
+        return impl::SIGNATURE;
+    }
 };
 
-class Listener {
-public:
-    Listener(const std::shared_ptr<EventBus> &bus);
-
-    template <typename C>
-    void receive(C callback);
-
-private:
-    std::shared_ptr<EventBus> bus;
-};
-
-
-template <typename F, typename... ARGS, size_t ...indexs>
-void callWithTuple(F func, const std::tuple<ARGS...> &args, std::index_sequence<sizeof...(indexs)> idx) {
+template <typename F, typename... ARGS, size_t... indexs>
+void callWithTuple(F func, const std::tuple<ARGS...> &args, const std::index_sequence<indexs...> &) {
     func(std::get<indexs>(args)...);
 }
 
 template <typename C>
 void Listener::receive(C callback) {
     using CallbackType = EventCallback<C>;
-    using tuple_arg_type = typename CallbackType::tuple_arg_type;
+    using tuple_arg_type = typename CallbackType::arg_tuple_type;
     typename CallbackType::fn_type func = callback;
+
+#if CC_DEBUG
+    assert(!_callbackAdded); // callback should be add only once!
+    _callbackAdded = true;
+#endif
     auto wrap = [=](const tuple_arg_type &arg) {
-        callWithTuple(func, arg, std::make_index_sequence<CallbackType::argN>{});
+        callWithTuple(func, arg, std::make_index_sequence<CallbackType::ARG_N>{});
     };
 
+    auto context = std::make_shared<CallbackType>();
+    context->fun = wrap;
+    _handles.emplace_back(std::move(context));
+}
+
+template <typename... ARGS>
+void send(cc::BusType bus, ARGS &&...args) {
+    cc::bus::EventBus::accquire(bus)->send(std::forward<ARGS>(args)...);
 }
 
 } // namespace bus

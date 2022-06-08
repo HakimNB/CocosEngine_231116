@@ -34,6 +34,7 @@
     #include "Object.h"
     #include "Utils.h"
     #include "base/std/container/unordered_map.h"
+    #include "bus/EventBus.h"
     #include "platform/FileUtils.h"
 
     #include <sstream>
@@ -360,7 +361,6 @@ void ScriptEngine::handlePromiseExceptions() {
         for (const auto &exceptions : exceptionVector) {
             getInstance()->callExceptionCallback("", exceptions.event.c_str(), exceptions.stackTrace.c_str());
         }
-        std::get<0>(exceptionsPair).get()->Reset();
     }
     _promiseArray.clear();
     _lastStackTrace.clear();
@@ -509,7 +509,7 @@ bool ScriptEngine::postInit() {
     _isolate->SetFatalErrorHandler(onFatalErrorCallback);
     _isolate->SetOOMErrorHandler(onOOMErrorCallback);
     _isolate->AddMessageListener(onMessageCallback);
-//    _isolate->SetPromiseRejectCallback(onPromiseRejectCallback);
+    _isolate->SetPromiseRejectCallback(onPromiseRejectCallback);
 
     NativePtrToObjectMap::init();
     Object::setup();
@@ -554,6 +554,8 @@ bool ScriptEngine::postInit() {
     }
 
     _isValid = true;
+
+    cc::bus::send(cc::BusType::SCRIPT_ENGINE, cc::events::ScriptEngineEvent::POST_INIT);
 
     for (const auto &hook : _afterInitHookArray) {
         hook();

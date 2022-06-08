@@ -929,6 +929,12 @@ elseif(LINUX)
         cocos/platform/linux/FileUtils-linux.h
     )
 endif()
+#### event bus
+cocos_source_files(
+    cocos/bus/BusTypes.h
+    cocos/bus/EventBus.h
+    cocos/bus/EventBus.cpp
+)
 
 ##### renderer
 cocos_source_files(

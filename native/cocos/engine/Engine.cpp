@@ -273,7 +273,7 @@ void Engine::tick() {
 
         _scheduler->update(dt);
 
-        se::ScriptEngine::getInstance()->handlePromiseExceptions();
+        //se::ScriptEngine::getInstance()->handlePromiseExceptions();
         cc::EventDispatcher::dispatchTickEvent(dt);
         se::ScriptEngine::getInstance()->mainLoopUpdate();
 
