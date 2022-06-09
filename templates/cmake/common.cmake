@@ -5,7 +5,7 @@ function(cc_plugin_entry)
     set(entry_content)
     list(LENGTH CC_LOADED_PLUGINS PLG_CNT)
     if(PLG_CNT GREATER 0)
-        message(STATUS "Generating plugin_registry code, total ${PLG_CNT} plugins")
+        message(STATUS "Generating plugin_registry code, total ${PLG_CNT} libs from plugins")
         string(APPEND entry_content "// automatically generated code, do not manually modify\n\n")
         string(APPEND entry_content "// plugin entry list begin, size ${PLG_CNT}\n")
         foreach(pname ${CC_LOADED_PLUGINS})
@@ -124,67 +124,3 @@ macro(cc_common_before_target target_name)
     cc_plugin_entry()
 endmacro()
 
-
-function(cc_load_plugin)
-  set(options)
-  set(oneValueArgs TARGET )
-  set(multiValueArgs PATHS DEPENDS HINTS)
-  cmake_parse_arguments(load_plugin "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN} )
-
-  set(plugin_name ${load_plugin_TARGET})
-  set(searchPath)
-  foreach(p ${load_plugin_PATHS})
-    if(NOT EXISTS ${p})
-        message(FATAL_ERROR "Search path ${p} does not exists!")
-    endif()
-    get_filename_component(abs_dir ${p} ABSOLUTE)
-    if(ANDROID)
-      list(APPEND searchPath ${abs_dir}/${ANDROID_ABI})
-      list(APPEND searchPath ${abs_dir})
-    else()
-      list(APPEND searchPath ${abs_dir})
-    endif()
-  endforeach()
-
-  message(STATUS "Search path ${searchPath}")
-
-  foreach(n ${load_plugin_DEPENDS})
-    string(REPLACE ":" ";" pkgInfo ${n})
-    list(LENGTH pkgInfo pkgLen)
-    if(${pkgLen} GREATER 1) 
-        list(GET pkgInfo 0 name)
-        list(GET pkgInfo 1 version)
-        message(STATUS "Searching package ${name} version ${version} ... ")
-        find_package(${name} ${version} EXACT #REQUIRED
-            NAMES "${name}"
-            CONFIG
-            PATHS "${searchPath}"
-            NO_DEFAULT_PATH
-        )
-        if(NOT ${name}_FOUND)
-            message(WARNING "considered configs ${name}_CONSIDERED_CONFIGS: ${${name}_CONSIDERED_CONFIGS}")
-        endif()
-    else()
-        find_package(${n} # REQUIRED CONFIG
-            NAMES "${n}"
-            PATHS "${searchPath}"
-            NO_DEFAULT_PATH
-        )
-        if(NOT ${n}_FOUND)
-            message(WARNING "considered configs ${n}_CONSIDERED_CONFIGS: ${${n}_CONSIDERED_CONFIGS}")
-        endif()
-    endif()
-    set(CC_LOADED_PLUGINS ${CC_LOADED_PLUGINS} ${n} PARENT_SCOPE)
-  endforeach()
-  message(STATUS "Search path in ${load_plugin_PATHS}")
-  find_package(${plugin_name} #REQUIRED
-      CONFIG
-      NAMES "${plugin_name}"
-      PATHS ${searchPath}
-  )
-  if(${plugin_name}_FOUND) 
-    set(CC_LOADED_PLUGINS ${CC_LOADED_PLUGINS} ${plugin_name} PARENT_SCOPE)
-  else()
-    message(WARNING "Plugin ${plugin_name} not found!")
-  endif()
-endfunction()

@@ -60,7 +60,7 @@ if (cc_config_json_list.length === 0) {
 }
 
 for (let dir of cc_config_json_list) {
-    console.log(`[searching plugins] locate dir: ${dir}`)
+    console.log(`[searching plugins]   plugin dir found: ${dir}`)
 }
 
 function read_engine_version() {
@@ -122,11 +122,17 @@ function find_files_in_dir_recursive(depth, possible_names, dir, results) {
     }
 }
 
+/**
+ * Search *-config.cmake
+ * @param {*} libs 
+ * @param {*} dir 
+ * @returns Directories which contains *-config.cmake
+ */
 function search_config_for_cmake(libs, dir) {
     let config_directories = [];
     for (let lib of libs) {
         const cmake_dirs = [];
-        const raw_lib_name = lib.split(':')[0];
+        const raw_lib_name = lib.split(/:|@/)[0];
         const possible_names = [`${raw_lib_name}-config.cmake`, `${raw_lib_name}Config.cmake`];
         find_files_in_dir_recursive(0, possible_names, dir, cmake_dirs);
         const cfgDirs = cmake_dirs.map(x => path.resolve(path.dirname(x)));
@@ -148,14 +154,17 @@ function test_enable_by_configurations(config) {
     const engine_version_value = get_property_variants(config, "engine-version");
     if (disable_all) {
         // all disabled 
+        console.log(`plugin is disabled.`);
         return false;
     }
     if (support_platforms.length > 0 && support_platforms.indexOf(PLATFORM_NAME_FROM_CMAKE) < 0) {
         // unsupported platform
+        console.log(`plugin is not supported by current platform ${PLATFORM_NAME_FROM_CMAKE}.`);
         return false;
     }
     if (disabled_platforms.indexOf(PLATFORM_NAME_FROM_CMAKE) > -1) {
         // disable by user settings
+        console.log(`plugin is disabled by setting.`);
         return false;
     }
 
@@ -174,15 +183,55 @@ function test_enable_by_configurations(config) {
     return true;
 }
 
-console.log(`engine version ${read_engine_version()}`);
+function validate_cc_plugin_json_format(tag, content) {
+    const field_required = (obj, field_name) => {
+        if (Object.hasOwnProperty(obj, field_name)) {
+            console.warn(`${tag} field '${field_name}' is not set`);
+            return false;
+        }
+        return true;
+    }
+    const required_fields = ["name", "version", "engine-version", "author", "description", "modules", "platforms"];
+    for (const f of required_fields) {
+        if (!field_required(content, f)) {
+            return false;
+        }
+    }
+    const modules = content["modules"];
+    if (modules.length == 0) {
+        console.warn(`${tag} modules field is empty`);
+        return false;
+    }
 
-const output_lines = ["# plugins found & enabled in search path"];
+    for (let m of modules) {
+        const mod_fields = ["target"];
+        for (const f of mod_fields) {
+            if (!field_required(m, f)) {
+                console.warn(`${tag} module field ${f} is not set`);
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+console.log(`Engine version: ${read_engine_version()}`);
+
+let output_lines = ["# plugins found & enabled in search path", "", ""];
 for (let plugin_dir of cc_config_json_list) {
+    let load_plugins = [];
+    let plugin_search_path = {};
     try {
+        let maybe_plugin_name = path.basename(plugin_dir);
+        console.log(`Parsing plugin directory ${maybe_plugin_name}`);
         let cc_plugin_file = path.join(plugin_dir, CC_PLUGIN_JSON_STR);
         let cc_plugin_content = fs.readFileSync(cc_plugin_file, { encoding: 'utf8' });
         let cc_plugin_json = JSON.parse(cc_plugin_content);
+        if (!validate_cc_plugin_json_format(`Parsing module ${maybe_plugin_name}:`, cc_plugin_json)) {
+            continue;
+        }
         if (!test_enable_by_configurations(cc_plugin_json)) {
+            console.warn(` ${maybe_plugin_name} disabled by configuration`);
             continue;
         }
         const packages = parse_package_dependency(cc_plugin_json);
@@ -199,7 +248,29 @@ for (let plugin_dir of cc_config_json_list) {
                 }
             }
             // console.log(pkg);
-            output_lines.push(`cc_load_plugin(TARGET ${pkg.target} ${pkg.depends.length > 0 ? "DEPENDS " + pkg.depends.map(x => `"${x}"`).join(" ") : ""} PATHS "${project_to_plugin_dir}/${PLATFORM_NAME_FROM_CMAKE}")`)
+            // output_lines.push(`cc_load_plugin(TARGET ${pkg.target} ${pkg.depends.length > 0 ? "DEPENDS " + pkg.depends.map(x => `"${x}"`).join(" ") : ""} PATHS "${project_to_plugin_dir}/${PLATFORM_NAME_FROM_CMAKE}")`)
+            load_plugins = load_plugins.concat([...pkg.depends, pkg.target]);
+            output_lines.push(`list(APPEND CC_LOADED_PLUGINS`);
+            output_lines = output_lines.concat(`  ${pkg.target}`);
+            output_lines.push(`)`);
+        }
+        let search_path = `${project_to_plugin_dir}/${PLATFORM_NAME_FROM_CMAKE}`;
+        let plugin_names = load_plugins.map(x => x.split(/:|@/));
+        for (let plg of plugin_names) {
+            output_lines.push("");
+            if (plg[1]) {
+                output_lines.push(`find_package(${plg[0]} ${plg[1]}`);
+            } else {
+                output_lines.push(`find_package(${plg[0]}`);
+            }
+            output_lines.push(`  NAMES "${plg[0]}"`);
+            output_lines.push(`  PATHS "${search_path}"`);
+            output_lines.push(`)`);
+        }
+        if (packages.length > 0) {
+            console.log(` record plugin ${maybe_plugin_name}`);
+        } else {
+            console.warn(` no sub module found`);
         }
     } catch (e) {
         console.error(`Parsing plugin directory: ${plugin_dir}`)
