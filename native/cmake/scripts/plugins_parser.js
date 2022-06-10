@@ -74,7 +74,7 @@ function parse_package_dependency(info) {
         if (m.platforms && m.platforms.indexOf(PLATFORM_NAME_FROM_CMAKE) < 0) {
             continue;
         }
-        pkgs.push({ target: m.target, depends: m.depends || [] });
+        pkgs.push({ target: m.target, depends: typeof m.depends === 'string' ? [m.depends] : (m.depends || []) });
     }
     return pkgs;
 }
@@ -101,59 +101,11 @@ function get_property_variants(obj, ...names) {
 }
 
 
-function find_files_in_dir_recursive(depth, possible_names, dir, results) {
-    if (depth > MAX_SEARCH_LEVEL) {
-        return;
-    }
-    if(!fs.existsSync(dir)) {
-        console.warn(`  [error] '${dir}' does not exist`)
-        return;
-    }
-    let list = fs.readdirSync(dir);
-    let dstFiles = possible_names.map(x => path.join(dir, x)).filter(f => {
-        return fs.existsSync(f);
-    });
-    if (dstFiles.length > 0) {
-        results.push(...dstFiles);
-    }
-    for (let e of list) {
-        if (e.startsWith('.')) continue;
-        let p = path.join(dir, e);
-        let st = fs.statSync(p);
-        if (st.isDirectory()) {
-            find_files_in_dir_recursive(depth + 1, possible_names, p, results);
-        }
-    }
-}
-
-/**
- * Search *-config.cmake
- * @param {*} libs 
- * @param {*} dir 
- * @returns Directories which contains *-config.cmake
- */
-function search_config_for_cmake(libs, dir) {
-    let config_directories = [];
-    for (let lib of libs) {
-        const cmake_dirs = [];
-        const raw_lib_name = lib.split(/@/)[0];
-        const possible_names = [`${raw_lib_name}-config.cmake`, `${raw_lib_name}Config.cmake`];
-        find_files_in_dir_recursive(0, possible_names, dir, cmake_dirs);
-        const cfgDirs = cmake_dirs.map(x => path.resolve(path.dirname(x)));
-        if (cmake_dirs.length > 1) {
-            console.warn(`multiple ${raw_lib_name}-config.cmake found`);
-            console.warn(cmake_dirs);
-        }
-        if (cmake_dirs.length > 0) {
-            config_directories.push({ name: `${raw_lib_name}_DIR`, path: cfgDirs[0] });
-        }
-    }
-    return config_directories;
-}
-
 function test_enable_by_configurations(config) {
     const support_platforms = get_property_variants(config, "platforms") || [];
-    const disable_all = get_property_variants(config, "disable", "disabled") || false;
+    const enabled_default = get_property_variants(config, "enable", "enabled");
+    const enable_all = enabled_default === undefined ? true : enabled_default;
+    const disable_all = (get_property_variants(config, "disable", "disabled") || false) || !enable_all;
     const disabled_platforms = get_property_variants(config, "disable-by-platforms", "disabled-by-platforms") || [];
     const engine_version_value = get_property_variants(config, "engine-version");
     if (disable_all) {
@@ -219,6 +171,24 @@ function validate_cc_plugin_json_format(tag, content) {
     return true;
 }
 
+
+function add_search_path_suffix(dir, platform) {
+    if (platform.match(/^android/i)) {
+        return [`${dir}/android/\${ANDROID_ABI}`, `${dir}/android`];
+    } else if (platform.match(/^win/i)) {
+        return [`${dir}/windows/x86_64`, `${dir}/windows`];
+    } else if (platform.match(/^iphonesimulator/i)) {
+        return [`${dir}/windows/iphonesimulator`, `${dir}/ios`];
+    } else if (platform.match(/^ios/i)) {
+        return [`${dir}/ios`];
+    } else if (platform.match(/^mac/i) || platform.match(/^darwin/i)) {
+        return [`${dir}/mac/\${CMAKE_SYSTEM_PROCESSOR}`, `${dir}/mac`];
+    } else {
+        console.warn(`Don't knowm suffix for '${platform}`)
+        return [];
+    }
+}
+
 console.log(`Engine version: ${read_engine_version()}`);
 
 /// Generate Pre-AutoLoadPlugins.cmake
@@ -240,40 +210,42 @@ for (let plugin_dir of cc_config_json_list) {
             console.warn(` ${maybe_plugin_name} disabled by configuration`);
             continue;
         }
+        const plugin_name = cc_plugin_json.name;
+        const module_type = get_property_variants(cc_plugin_json, "module_type")
+        if (module_type !== undefined && module_type !== 'release') {
+            console.warn(` plugin ${plugin_name} is not a release, should be include or add_subdirectory in dev env.`);
+            continue;
+        }
         const packages = parse_package_dependency(cc_plugin_json);
         const platform_plugin_dir = path.join(plugin_dir, PLATFORM_NAME_FROM_CMAKE);
         const cc_project_dir = path.dirname(plugin_cmake_output_file);
         let project_to_plugin_dir = path.relative(cc_project_dir, plugin_dir).replace(/\\/g, '/');
         project_to_plugin_dir = `\${CC_PROJECT_DIR}/${project_to_plugin_dir}`;
+        const plugin_root_path_for_platform = add_search_path_suffix(project_to_plugin_dir, PLATFORM_NAME_FROM_CMAKE);
         for (let pkg of packages) {
-            let cmake_configs = search_config_for_cmake([pkg.target, ...pkg.depends], platform_plugin_dir);
-            if (cmake_configs.length > 0) {
-                for (const cfg of cmake_configs) {
-                    const relocate = path.relative(cc_project_dir, cfg.path).replace(/\\/g, '/');
-                    output_lines.push(`set(${cfg.name} "\${CC_PROJECT_DIR}/${relocate}")`);
-                }
-            }
-            load_plugins = load_plugins.concat([...pkg.depends, pkg.target]);
-            output_lines.push(`list(APPEND CC_LOADED_PLUGINS`);
-            output_lines = output_lines.concat(`  ${pkg.target}`);
+            const [target_name, target_version] = pkg.target.split('@');
+            output_lines.push(`set(${target_name}_ROOT\n${plugin_root_path_for_platform.map(x => `   "${x}"`).join("\n")}\n)`, "");
+            output_lines.push(`list(APPEND CMAKE_FIND_ROOT_PATH \${${target_name}_ROOT})`)
+            load_plugins = load_plugins.concat([...pkg.depends, target_name + (target_version !== undefined ? '@' + target_version : '')]);
+            output_lines.push(`list(APPEND CC_REGISTERED_PLUGINS`);
+            output_lines = output_lines.concat(`  ${target_name}`);
             output_lines.push(`)`);
         }
-        let search_path = `${project_to_plugin_dir}/${PLATFORM_NAME_FROM_CMAKE}`;
         let plugin_names = load_plugins.map(x => x.split(/@/));
         for (let plg of plugin_names) {
             output_lines.push("");
-            if (plg[1]) {
+            if (plg[1] && plg.length > 0) {
                 output_lines.push(`find_package(${plg[0]} ${plg[1]}`);
             } else {
                 output_lines.push(`find_package(${plg[0]}`);
             }
             output_lines.push(`  NAMES "${plg[0]}"`);
-            output_lines.push(`  PATHS "${search_path}"`);
+            output_lines.push(`  PATHS\n${plugin_root_path_for_platform.map(x => '    "' + x + '"').join("\n")}`);
             output_lines.push(`  NO_DEFAULT_PATH`);
             output_lines.push(`)`);
         }
         if (packages.length > 0) {
-            console.log(` record plugin ${maybe_plugin_name}`);
+            console.log(` record plugin ${plugin_name}`);
         } else {
             console.warn(` no sub module found`);
         }
@@ -289,5 +261,12 @@ if (cc_config_json_list.length == 0) {
         fs.unlinkSync(out_file);
     }
 } else {
-    fs.writeFileSync(plugin_cmake_output_file, output_lines.join("\n") + "\n", { encoding: 'utf8' });
+    let old_content = null;
+    let new_content = output_lines.join("\n") + "\n";
+    if (fs.existsSync(plugin_cmake_output_file)) {
+        old_content = fs.readFileSync(plugin_cmake_output_file);
+    }
+    if (old_content !== new_content) {
+        fs.writeFileSync(plugin_cmake_output_file, output_lines.join("\n") + "\n", { encoding: 'utf8' });
+    }
 }
