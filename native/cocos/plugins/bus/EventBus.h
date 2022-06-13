@@ -11,11 +11,11 @@
 #include <unordered_map>
 #include <vector>
 
-#include "./BusTypes.h"
+#include "plugins/bus/BusTypes.h"
 
 namespace cc {
 
-namespace bus {
+namespace plugin {
 
 struct EventBase {
     const char *eventName;
@@ -277,8 +277,8 @@ void Listener::receive(C callback) {
 }
 
 template <typename... ARGS>
-void send(cc::BusType bus, ARGS &&...args) {
-    cc::bus::EventBus::accquire(bus)->send(std::forward<ARGS>(args)...);
+void send(cc::plugin::BusType bus, ARGS &&...args) {
+    cc::plugin::EventBus::accquire(bus)->send(std::forward<ARGS>(args)...);
 }
 
 } // namespace bus

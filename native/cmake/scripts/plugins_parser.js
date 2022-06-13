@@ -110,17 +110,17 @@ function test_enable_by_configurations(config) {
     const engine_version_value = get_property_variants(config, "engine-version");
     if (disable_all) {
         // all disabled 
-        console.log(`plugin is disabled.`);
+        console.log(` plugin is disabled.`);
         return false;
     }
     if (support_platforms.length > 0 && support_platforms.indexOf(PLATFORM_NAME_FROM_CMAKE) < 0) {
         // unsupported platform
-        console.log(`plugin is not supported by current platform ${PLATFORM_NAME_FROM_CMAKE}.`);
+        console.log(` plugin is not supported by current platform ${PLATFORM_NAME_FROM_CMAKE}.`);
         return false;
     }
     if (disabled_platforms.indexOf(PLATFORM_NAME_FROM_CMAKE) > -1) {
         // disable by user settings
-        console.log(`plugin is disabled by setting.`);
+        console.log(` plugin is disabled by setting.`);
         return false;
     }
 
@@ -129,10 +129,10 @@ function test_enable_by_configurations(config) {
         const version_filter = version_parser.parse(engine_version_value);
         const version_valid = version_filter.match(ENGINE_VERSION);
         if (!version_valid) {
-            console.warn(`Engine version '${ENGINE_VERSION}' mismatch '${engine_version_value}'`);
+            console.warn(` Engine version '${ENGINE_VERSION}' mismatch '${engine_version_value}'`);
         }
     } catch (e) {
-        console.error(`Failed to parse 'engine-version', value: '${engine_version_value}'`);
+        console.error(` Failed to parse 'engine-version', value: '${engine_version_value}'`);
         console.error(e);
         return false;
     }

@@ -301,8 +301,11 @@ endif()
 
 ##### plugins
 cocos_source_files(
-    cocos/plugins/plugins.h
-    cocos/plugins/plugins.cpp
+    cocos/plugins/Plugins.h
+    cocos/plugins/Plugins.cpp
+    cocos/plugins/bus/BusTypes.h
+    cocos/plugins/bus/EventBus.h
+    cocos/plugins/bus/EventBus.cpp
 )
 
 ##### base
@@ -931,9 +934,6 @@ elseif(LINUX)
 endif()
 #### event bus
 cocos_source_files(
-    cocos/bus/BusTypes.h
-    cocos/bus/EventBus.h
-    cocos/bus/EventBus.cpp
 )
 
 ##### renderer

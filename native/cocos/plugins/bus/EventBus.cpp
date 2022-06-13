@@ -1,9 +1,9 @@
-#include "EventBus.h"
+#include "plugins/bus/EventBus.h"
 #include <cassert>
 #include <unordered_map>
 
 namespace cc {
-namespace bus {
+namespace plugin {
 using ListenerEntry = ListEntry<Listener>;
 
 Listener::Listener(BusType type) : Listener(EventBus::accquire(type)) {}

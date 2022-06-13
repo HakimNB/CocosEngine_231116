@@ -1,12 +1,12 @@
 #pragma once
 
 namespace cc {
+namespace plugin {
 enum class BusType {
     SCRIPT_ENGINE
 };
-namespace events {
 enum class ScriptEngineEvent {
     POST_INIT
 };
-}
+} // namespace plugin
 } // namespace cc
