@@ -224,6 +224,8 @@ export abstract class NativePackTool {
         const engineVersion = this.tryGetEngineVersion();
         const projEngineVersionObj = this.tryReadProjectTemplateVersion();
         if (projEngineVersionObj === null) {
+            // Vesion 3.5.x is compatible with 3.6.0, create version file automatically.
+            // TODO(PatriceJiang): Can be remove in future versions
             if (this.commonDirAreIdentical()) {
                 console.log(`The files under common/Classes directory are identical with the ones in the template. Append version file to the project.`);
                 this.writeEngineVersion();
