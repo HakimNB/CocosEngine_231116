@@ -24,9 +24,11 @@
 ****************************************************************************/
 
 #pragma once
+#include "base/Macros.h"
 #include "base/TypeDef.h"
 #include "renderer/gfx-base/GFXDef-common.h"
-#include "base/Macros.h"
+
+#include <cmath>
 
 namespace cc {
 struct MeshBufferLayout {

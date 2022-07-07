@@ -29,9 +29,9 @@
 #include "pipeline/PipelineStateManager.h"
 #include "scene/Camera.h"
 #include "scene/DrawBatch2D.h"
+#include "scene/Pass.h"
 #include "scene/RenderScene.h"
 #include "scene/SubModel.h"
-#include "scene/Pass.h"
 
 namespace cc {
 namespace pipeline {
@@ -45,6 +45,8 @@ void UIPhase::render(scene::Camera *camera, gfx::RenderPass *renderPass) {
     auto *cmdBuff = _pipeline->getCommandBuffers()[0];
 
     const auto &batches = camera->getScene()->getBatches();
+    gfx::PipelineState *pso;
+    gfx::DescriptorSet *ds;
     for (auto *batch : batches) {
         if (!(camera->getVisibility() & (batch->getVisFlags()))) continue;
         const auto &passes = batch->getPasses();
@@ -53,8 +55,8 @@ void UIPhase::render(scene::Camera *camera, gfx::RenderPass *renderPass) {
             if (pass->getPhase() != _phaseID) continue;
             auto *shader = batch->getShaders()[i];
             auto *inputAssembler = batch->getInputAssembler();
-            auto *ds = batch->getDescriptorSet();
-            auto *pso = PipelineStateManager::getOrCreatePipelineState(pass, shader, inputAssembler, renderPass);
+            ds = batch->getDescriptorSet();
+            pso = PipelineStateManager::getOrCreatePipelineState(pass, shader, inputAssembler, renderPass);
             cmdBuff->bindPipelineState(pso);
             cmdBuff->bindDescriptorSet(materialSet, pass->getDescriptorSet());
             cmdBuff->bindInputAssembler(inputAssembler);

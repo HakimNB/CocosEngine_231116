@@ -338,7 +338,9 @@ gfx::DescriptorSet* Batcher2d::getDescriptorSet(gfx::Texture* texture, gfx::Samp
     }
     auto iter = _descriptorSetCache.find(hash);
     if (iter != _descriptorSetCache.end()) {
-        return iter->second;
+        auto* ds = iter->second;
+        //ds->forceUpdate();
+        return ds;
     }
     _dsInfo.layout = _dsLayout;
     auto* ds = getDevice()->createDescriptorSet(_dsInfo);

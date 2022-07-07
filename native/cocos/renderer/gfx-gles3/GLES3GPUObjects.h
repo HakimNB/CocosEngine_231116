@@ -24,10 +24,13 @@
 #include <algorithm>
 
 #include "base/Macros.h"
+#include "base/Utils.h"
 #include "base/std/container/unordered_map.h"
 #include "gfx-base/GFXDef-common.h"
 #include "gfx-base/GFXDef.h"
 #include "gfx-gles-common/GLESCommandPool.h"
+
+#include "cocos/bindings/jswrapper/SeApi.h"
 
 #include "GLES3Std.h"
 #include "GLES3Wrangler.h"
@@ -146,12 +149,48 @@ struct GLES3GPUTexture {
     GLES3GPUSwapchain *swapchain{nullptr};
 };
 
+enum class GLES3GPUTextureViewState {
+    ALIVE,
+    DELETED,
+};
+
 struct GLES3GPUTextureView {
     GLES3GPUTexture *gpuTexture{nullptr};
     TextureType type = TextureType::TEX2D;
     Format format = Format::UNKNOWN;
     uint32_t baseLevel = 0U;
     uint32_t levelCount = 1U;
+    int id;
+    //#if !_WIN32
+    GLES3GPUTextureView() {
+        id = idGen++;
+        auto &vec = aliveTextures[this];
+#if !_WIN32
+        vec.emplace_back(GLES3GPUTextureViewState::ALIVE, cc::utils::getStacktrace(), id > 200 ? se::ScriptEngine::getInstance()->getCurrentStackTrace() : "");
+#else
+        vec.emplace_back(GLES3GPUTextureViewState::ALIVE, "", "");
+#endif
+    }
+    ~GLES3GPUTextureView() {
+        auto &vec = aliveTextures[this];
+#if !_WIN32
+        vec.emplace_back(GLES3GPUTextureViewState::DELETED, cc::utils::getStacktrace(), id > 200 ? se::ScriptEngine::getInstance()->getCurrentStackTrace() : "");
+#else
+        vec.emplace_back(GLES3GPUTextureViewState::DELETED, "", "");
+#endif
+    }
+
+    static int idGen;
+    static std::unordered_map<void *, std::vector<std::tuple<GLES3GPUTextureViewState, std::string, std::string>>> aliveTextures;
+
+    static std::optional<decltype(aliveTextures)::value_type::second_type> query(void *ptr) {
+        auto it = aliveTextures.find(ptr);
+        if (it == aliveTextures.end()) {
+            return std::nullopt;
+        }
+        return std::optional(it->second);
+    }
+    //#endif
 };
 
 using GLES3GPUTextureViewList = ccstd::vector<GLES3GPUTextureView *>;

@@ -38,7 +38,10 @@ constexpr uint32_t USE_VAO = true;
 
 namespace cc {
 namespace gfx {
-
+//#if !_WIN32
+std::unordered_map<void *, std::vector<std::tuple<GLES3GPUTextureViewState, std::string, std::string>>> GLES3GPUTextureView::aliveTextures;
+int GLES3GPUTextureView::idGen = 0;
+//#endif
 namespace {
 GLenum mapGLInternalFormat(Format format) {
     switch (format) {
@@ -2448,6 +2451,20 @@ void cmdFuncGLES3BindState(GLES3Device *device, GLES3GPUPipelineState *gpuPipeli
                 gpuTexture = gpuTextureView->gpuTexture;
                 minLod = gpuTextureView->baseLevel;
                 maxLod = minLod + gpuTextureView->levelCount;
+
+                //#if !_WIN32
+                ///
+                auto ele = GLES3GPUTextureView::query(gpuTextureView);
+                if (ele.has_value() && std::get<0>(ele.value().back()) != GLES3GPUTextureViewState::ALIVE) {
+                    for (auto e : ele.value()) {
+                        std::string cpp = std::get<1>(e);
+                        std::string js = std::get<2>(e);
+                        CC_LOG_DEBUG("cpp stack %s", cpp.c_str());
+                        CC_LOG_DEBUG("js  stack %s", js.c_str());
+                    }
+                    CC_LOG_DEBUG("size %d", ele.value().size());
+                }
+                //#endif
 
                 if (gpuTexture->size > 0) {
                     GLuint glTexture = gpuTexture->glTexture;
