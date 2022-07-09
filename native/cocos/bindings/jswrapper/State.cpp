@@ -52,11 +52,11 @@ void *State::nativeThisObject() const {
     return _thisObject != nullptr ? _thisObject->getPrivateData() : nullptr;
 }
 
-Object *State::thisObject() {
-    // _nativeThisObject in Static method will be nullptr
-    //        assert(_thisObject != nullptr);
-    return _thisObject;
-}
+// Object *State::thisObject() {
+//     // _nativeThisObject in Static method will be nullptr
+//     //        assert(_thisObject != nullptr);
+//     return _thisObject;
+// }
 
 const ValueArray &State::args() const {
     if (_args != nullptr) {

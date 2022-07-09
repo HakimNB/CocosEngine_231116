@@ -25,6 +25,8 @@
 
 #include "HelperMacros.h"
 
+#include "bindings/jswrapper/State.h"
+
 #if defined(RECORD_JSB_INVOKING)
 
 namespace {

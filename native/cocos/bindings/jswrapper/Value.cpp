@@ -443,9 +443,9 @@ uint64_t Value::toUint64() const {
     return _type == Type::BigInt ? static_cast<uint64_t>(_u._bigint) : CONVERT_TO_TYPE(uint64_t);
 }
 
-float Value::toFloat() const {
-    return static_cast<float>(toDouble());
-}
+// float Value::toFloat() const {
+//     return static_cast<float>(toDouble());
+// }
 
 double Value::toDouble() const {
     CC_ASSERT(_type == Type::Number || _type == Type::Boolean || _type == Type::BigInt || _type == Type::String);

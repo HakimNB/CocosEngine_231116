@@ -375,7 +375,12 @@ public:
          *  @brief Converts se::Value to float number.
          *  @return float number.
          */
-    float toFloat() const;
+    float toFloat() const {
+#if CC_DEBUG
+        CC_ASSERT(_type == Type::Number);
+#endif
+        return static_cast<float>(_u._number);
+    }
 
     /**
      *  @brief Converts se::Value to double number.

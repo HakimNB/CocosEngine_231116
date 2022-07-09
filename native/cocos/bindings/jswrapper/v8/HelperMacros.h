@@ -40,6 +40,10 @@
 
 //#define RECORD_JSB_INVOKING
 
+namespace se {
+class State;
+}
+
 #ifndef CC_DEBUG
     #undef RECORD_JSB_INVOKING
 #endif
@@ -106,22 +110,10 @@ void printJSBInvokeAtFrame(int n);
     #define SE_DECLARE_FUNC(funcName) \
         void funcName##Registry(const v8::FunctionCallbackInfo<v8::Value> &v8args)
 
-    #define SE_BIND_FUNC(funcName)                                                                        \
-        void funcName##Registry(const v8::FunctionCallbackInfo<v8::Value> &_v8args) {                     \
-            JsbInvokeScope(#funcName);                                                                    \
-            bool ret = false;                                                                             \
-            v8::Isolate *_isolate = _v8args.GetIsolate();                                                 \
-            v8::HandleScope _hs(_isolate);                                                                \
-            se::ValueArray &args = se::gValueArrayPool.get(_v8args.Length());                             \
-            se::CallbackDepthGuard depthGuard{args, se::gValueArrayPool._depth};                          \
-            se::internal::jsToSeArgs(_v8args, args);                                                      \
-            se::Object *thisObject = se::internal::getPrivate(_isolate, _v8args.This());                  \
-            se::State state(thisObject, args);                                                            \
-            ret = funcName(state);                                                                        \
-            if (!ret) {                                                                                   \
-                SE_LOGE("[ERROR] Failed to invoke %s, location: %s:%d\n", #funcName, __FILE__, __LINE__); \
-            }                                                                                             \
-            se::internal::setReturnValue(state.rval(), _v8args);                                          \
+    #define SE_BIND_FUNC(funcName)                                                    \
+        void funcName##Registry(const v8::FunctionCallbackInfo<v8::Value> &_v8args) { \
+            JsbInvokeScope(#funcName);                                                \
+            se::internal::jsbFunctionWrapper(_v8args, #funcName, funcName);           \
         }
 
     #define SE_BIND_FUNC_FAST(funcName)                                                                          \
@@ -150,26 +142,10 @@ void printJSBInvokeAtFrame(int n);
         void funcName##Registry(se::Object *thisObject);
 
     // v8 doesn't need to create a new JSObject in SE_BIND_CTOR while SpiderMonkey needs.
-    #define SE_BIND_CTOR(funcName, cls, finalizeCb)                                                       \
-        void funcName##Registry(const v8::FunctionCallbackInfo<v8::Value> &_v8args) {                     \
-            JsbInvokeScope(#funcName);                                                                    \
-            v8::Isolate *_isolate = _v8args.GetIsolate();                                                 \
-            v8::HandleScope _hs(_isolate);                                                                \
-            bool ret = true;                                                                              \
-            se::ValueArray &args = se::gValueArrayPool.get(_v8args.Length());                             \
-            se::CallbackDepthGuard depthGuard{args, se::gValueArrayPool._depth};                          \
-            se::internal::jsToSeArgs(_v8args, args);                                                      \
-            se::Object *thisObject = se::Object::_createJSObject(cls, _v8args.This());                    \
-            thisObject->_setFinalizeCallback(_SE(finalizeCb));                                            \
-            se::State state(thisObject, args);                                                            \
-            ret = funcName(state);                                                                        \
-            if (!ret) {                                                                                   \
-                SE_LOGE("[ERROR] Failed to invoke %s, location: %s:%d\n", #funcName, __FILE__, __LINE__); \
-            }                                                                                             \
-            se::Value _property;                                                                          \
-            bool _found = false;                                                                          \
-            _found = thisObject->getProperty("_ctor", &_property);                                        \
-            if (_found) _property.toObject()->call(args, thisObject);                                     \
+    #define SE_BIND_CTOR(funcName, cls, finalizeCb)                                                  \
+        void funcName##Registry(const v8::FunctionCallbackInfo<v8::Value> &_v8args) {                \
+            JsbInvokeScope(#funcName);                                                               \
+            se::internal::jsbConstructorWrapper(_v8args, #funcName, funcName, _SE(finalizeCb), cls); \
         }
 
     #define SE_BIND_PROP_GET_IMPL(funcName, postFix)                                                                              \

@@ -34,6 +34,7 @@
     #include "ScriptEngine.h"
     #include "base/Log.h"
     #include "base/Macros.h"
+    #include "bindings/jswrapper/State.h"
 
 namespace se {
 
@@ -231,6 +232,55 @@ void clearPrivate(v8::Isolate *isolate, ObjectWrap &wrap) {
     if (c > 0) {
         wrap.wrap(nullptr, 0);
     }
+}
+
+void jsbFunctionWrapper(const v8::FunctionCallbackInfo<v8::Value> &_v8args, const char *functionName, SeFuncWrapper cppFunction) {
+    v8::Isolate *_isolate = _v8args.GetIsolate();
+    v8::HandleScope _hs(_isolate);
+    se::ValueArray &args = se::gValueArrayPool.get(_v8args.Length());
+    se::CallbackDepthGuard depthGuard{args, se::gValueArrayPool._depth};
+    se::internal::jsToSeArgs(_v8args, args);
+    se::Object *thisObject = se::internal::getPrivate(_isolate, _v8args.This());
+    se::State state(thisObject, args);
+    bool ret = cppFunction(state);
+    if (!ret) {
+        SE_LOGE("[ERROR] Failed to invoke %s\n", functionName);
+    }
+    se::internal::setReturnValue(state.rval(), _v8args);
+}
+void jsbFunctionWrapper(const v8::FunctionCallbackInfo<v8::Value> &_v8args, const char *functionName, SeFuncWrapperConst cppFunction) {
+    v8::Isolate *_isolate = _v8args.GetIsolate();
+    v8::HandleScope _hs(_isolate);
+    se::ValueArray &args = se::gValueArrayPool.get(_v8args.Length());
+    se::CallbackDepthGuard depthGuard{args, se::gValueArrayPool._depth};
+    se::internal::jsToSeArgs(_v8args, args);
+    se::Object *thisObject = se::internal::getPrivate(_isolate, _v8args.This());
+    se::State state(thisObject, args);
+    bool ret = cppFunction(state);
+    if (!ret) {
+        SE_LOGE("[ERROR] Failed to invoke %s\n", functionName);
+    }
+    se::internal::setReturnValue(state.rval(), _v8args);
+}
+
+void jsbConstructorWrapper(const v8::FunctionCallbackInfo<v8::Value> &_v8args, const char *funcName, SeFuncWrapper cppFunction, SeFinalizer finalizer, se::Class *cls) {
+    v8::Isolate *_isolate = _v8args.GetIsolate();
+    v8::HandleScope _hs(_isolate);
+    bool ret = true;
+    se::ValueArray &args = se::gValueArrayPool.get(_v8args.Length());
+    se::CallbackDepthGuard depthGuard{args, se::gValueArrayPool._depth};
+    se::internal::jsToSeArgs(_v8args, args);
+    se::Object *thisObject = se::Object::_createJSObject(cls, _v8args.This());
+    thisObject->_setFinalizeCallback(finalizer);
+    se::State state(thisObject, args);
+    ret = cppFunction(state);
+    if (!ret) {
+        SE_LOGE("[ERROR] Failed to invoke %s", funcName);
+    }
+    se::Value _property;
+    bool _found = false;
+    _found = thisObject->getProperty("_ctor", &_property);
+    if (_found) _property.toObject()->call(args, thisObject);
 }
 
 } // namespace internal

@@ -36,6 +36,10 @@
 
 namespace se {
 
+class State;
+class Object;
+class Class;
+
 namespace internal {
 
 void jsToSeArgs(const v8::FunctionCallbackInfo<v8::Value> &v8args, ValueArray &outArr);
@@ -50,6 +54,15 @@ bool hasPrivate(v8::Isolate *isolate, v8::Local<v8::Value> value);
 void setPrivate(v8::Isolate *isolate, ObjectWrap &wrap, Object *obj);
 Object *getPrivate(v8::Isolate *isolate, v8::Local<v8::Value> value);
 void clearPrivate(v8::Isolate *isolate, ObjectWrap &wrap);
+
+using SeFuncWrapperConst = bool (*)(const se::State &);
+using SeFuncWrapper = bool (*)(se::State &);
+using SeFinalizer = void (*)(se::Object *);
+
+void jsbFunctionWrapper(const v8::FunctionCallbackInfo<v8::Value> &_v8args, const char *functionName, SeFuncWrapperConst wrapper);
+void jsbFunctionWrapper(const v8::FunctionCallbackInfo<v8::Value> &_v8args, const char *functionName, SeFuncWrapper wrapper);
+
+void jsbConstructorWrapper(const v8::FunctionCallbackInfo<v8::Value> &_v8args, const char *functionName, SeFuncWrapper wrapper, SeFinalizer finalizer, se::Class *);
 
 } // namespace internal
 } // namespace se
