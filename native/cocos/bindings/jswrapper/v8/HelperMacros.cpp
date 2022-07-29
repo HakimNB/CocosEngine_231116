@@ -24,6 +24,8 @@
 ****************************************************************************/
 
 #include "HelperMacros.h"
+#include "Object.h"
+#include "Utils.h"
 
 #if defined(RECORD_JSB_INVOKING)
 
@@ -79,4 +81,68 @@ void printJSBInvoke() {
     pairs.clear();
     cc::Log::logMessage(cc::LogType::KERNEL, cc::LogLevel::LEVEL_DEBUG, "End print JSB function record info.......\n");
 #endif
+}
+
+void jsb_common_function(const v8::FunctionCallbackInfo<v8::Value> &_v8args, seFuncType funcName, const char *name) {
+    bool ret = false;
+    v8::Isolate *_isolate = _v8args.GetIsolate();
+    v8::HandleScope _hs(_isolate);
+    se::ValueArray &args = se::gValueArrayPool.get(_v8args.Length());
+    se::CallbackDepthGuard depthGuard{args, se::gValueArrayPool._depth};
+    se::internal::jsToSeArgs(_v8args, args);
+    se::Object *thisObject = se::internal::getPrivate(_isolate, _v8args.This());
+    se::State state(thisObject, args);
+    ret = funcName(state);
+    if (!ret) {
+        SE_LOGE("[ERROR] Failed to invoke %s, location: %s:%d\n", name, __FILE__, __LINE__);
+    }
+    se::internal::setReturnValue(state.rval(), _v8args);
+}
+
+void jsb_common_ctor(const v8::FunctionCallbackInfo<v8::Value> &_v8args, se::Class *cls, seFuncType funcName, const char *name) {
+    v8::Isolate *_isolate = _v8args.GetIsolate();
+    v8::HandleScope _hs(_isolate);
+    bool ret = true;
+    se::ValueArray &args = se::gValueArrayPool.get(_v8args.Length());
+    se::CallbackDepthGuard depthGuard{args, se::gValueArrayPool._depth};
+    se::internal::jsToSeArgs(_v8args, args);
+    se::Object *thisObject = se::Object::_createJSObject(cls, _v8args.This());
+    thisObject->_setFinalizeCallback(nullptr);
+    se::State state(thisObject, args);
+    ret = funcName(state);
+    if (!ret) {
+        SE_LOGE("[ERROR] Failed to invoke %s, location: %s:%d\n", name, __FILE__, __LINE__);
+    }
+    se::Value _property;
+    bool _found = false;
+    _found = thisObject->getProperty("_ctor", &_property);
+    if (_found) _property.toObject()->call(args, thisObject);
+}
+
+void jsb_common_get(const v8::PropertyCallbackInfo<v8::Value> &_v8args, seFuncType funcName, const char *name) {
+    v8::Isolate *_isolate = _v8args.GetIsolate();
+    v8::HandleScope _hs(_isolate);
+    bool ret = true;
+    se::Object *thisObject = se::internal::getPrivate(_isolate, _v8args.This());
+    se::State state(thisObject);
+    ret = funcName(state);
+    if (!ret) {
+        SE_LOGE("[ERROR] Failed to invoke %s, location: %s:%d\n", name, __FILE__, __LINE__);
+    }
+    se::internal::setReturnValue(state.rval(), _v8args);
+}
+void jsb_common_set(const v8::PropertyCallbackInfo<void> &_v8args, v8::Local<v8::Value> _value, seFuncType funcName, const char *name) {
+    v8::Isolate *_isolate = _v8args.GetIsolate();
+    v8::HandleScope _hs(_isolate);
+    bool ret = true;
+    se::Object *thisObject = se::internal::getPrivate(_isolate, _v8args.This());
+    se::ValueArray &args = se::gValueArrayPool.get(1);
+    se::CallbackDepthGuard depthGuard{args, se::gValueArrayPool._depth};
+    se::Value &data{args[0]};
+    se::internal::jsToSeValue(_isolate, _value, &data);
+    se::State state(thisObject, args);
+    ret = funcName(state);
+    if (!ret) {
+        SE_LOGE("[ERROR] Failed to invoke %s, location: %s:%d\n", name, __FILE__, __LINE__);
+    }
 }
