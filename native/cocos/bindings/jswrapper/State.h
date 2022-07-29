@@ -54,7 +54,9 @@ public:
          *  @brief Gets the JavaScript `this` object wrapped in se::Object.
          *  @return The JavaScript `this` object wrapped in se::Object.
          */
-    Object *thisObject();
+    Object *thisObject() {
+     return _thisObject;
+    }
 
     /**
          *  @brief Gets the return value reference. Used for setting return value for a function.

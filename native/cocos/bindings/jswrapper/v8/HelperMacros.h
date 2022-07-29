@@ -70,7 +70,9 @@ private:
 
 template <typename T, typename STATE>
 constexpr inline T *SE_THIS_OBJECT(STATE &s) { // NOLINT(readability-identifier-naming)
-    return reinterpret_cast<T *>(s.nativeThisObject());
+    // return reinterpret_cast<T *>(s.nativeThisObject());
+    auto *p = s.thisObject();
+    return p ? reinterpret_cast<T*>(p->getPrivateData()) : nullptr;
 }
 
 template <typename T>
@@ -121,7 +123,6 @@ void printJSBInvokeAtFrame(int n);
     #define SE_BIND_FUNC(funcName)                                                    \
         void funcName##Registry(const v8::FunctionCallbackInfo<v8::Value> &_v8args) { \
             jsb_common_function(_v8args, funcName, #funcName);                        \
-            \                                                                         \
         }
 
     #define SE_BIND_FUNC_FAST(funcName)                                                                          \
@@ -142,7 +143,7 @@ void printJSBInvokeAtFrame(int n);
     #define SE_BIND_CTOR(funcName, cls, finalizeCb)                                   \
         void funcName##Registry(const v8::FunctionCallbackInfo<v8::Value> &_v8args) { \
             JsbInvokeScope(#funcName);                                                \
-            jsb_common_ctor(_args, cls, funcName, #funcName);                         \
+            jsb_common_ctor(_v8args, cls, funcName, #funcName);                         \
         }
 
     #define SE_BIND_PROP_GET_IMPL(funcName, postFix)                                                                              \

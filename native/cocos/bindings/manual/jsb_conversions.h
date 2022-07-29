@@ -72,7 +72,6 @@
     do {                                                                                                     \
         if (!(condition)) {                                                                                  \
             CC_LOG_ERROR("jsb: ERROR: File %s: Line: %d, Function: %s\n", __FILE__, __LINE__, __FUNCTION__); \
-            CC_LOG_ERROR(__VA_ARGS__);                                                                       \
             return (ret_value);                                                                              \
         }                                                                                                    \
     } while (0)
