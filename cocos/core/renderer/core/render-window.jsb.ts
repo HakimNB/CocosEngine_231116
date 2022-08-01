@@ -30,7 +30,7 @@ export interface IRenderWindowInfo {
     swapchain?: any;
 }
 
-declare const jsb: any;
+// declare const jsb: any;
 export const RenderWindow = jsb.RenderWindow;
 // @ts-ignore
 export type RenderWindow = jsb.RenderWindow;

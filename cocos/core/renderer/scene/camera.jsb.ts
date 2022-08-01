@@ -28,7 +28,7 @@ import { ClearFlagBit } from '../../gfx';
 import { _tempFloatArray, fillMat4WithTempFloatArray } from '../../scene-graph/utils.jsb';
 import { Mat4, Vec3 } from '../../math';
 
-declare const jsb: any;
+// declare const jsb: any;
 
 export enum CameraFOVAxis {
     VERTICAL,
@@ -102,7 +102,7 @@ export interface ICameraInfo {
 export const SKYBOX_FLAG = ClearFlagBit.STENCIL << 1;
 
 export const Camera = jsb.Camera;
-const cameraProto: any = jsb.Camera.prototype;
+const cameraProto = jsb.Camera.prototype;
 
 Object.defineProperty(Camera, "standardExposureValue", {
     configurable: true,

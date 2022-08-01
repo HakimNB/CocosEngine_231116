@@ -6,8 +6,8 @@ import { Device, deviceManager } from './gfx';
 import { DebugView } from './pipeline/debug-view';
 import { buildDeferredLayout, buildForwardLayout } from './pipeline/custom/effect';
 
-declare const nr: any;
-declare const jsb: any;
+// declare const nr: any;
+// declare const jsb: any;
 
 export const Root = jsb.Root;
 
@@ -26,7 +26,7 @@ export interface IRootInfo {
     enableHDR?: boolean;
 }
 
-const rootProto: any = Root.prototype;
+const rootProto = Root.prototype;
 
 rootProto._createBatcher2D = function () {
     if (!this._batcher && legacyCC.internal.Batcher2D) {

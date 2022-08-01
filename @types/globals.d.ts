@@ -24,7 +24,7 @@
  THE SOFTWARE.
 */
 
-declare const gfx: any;
+// declare const gfx: any;
 declare const global: any;
 
 interface Window {
