@@ -34,7 +34,7 @@ import { extname } from '../utils/path';
 import { ExtraEventMethods } from '../utils/jsb-utils'
 import '../data/object';
 
-declare const jsb: any;
+// declare const jsb: any;
 
 /**
  * @param error - null or the error info
@@ -44,7 +44,7 @@ export type CreateNodeCallback = (error: Error | null, node: Node) => void;
 
 applyMixins(jsb.Asset, [CallbacksInvoker, ExtraEventMethods]);
 
-const assetProto: any = jsb.Asset.prototype;
+const assetProto = jsb.Asset.prototype;
 
 assetProto._ctor = function () {
     this._ref = 0;

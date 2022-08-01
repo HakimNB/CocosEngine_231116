@@ -32,7 +32,7 @@ import { TEST } from 'internal:constants';
 import { Settings, settings } from '../settings';
 import releaseManager from '../asset-manager/release-manager';
 
-declare const jsb: any;
+// declare const jsb: any;
 
 const Texture2D = jsb.Texture2D;
 const ImageAsset = jsb.ImageAsset;

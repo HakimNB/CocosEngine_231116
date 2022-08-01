@@ -31,7 +31,7 @@ export const Scene = jsb.Scene;
 export type Scene = jsb.Scene;
 legacyCC.Scene = Scene;
 
-const sceneProto: any = Scene.prototype;
+const sceneProto = Scene.prototype;
 
 Object.defineProperty(sceneProto, '_globals', {
     enumerable: true,
