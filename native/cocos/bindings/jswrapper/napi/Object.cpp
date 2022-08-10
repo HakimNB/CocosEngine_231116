@@ -18,8 +18,8 @@ Object::~Object() {
         __objectMap->erase(this);
     }
 #if USE_NODE_NAPI
-    //napi_status status;
-    //NODE_API_CALL(status, _env, napi_delete_reference(_env, _napiRefObj));
+    napi_status status;
+    NODE_API_CALL(status, _env, napi_delete_reference(_env, _napiRefObj)); //match with init
     _napiRefObj = nullptr;
 #endif
 }
