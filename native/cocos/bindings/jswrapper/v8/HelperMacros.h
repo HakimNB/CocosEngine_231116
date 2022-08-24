@@ -65,7 +65,7 @@ private:
             } while (0)
 
     #endif
-
+  
 template <typename T, typename STATE>
 constexpr inline T *SE_THIS_OBJECT(STATE &s) { // NOLINT(readability-identifier-naming)
     return reinterpret_cast<T *>(s.nativeThisObject());
