@@ -224,7 +224,7 @@ void printJSBInvokeAtFrame(int n);
     #define SE_REPORT_ERROR(fmt, ...) selogMessage(cc::LogLevel::ERR, "[SE_ERROR]", (" (%s, %d): " fmt), __FILE__, __LINE__, ##__VA_ARGS__)
 
     #if CC_DEBUG > 0
-
+sdfsdf
         #define SE_ASSERT(cond, fmt, ...)                                                                                   \
             do {                                                                                                            \
                 if (!(cond)) {                                                                                              \
