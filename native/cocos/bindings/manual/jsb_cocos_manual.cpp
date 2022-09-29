@@ -25,14 +25,30 @@
 
 #include "jsb_cocos_manual.h"
 
+#include "bindings/manual/jsb_global.h"
 #include "cocos/bindings/auto/jsb_cocos_auto.h"
 #include "cocos/bindings/jswrapper/SeApi.h"
 #include "cocos/bindings/manual/jsb_conversions.h"
 #include "cocos/bindings/manual/jsb_global_init.h"
 
 #include "storage/local-storage/LocalStorage.h"
+#include "v8/Object.h"
 
 extern se::Object *__jsb_cc_FileUtils_proto; // NOLINT(readability-redundant-declaration, readability-identifier-naming)
+
+se::Class* __jsb_cc_Vec3_class = nullptr;
+se::Object* __jsb_cc_Vec3_proto = nullptr;
+SE_DECLARE_FINALIZE_FUNC(js_delete_cc_Vec3) 
+se::Class* __jsb_cc_Vec4_class = nullptr;
+se::Object* __jsb_cc_Vec4_proto = nullptr;
+SE_DECLARE_FINALIZE_FUNC(js_delete_cc_Vec4) 
+se::Class* __jsb_cc_Mat3_class = nullptr;
+se::Object* __jsb_cc_Mat3_proto = nullptr;
+SE_DECLARE_FINALIZE_FUNC(js_delete_cc_Mat3) 
+se::Class* __jsb_cc_Mat4_class = nullptr;
+se::Object* __jsb_cc_Mat4_proto = nullptr;
+SE_DECLARE_FINALIZE_FUNC(js_delete_cc_Mat4) 
+
 
 static bool jsb_ccx_empty_func(const se::State & /*s*/) { // NOLINT(readability-identifier-naming)
     return true;
@@ -733,7 +749,39 @@ static bool register_engine_Color_manual(se::Object * /*obj*/) { // NOLINT(reada
     return true;
 }
 
+static bool js_cc_ISystemWindowManager_getInstance_static(se::State &s) { // NOLINT(readability-identifier-naming)
+    const auto &args = s.args();
+
+    CC_UNUSED bool ok = true;
+    auto *instance = CC_GET_PLATFORM_INTERFACE(cc::ISystemWindowManager);
+    ok &= nativevalue_to_se(instance, s.rval(), s.thisObject());
+    SE_PRECONDITION2(ok, false, "js_cc_ISystemWindowManager_getInstance Failed");
+
+    return true;
+}
+SE_BIND_FUNC(js_cc_ISystemWindowManager_getInstance_static)
+
+static bool register_platform(se::Object * /*obj*/) { // NOLINT(readability-identifier-naming)
+    se::Value constructor;
+    bool result = __jsb_cc_ISystemWindowManager_proto->getProperty("constructor", &constructor);
+    result &= constructor.toObject()->defineFunction("getInstance", _SE(js_cc_ISystemWindowManager_getInstance_static));
+    return result;
+}
+
 bool register_all_cocos_manual(se::Object *obj) { // NOLINT(readability-identifier-naming)
+    
+    se::Value jsbNs;
+    obj->getProperty("jsb", &jsbNs);
+    if(jsbNs.isUndefined()) {
+        jsbNs.setObject(se::Object::createPlainObject());
+        obj->setProperty("jsb", jsbNs);
+    }
+
+    register_cc_Vec3(jsbNs.toObject());
+    register_cc_Vec4(jsbNs.toObject());
+    register_cc_Mat3(jsbNs.toObject());
+    register_cc_Mat4(jsbNs.toObject());
+
     register_plist_parser(obj);
     register_sys_localStorage(obj);
     register_device(obj);

@@ -23,6 +23,7 @@
  THE SOFTWARE.
 */
 
+import { NATIVE } from 'internal:constants';
 import { CCClass } from '../data/class';
 import { ValueType } from '../value-types/value-type';
 import { Quat } from './quat';

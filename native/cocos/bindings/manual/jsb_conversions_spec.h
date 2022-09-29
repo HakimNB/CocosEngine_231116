@@ -540,9 +540,9 @@ inline bool nativevalue_to_se(char *from, se::Value &to, se::Object * /*ctx*/) {
 
 bool nativevalue_to_se(const cc::NativeDep &from, se::Value &to, se::Object *ctx); // NOLINT(readability-identifier-naming)
 
-bool nativevalue_to_se(const cc::Mat3 &from, se::Value &to, se::Object *ctx); // NOLINT(readability-identifier-naming)
+// bool nativevalue_to_se(const cc::Mat3 &from, se::Value &to, se::Object *ctx); // NOLINT(readability-identifier-naming)
 
-bool nativevalue_to_se(const cc::Mat4 &from, se::Value &to, se::Object *ctx); // NOLINT(readability-identifier-naming)
+// bool nativevalue_to_se(const cc::Mat4 &from, se::Value &to, se::Object *ctx); // NOLINT(readability-identifier-naming)
 
 // JSB_REGISTER_OBJECT_TYPE(cc::network::DownloaderHints);
 
@@ -554,16 +554,16 @@ bool nativevalue_to_se(const ccstd::unordered_map<ccstd::string, cc::Value> &fro
 
 bool nativevalue_to_se(const cc::Vec2 &from, se::Value &to, se::Object *ctx); // NOLINT(readability-identifier-naming)
 
-bool nativevalue_to_se(const cc::Vec3 &from, se::Value &to, se::Object *ctx);         // NOLINT(readability-identifier-naming)
-inline bool nativevalue_to_se(const cc::Vec3 *from, se::Value &to, se::Object *ctx) { // NOLINT(readability-identifier-naming)
-    if (from != nullptr) {
-        return nativevalue_to_se(*from, to, ctx);
-    }
-    to.setUndefined();
-    return true;
-}
+// bool nativevalue_to_se(const cc::Vec3 &from, se::Value &to, se::Object *ctx);         // NOLINT(readability-identifier-naming)
+// inline bool nativevalue_to_se(const cc::Vec3 *from, se::Value &to, se::Object *ctx) { // NOLINT(readability-identifier-naming)
+    // if (from != nullptr) {
+        // return nativevalue_to_se(*from, to, ctx);
+    // }
+    // to.setUndefined();
+    // return true;
+// }
 
-bool nativevalue_to_se(const cc::Vec4 &from, se::Value &to, se::Object *ctx); // NOLINT(readability-identifier-naming)
+// bool nativevalue_to_se(const cc::Vec4 &from, se::Value &to, se::Object *ctx); // NOLINT(readability-identifier-naming)
 
 bool nativevalue_to_se(const cc::Size &from, se::Value &to, se::Object *ctx); // NOLINT(readability-identifier-naming)
 
