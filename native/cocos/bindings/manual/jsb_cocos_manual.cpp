@@ -835,7 +835,6 @@ static bool register_cc_Quaternion(se::Object * obj) {  // NOLINT
 
 bool register_all_cocos_manual(se::Object *obj) { // NOLINT(readability-identifier-naming)
     
-
     register_cc_Vec2(obj);
     register_cc_Vec3(obj);
     register_cc_Vec4(obj);
