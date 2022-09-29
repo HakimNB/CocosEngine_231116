@@ -552,7 +552,7 @@ bool nativevalue_to_se(const cc::Value &from, se::Value &to, se::Object *ctx); /
 
 bool nativevalue_to_se(const ccstd::unordered_map<ccstd::string, cc::Value> &from, se::Value &to, se::Object *ctx); // NOLINT(readability-identifier-naming)
 
-bool nativevalue_to_se(const cc::Vec2 &from, se::Value &to, se::Object *ctx); // NOLINT(readability-identifier-naming)
+//bool nativevalue_to_se(const cc::Vec2 &from, se::Value &to, se::Object *ctx); // NOLINT(readability-identifier-naming)
 
 // bool nativevalue_to_se(const cc::Vec3 &from, se::Value &to, se::Object *ctx);         // NOLINT(readability-identifier-naming)
 // inline bool nativevalue_to_se(const cc::Vec3 *from, se::Value &to, se::Object *ctx) { // NOLINT(readability-identifier-naming)
@@ -567,7 +567,7 @@ bool nativevalue_to_se(const cc::Vec2 &from, se::Value &to, se::Object *ctx); //
 
 bool nativevalue_to_se(const cc::Size &from, se::Value &to, se::Object *ctx); // NOLINT(readability-identifier-naming)
 
-bool nativevalue_to_se(const cc::Quaternion &from, se::Value &to, se::Object *ctx); // NOLINT(readability-identifier-naming)
+// bool nativevalue_to_se(const cc::Quaternion &from, se::Value &to, se::Object *ctx); // NOLINT(readability-identifier-naming)
 
 bool nativevalue_to_se(const cc::extension::ManifestAsset &from, se::Value &to, se::Object *ctx); // NOLINT(readability-identifier-naming)
 

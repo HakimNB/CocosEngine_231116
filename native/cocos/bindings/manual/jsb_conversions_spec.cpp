@@ -513,6 +513,10 @@ bool sevalue_to_native(const se::Value &from, cc::Color *to, se::Object * /*unus
     SE_PRECONDITION2(from.isObject(), false, "Convert parameter to Color failed!");
 
     se::Object *obj = from.toObject();
+    if(obj->getPrivateObject()) {
+        *to = *obj->getTypedPrivateData<cc::Color>();
+        return true;
+    }
     se::Value t;
     set_member_field(obj, to, "r", &cc::Color::r, t);
     set_member_field(obj, to, "g", &cc::Color::g, t);
@@ -547,6 +551,10 @@ bool sevalue_to_native(const se::Value &from, cc::Size *to, se::Object * /*unuse
 bool sevalue_to_native(const se::Value &from, cc::Quaternion *to, se::Object * /*unused*/) {
     SE_PRECONDITION2(from.isObject(), false, "Convert parameter to Quaternion failed!");
     se::Object *obj = from.toObject();
+    if(obj->getPrivateObject()) {
+        *to = *obj->getTypedPrivateData<cc::Quaternion>();
+        return true;
+    }
     se::Value tmp;
     set_member_field(obj, to, "x", &cc::Quaternion::x, tmp);
     set_member_field(obj, to, "y", &cc::Quaternion::y, tmp);
@@ -1397,37 +1405,37 @@ bool nativevalue_to_se(const ccstd::unordered_map<ccstd::string, cc::Value> &fro
 }
 
 // NOLINTNEXTLINE(readability-identifier-naming)
-bool nativevalue_to_se(const cc::Vec4 &from, se::Value &to, se::Object * /*unused*/) {
-    se::HandleObject obj(se::Object::createPlainObject());
-    obj->setProperty("x", se::Value(from.x));
-    obj->setProperty("y", se::Value(from.y));
-    obj->setProperty("z", se::Value(from.z));
-    obj->setProperty("w", se::Value(from.w));
-    obj->setProperty("type", se::Value(static_cast<uint32_t>(MathType::VEC4)));
-    to.setObject(obj);
-    return true;
-}
+//bool nativevalue_to_se(const cc::Vec4 &from, se::Value &to, se::Object * /*unused*/) {
+//    se::HandleObject obj(se::Object::createPlainObject());
+//    obj->setProperty("x", se::Value(from.x));
+//    obj->setProperty("y", se::Value(from.y));
+//    obj->setProperty("z", se::Value(from.z));
+//    obj->setProperty("w", se::Value(from.w));
+//    obj->setProperty("type", se::Value(static_cast<uint32_t>(MathType::VEC4)));
+//    to.setObject(obj);
+//    return true;
+//}
 
 // NOLINTNEXTLINE(readability-identifier-naming)
-bool nativevalue_to_se(const cc::Vec2 &from, se::Value &to, se::Object * /*unused*/) {
-    se::HandleObject obj(se::Object::createPlainObject());
-    obj->setProperty("x", se::Value(from.x));
-    obj->setProperty("y", se::Value(from.y));
-    obj->setProperty("type", se::Value(static_cast<uint32_t>(MathType::VEC2)));
-    to.setObject(obj);
-    return true;
-}
+//bool nativevalue_to_se(const cc::Vec2 &from, se::Value &to, se::Object * /*unused*/) {
+//    se::HandleObject obj(se::Object::createPlainObject());
+//    obj->setProperty("x", se::Value(from.x));
+//    obj->setProperty("y", se::Value(from.y));
+//    obj->setProperty("type", se::Value(static_cast<uint32_t>(MathType::VEC2)));
+//    to.setObject(obj);
+//    return true;
+//}
 
-// NOLINTNEXTLINE(readability-identifier-naming)
-bool nativevalue_to_se(const cc::Vec3 &from, se::Value &to, se::Object * /*unused*/) {
-    se::HandleObject obj(se::Object::createPlainObject());
-    obj->setProperty("x", se::Value(from.x));
-    obj->setProperty("y", se::Value(from.y));
-    obj->setProperty("z", se::Value(from.z));
-    obj->setProperty("type", se::Value(static_cast<uint32_t>(MathType::VEC3)));
-    to.setObject(obj);
-    return true;
-}
+//// NOLINTNEXTLINE(readability-identifier-naming)
+//bool nativevalue_to_se(const cc::Vec3 &from, se::Value &to, se::Object * /*unused*/) {
+//    se::HandleObject obj(se::Object::createPlainObject());
+//    obj->setProperty("x", se::Value(from.x));
+//    obj->setProperty("y", se::Value(from.y));
+//    obj->setProperty("z", se::Value(from.z));
+//    obj->setProperty("type", se::Value(static_cast<uint32_t>(MathType::VEC3)));
+//    to.setObject(obj);
+//    return true;
+//}
 
 // NOLINTNEXTLINE(readability-identifier-naming)
 bool nativevalue_to_se(const cc::Size &from, se::Value &to, se::Object * /*unused*/) {
@@ -1512,30 +1520,30 @@ bool nativevalue_to_se(const cc::NativeDep &from, se::Value &to, se::Object * /*
 }
 
 // NOLINTNEXTLINE(readability-identifier-naming)
-bool nativevalue_to_se(const cc::Mat3 &from, se::Value &to, se::Object * /*ctx*/) {
-    se::HandleObject obj(se::Object::createPlainObject());
-    char keybuf[8] = {0};
-    for (auto i = 0; i < 9; i++) {
-        snprintf(keybuf, sizeof(keybuf), "m%02d", i);
-        obj->setProperty(keybuf, se::Value(from.m[i]));
-    }
-    obj->setProperty("type", se::Value(static_cast<uint32_t>(MathType::MAT3)));
-    to.setObject(obj);
-    return true;
-}
+//bool nativevalue_to_se(const cc::Mat3 &from, se::Value &to, se::Object * /*ctx*/) {
+//    se::HandleObject obj(se::Object::createPlainObject());
+//    char keybuf[8] = {0};
+//    for (auto i = 0; i < 9; i++) {
+//        snprintf(keybuf, sizeof(keybuf), "m%02d", i);
+//        obj->setProperty(keybuf, se::Value(from.m[i]));
+//    }
+//    obj->setProperty("type", se::Value(static_cast<uint32_t>(MathType::MAT3)));
+//    to.setObject(obj);
+//    return true;
+//}
 
 // NOLINTNEXTLINE(readability-identifier-naming)
-bool nativevalue_to_se(const cc::Mat4 &from, se::Value &to, se::Object * /*ctx*/) {
-    se::HandleObject obj(se::Object::createPlainObject());
-    char keybuf[8] = {0};
-    for (auto i = 0; i < 16; i++) {
-        snprintf(keybuf, sizeof(keybuf), "m%02d", i);
-        obj->setProperty(keybuf, se::Value(from.m[i]));
-    }
-    obj->setProperty("type", se::Value(static_cast<uint32_t>(MathType::MAT4)));
-    to.setObject(obj);
-    return true;
-}
+//bool nativevalue_to_se(const cc::Mat4 &from, se::Value &to, se::Object * /*ctx*/) {
+//    se::HandleObject obj(se::Object::createPlainObject());
+//    char keybuf[8] = {0};
+//    for (auto i = 0; i < 16; i++) {
+//        snprintf(keybuf, sizeof(keybuf), "m%02d", i);
+//        obj->setProperty(keybuf, se::Value(from.m[i]));
+//    }
+//    obj->setProperty("type", se::Value(static_cast<uint32_t>(MathType::MAT4)));
+//    to.setObject(obj);
+//    return true;
+//}
 
 #if CC_USE_PHYSICS_PHYSX
 

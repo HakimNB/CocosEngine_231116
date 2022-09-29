@@ -36,20 +36,6 @@
 
 extern se::Object *__jsb_cc_FileUtils_proto; // NOLINT(readability-redundant-declaration, readability-identifier-naming)
 
-se::Class* __jsb_cc_Vec3_class = nullptr;
-se::Object* __jsb_cc_Vec3_proto = nullptr;
-SE_DECLARE_FINALIZE_FUNC(js_delete_cc_Vec3) 
-se::Class* __jsb_cc_Vec4_class = nullptr;
-se::Object* __jsb_cc_Vec4_proto = nullptr;
-SE_DECLARE_FINALIZE_FUNC(js_delete_cc_Vec4) 
-se::Class* __jsb_cc_Mat3_class = nullptr;
-se::Object* __jsb_cc_Mat3_proto = nullptr;
-SE_DECLARE_FINALIZE_FUNC(js_delete_cc_Mat3) 
-se::Class* __jsb_cc_Mat4_class = nullptr;
-se::Object* __jsb_cc_Mat4_proto = nullptr;
-SE_DECLARE_FINALIZE_FUNC(js_delete_cc_Mat4) 
-
-
 static bool jsb_ccx_empty_func(const se::State & /*s*/) { // NOLINT(readability-identifier-naming)
     return true;
 }
@@ -749,39 +735,114 @@ static bool register_engine_Color_manual(se::Object * /*obj*/) { // NOLINT(reada
     return true;
 }
 
-static bool js_cc_ISystemWindowManager_getInstance_static(se::State &s) { // NOLINT(readability-identifier-naming)
-    const auto &args = s.args();
-
-    CC_UNUSED bool ok = true;
-    auto *instance = CC_GET_PLATFORM_INTERFACE(cc::ISystemWindowManager);
-    ok &= nativevalue_to_se(instance, s.rval(), s.thisObject());
-    SE_PRECONDITION2(ok, false, "js_cc_ISystemWindowManager_getInstance Failed");
-
+static bool js_cc_Vec2_underlyingData(se::State &s) { // NOLINT
+    auto *self = SE_THIS_OBJECT<cc::Vec2>(s);
+    if (!self) {
+        return false;
+    }
+    se::Object * buffer = se::Object::createExternalArrayBufferObject(self, sizeof(*self), [](void *, size_t , void *){});
+    s.rval().setObject(buffer);    
     return true;
 }
-SE_BIND_FUNC(js_cc_ISystemWindowManager_getInstance_static)
+SE_BIND_FUNC(js_cc_Vec2_underlyingData)
 
-static bool register_platform(se::Object * /*obj*/) { // NOLINT(readability-identifier-naming)
-    se::Value constructor;
-    bool result = __jsb_cc_ISystemWindowManager_proto->getProperty("constructor", &constructor);
-    result &= constructor.toObject()->defineFunction("getInstance", _SE(js_cc_ISystemWindowManager_getInstance_static));
-    return result;
+static bool register_cc_Vec2(se::Object * obj) {  // NOLINT
+    __jsb_cc_Vec2_proto->defineFunction("underlyingData", _SE(js_cc_Vec2_underlyingData));
+    return true;
 }
+
+static bool js_cc_Vec3_underlyingData(se::State &s) { // NOLINT
+    auto *self = SE_THIS_OBJECT<cc::Vec3>(s);
+    if (!self) {
+        return false;
+    }
+    se::Object * buffer = se::Object::createExternalArrayBufferObject(self, sizeof(*self), [](void *, size_t , void *){});
+    s.rval().setObject(buffer);    
+    return true;
+}
+SE_BIND_FUNC(js_cc_Vec3_underlyingData)
+
+static bool register_cc_Vec3(se::Object * obj) {  // NOLINT
+    __jsb_cc_Vec3_proto->defineFunction("underlyingData", _SE(js_cc_Vec3_underlyingData));
+    return true;
+}
+
+static bool js_cc_Vec4_underlyingData(se::State &s) { // NOLINT
+    auto *self = SE_THIS_OBJECT<cc::Vec4>(s);
+    if (!self) {
+        return false;
+    }
+    se::Object * buffer = se::Object::createExternalArrayBufferObject(self, sizeof(*self), [](void *, size_t , void *){});
+    s.rval().setObject(buffer);    
+    return true;
+}
+SE_BIND_FUNC(js_cc_Vec4_underlyingData)
+
+static bool register_cc_Vec4(se::Object * obj) {  // NOLINT
+    __jsb_cc_Vec4_proto->defineFunction("underlyingData", _SE(js_cc_Vec4_underlyingData));
+    return true;
+}
+
+static bool js_cc_Mat3_underlyingData(se::State &s) { // NOLINT
+    auto *self = SE_THIS_OBJECT<cc::Mat3>(s);
+    if (!self) {
+        return false;
+    }
+    se::Object * buffer = se::Object::createExternalArrayBufferObject(self, sizeof(*self), [](void *, size_t , void *){});
+    s.rval().setObject(buffer);    
+    return true;
+}
+SE_BIND_FUNC(js_cc_Mat3_underlyingData)
+
+static bool register_cc_Mat3(se::Object * obj) {  // NOLINT
+    __jsb_cc_Mat3_proto->defineFunction("underlyingData", _SE(js_cc_Mat3_underlyingData));
+    return true;
+}
+
+static bool js_cc_Mat4_underlyingData(se::State &s) { // NOLINT
+    auto *self = SE_THIS_OBJECT<cc::Mat4>(s);
+    if (!self) {
+        return false;
+    }
+    se::Object * buffer = se::Object::createExternalArrayBufferObject(self, sizeof(*self), [](void *, size_t , void *){});
+    s.rval().setObject(buffer);    
+    return true;
+}
+SE_BIND_FUNC(js_cc_Mat4_underlyingData)
+
+static bool register_cc_Mat4(se::Object * obj) {  // NOLINT
+    __jsb_cc_Mat4_proto->defineFunction("underlyingData", _SE(js_cc_Mat4_underlyingData));
+    return true;
+}
+
+static bool js_cc_Quaternion_underlyingData(se::State &s) { // NOLINT
+    auto *self = SE_THIS_OBJECT<cc::Quaternion>(s);
+    if (!self) {
+        return false;
+    }
+    se::Object * buffer = se::Object::createExternalArrayBufferObject(self, sizeof(*self), [](void *, size_t , void *){});
+    s.rval().setObject(buffer);    
+    return true;
+}
+SE_BIND_FUNC(js_cc_Quaternion_underlyingData)
+
+static bool register_cc_Quaternion(se::Object * obj) {  // NOLINT
+    __jsb_cc_Quaternion_proto->defineFunction("underlyingData", _SE(js_cc_Quaternion_underlyingData));
+    return true;
+}
+
+
 
 bool register_all_cocos_manual(se::Object *obj) { // NOLINT(readability-identifier-naming)
     
-    se::Value jsbNs;
-    obj->getProperty("jsb", &jsbNs);
-    if(jsbNs.isUndefined()) {
-        jsbNs.setObject(se::Object::createPlainObject());
-        obj->setProperty("jsb", jsbNs);
-    }
 
-    register_cc_Vec3(jsbNs.toObject());
-    register_cc_Vec4(jsbNs.toObject());
-    register_cc_Mat3(jsbNs.toObject());
-    register_cc_Mat4(jsbNs.toObject());
-
+    register_cc_Vec2(obj);
+    register_cc_Vec3(obj);
+    register_cc_Vec4(obj);
+    register_cc_Mat3(obj);
+    register_cc_Mat4(obj);
+    register_cc_Quaternion(obj);
+    
     register_plist_parser(obj);
     register_sys_localStorage(obj);
     register_device(obj);
