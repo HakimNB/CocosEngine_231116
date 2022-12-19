@@ -54,17 +54,13 @@ struct EventParam : std::conditional<std::is_enum<T>::value, std::true_type, std
 
 template <typename T>
 struct Signature {
-    template <bool>
-    struct Char;
-    template <>
-    struct Char<true> {
-        static constexpr char VALUE{'E'};
-    };
-    template <>
-    struct Char<false> {
-        static constexpr char VALUE{'?'};
-    };
-    constexpr static char name() { return Char<std::is_enum<T>::value>::VALUE; }
+    constexpr static char name() {
+        if constexpr (std::is_enum<T>::value) {
+            return 'E';
+        } else {
+            return '?';
+        }
+    }
 };
 
 #define USE_EVENT_PARAMETER_TYPE(tp, sig_name) \
@@ -166,7 +162,7 @@ private:
     void dispatch(EventBase *event);
     void addListener(Listener *);
     void removeListener(Listener *);
-    std::vector<Listener*> _listeners;
+    std::vector<Listener *> _listeners;
 
     friend class Listener;
 };
@@ -255,7 +251,7 @@ struct EventCallback : EventCallbackBase {
     }
 
     const char *signature() override {
-        //return typeid(arg_tuple_type).name();
+        // return typeid(arg_tuple_type).name();
         return impl::SIGNATURE;
     }
 };
