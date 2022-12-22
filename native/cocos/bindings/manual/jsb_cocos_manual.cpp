@@ -30,10 +30,11 @@
 #include "cocos/bindings/jswrapper/SeApi.h"
 #include "cocos/bindings/manual/jsb_conversions.h"
 #include "cocos/bindings/manual/jsb_global_init.h"
-
 #include "application/ApplicationManager.h"
+#include "math/Quaternion.h"
 #include "platform/interfaces/modules/ISystemWindowManager.h"
 #include "storage/local-storage/LocalStorage.h"
+#include "jsb_helper.h"
 
 extern se::Object *__jsb_cc_FileUtils_proto; // NOLINT(readability-redundant-declaration, readability-identifier-naming)
 
@@ -751,18 +752,6 @@ static bool register_platform(se::Object * /*obj*/) { // NOLINT(readability-iden
     return result;
 }
 
-template <typename T>
-static bool bindAsExternalBuffer(se::State &s) {  // NOLINT
-    auto *self = SE_THIS_OBJECT<T>(s);
-    if (!self) {
-        return false;
-    }
-    // NOLINTNEXTLINE
-    se::HandleObject buffer(se::Object::createExternalArrayBufferObject(self, sizeof(*self), [](void *, size_t, void *) {}));
-    s.rval().setObject(buffer);
-    return true;
-}
-
 static bool js_cc_Vec2_underlyingData(se::State &s) { // NOLINT
     return bindAsExternalBuffer<cc::Vec2>(s);
 }
@@ -793,16 +782,51 @@ static bool js_cc_Quaternion_underlyingData(se::State &s) { // NOLINT
 }
 SE_BIND_FUNC(js_cc_Quaternion_underlyingData)
 
+using cc::Vec2;
+using cc::Vec3;
+using cc::Vec4;
+using cc::Mat3;
+using cc::Mat4;
+using cc::Quaternion;
+
+IMPL_UNDERLINE_DATA(Vec2)
+IMPL_UNDERLINE_DATA(Vec3)
+IMPL_UNDERLINE_DATA(Vec4)
+IMPL_UNDERLINE_DATA(Mat3)
+IMPL_UNDERLINE_DATA(Mat4)
+IMPL_UNDERLINE_DATA(Quaternion)
+
 
 bool register_all_cocos_manual(se::Object *obj) { // NOLINT(readability-identifier-naming)
 
-    __jsb_cc_Vec2_proto->defineFunction("underlyingData", _SE(js_cc_Vec2_underlyingData));
-    __jsb_cc_Vec3_proto->defineFunction("underlyingData", _SE(js_cc_Vec3_underlyingData));
-    __jsb_cc_Vec4_proto->defineFunction("underlyingData", _SE(js_cc_Vec4_underlyingData));
-    __jsb_cc_Mat3_proto->defineFunction("underlyingData", _SE(js_cc_Mat3_underlyingData));
-    __jsb_cc_Mat4_proto->defineFunction("underlyingData", _SE(js_cc_Mat4_underlyingData));
-    __jsb_cc_Quaternion_proto->defineFunction("underlyingData", _SE(js_cc_Quaternion_underlyingData));
+    DESC_UNDERLINE_DATA_BEGIN(Vec2, cc);
+    DESC_UNDERLINE_DATA_FIELD(x);
+    DESC_UNDERLINE_DATA_FIELD(y);
+    DESC_UNDERLINE_DATA_END(Vec2)
 
+    DESC_UNDERLINE_DATA_BEGIN(Vec3, cc);
+    DESC_UNDERLINE_DATA_FIELD(x);
+    DESC_UNDERLINE_DATA_FIELD(y);
+    DESC_UNDERLINE_DATA_FIELD(z);
+    DESC_UNDERLINE_DATA_END(Vec3)
+
+    DESC_UNDERLINE_DATA_BEGIN(Vec4, cc);
+    DESC_UNDERLINE_DATA_FIELD(x);
+    DESC_UNDERLINE_DATA_FIELD(y);
+    DESC_UNDERLINE_DATA_FIELD(z);
+    DESC_UNDERLINE_DATA_FIELD(w);
+    DESC_UNDERLINE_DATA_END(Vec4)
+
+    DESC_UNDERLINE_DATA_BEGIN(Quaternion, cc);
+    DESC_UNDERLINE_DATA_FIELD(x);
+    DESC_UNDERLINE_DATA_FIELD(y);
+    DESC_UNDERLINE_DATA_FIELD(z);
+    DESC_UNDERLINE_DATA_FIELD(w);
+    DESC_UNDERLINE_DATA_END(Quaternion)
+
+    REG_UNDERLINE_DATA(__jsb_cc_Mat3_proto, Mat3);
+    REG_UNDERLINE_DATA(__jsb_cc_Mat4_proto, Mat3);
+    
     register_plist_parser(obj);
     register_sys_localStorage(obj);
     register_device(obj);

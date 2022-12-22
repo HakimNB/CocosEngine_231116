@@ -30,53 +30,11 @@
 #include "cocos/bindings/jswrapper/SeApi.h"
 #include "cocos/bindings/manual/jsb_conversions.h"
 #include "cocos/bindings/manual/jsb_global_init.h"
+#include "jsb_helper.h"
 
-template <typename T>
-static bool bindAsExternalBuffer(se::State &s) { // NOLINT
-    auto *self = SE_THIS_OBJECT<T>(s);
-    if (!self) {
-        return false;
-    }
-    // NOLINTNEXTLINE
-    se::HandleObject buffer(se::Object::createExternalArrayBufferObject(self, sizeof(*self), [](void *, size_t, void *) {}));
-    s.rval().setObject(buffer);
-    return true;
-}
+using namespace cc::geometry;
 
-#define REG_UNDERLINE_DATA(type) \
-    __jsb_cc_geometry_##type##_proto->defineFunction("underlyingData", _SE(js_cc_geometry_##type##_underlyingData))
-
-#define DESC_OFFSET_OF(type, field) \
-    static_cast<int>(reinterpret_cast<uintptr_t>(&(static_cast<type *>(nullptr)->field)))
-
-#define DESC_UNDERLINE_DATA_BEGIN(kls)          \
-    {                                           \
-        using current_type = cc::geometry::kls; \
-        se::HandleObject info{se::Object::createPlainObject()};
-
-#define DESC_UNDERLINE_DATA_FIELD(field)                                                        \
-    {                                                                                           \
-        se::HandleObject fieldInfo{se::Object::createPlainObject()};                            \
-        int fieldOffset = DESC_OFFSET_OF(current_type, field);                                  \
-        constexpr int fieldSize = static_cast<int>(sizeof(std::declval<current_type>().field)); \
-        fieldInfo->setProperty("fieldName", se::Value(#field));                                 \
-        fieldInfo->setProperty("fieldOffset", se::Value(fieldOffset));                          \
-        fieldInfo->setProperty("fieldSize", se::Value(fieldSize));                              \
-        info->setProperty(#field, se::Value(fieldInfo));                                        \
-    }
-
-#define DESC_UNDERLINE_DATA_END(kls)                                        \
-    se::Value protoVal;                                                     \
-    __jsb_cc_geometry_##kls##_proto->getProperty("constructor", &protoVal); \
-    protoVal.toObject()->setProperty("__nativeFields__", se::Value(info));  \
-    }                                                                       \
-    REG_UNDERLINE_DATA(kls);
-
-#define IMPL_UNDERLINE_DATA(type)                                      \
-    static bool js_cc_geometry_##type##_underlyingData(se::State &s) { \
-        return bindAsExternalBuffer<cc::geometry::type>(s);            \
-    }                                                                  \
-    SE_BIND_FUNC(js_cc_geometry_##type##_underlyingData)
+#define prefix jsb_cc_geometry
 
 IMPL_UNDERLINE_DATA(Line)
 IMPL_UNDERLINE_DATA(Plane)
@@ -87,40 +45,41 @@ IMPL_UNDERLINE_DATA(AABB)
 IMPL_UNDERLINE_DATA(Capsule)
 IMPL_UNDERLINE_DATA(Frustum)
 
-bool register_all_geometry_manual(se::Object * /*obj*/) { // NOLINT(readability-identifier-naming)
+bool register_all_geometry_manual(se::Object* /*obj*/) { // NOLINT(readability-identifier-naming)
+    using namespace cc::geometry;
 
-    DESC_UNDERLINE_DATA_BEGIN(Line)
+    DESC_UNDERLINE_DATA_BEGIN(Line, cc_geometry)
     DESC_UNDERLINE_DATA_FIELD(s)
     DESC_UNDERLINE_DATA_FIELD(e)
     DESC_UNDERLINE_DATA_END(Line)
 
-    DESC_UNDERLINE_DATA_BEGIN(Plane)
+    DESC_UNDERLINE_DATA_BEGIN(Plane, cc_geometry)
     DESC_UNDERLINE_DATA_FIELD(n)
     DESC_UNDERLINE_DATA_FIELD(d)
     DESC_UNDERLINE_DATA_END(Plane)
 
-    DESC_UNDERLINE_DATA_BEGIN(Ray)
+    DESC_UNDERLINE_DATA_BEGIN(Ray, cc_geometry)
     DESC_UNDERLINE_DATA_FIELD(o)
     DESC_UNDERLINE_DATA_FIELD(d)
     DESC_UNDERLINE_DATA_END(Ray)
 
-    DESC_UNDERLINE_DATA_BEGIN(Triangle)
+    DESC_UNDERLINE_DATA_BEGIN(Triangle, cc_geometry)
     DESC_UNDERLINE_DATA_FIELD(a)
     DESC_UNDERLINE_DATA_FIELD(b)
     DESC_UNDERLINE_DATA_FIELD(c)
     DESC_UNDERLINE_DATA_END(Triangle)
 
-    DESC_UNDERLINE_DATA_BEGIN(Sphere)
+    DESC_UNDERLINE_DATA_BEGIN(Sphere, cc_geometry)
     DESC_UNDERLINE_DATA_FIELD(_center)
     DESC_UNDERLINE_DATA_FIELD(_radius)
     DESC_UNDERLINE_DATA_END(Sphere)
 
-    DESC_UNDERLINE_DATA_BEGIN(AABB)
+    DESC_UNDERLINE_DATA_BEGIN(AABB, cc_geometry)
     DESC_UNDERLINE_DATA_FIELD(center)
     DESC_UNDERLINE_DATA_FIELD(halfExtents)
     DESC_UNDERLINE_DATA_END(AABB)
 
-    DESC_UNDERLINE_DATA_BEGIN(Capsule)
+    DESC_UNDERLINE_DATA_BEGIN(Capsule, cc_geometry)
     DESC_UNDERLINE_DATA_FIELD(radius)
     DESC_UNDERLINE_DATA_FIELD(halfHeight)
     DESC_UNDERLINE_DATA_FIELD(axis)
