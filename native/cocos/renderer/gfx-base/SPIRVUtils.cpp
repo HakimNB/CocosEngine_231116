@@ -28,7 +28,7 @@
 #include "base/Utils.h"
 #include "glslang/Public/ShaderLang.h"
 #include "glslang/SPIRV/GlslangToSpv.h"
-#include "glslang/StandAlone/ResourceLimits.h"
+#include "glslang/Public/ResourceLimits.h"
 #include "spirv/spirv.h"
 
 namespace cc {
@@ -129,7 +129,7 @@ void SPIRVUtils::compileGLSL(ShaderStageFlagBit type, const ccstd::string &sourc
 
     auto messages = static_cast<EShMessages>(EShMsgSpvRules | EShMsgVulkanRules);
 
-    if (!_shader->parse(&glslang::DefaultTBuiltInResource, _clientInputSemanticsVersion, false, messages)) {
+    if (!_shader->parse(GetDefaultResources(), _clientInputSemanticsVersion, false, messages)) {
         CC_LOG_ERROR("GLSL Parsing Failed:\n%s\n%s", _shader->getInfoLog(), _shader->getInfoDebugLog());
     }
 

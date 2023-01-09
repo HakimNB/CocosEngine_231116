@@ -27,7 +27,7 @@ macro(cc_linux_after_target target_name)
         COMPILE_FLAGS "-pthread"
         LINK_FLAGS "-pthread -lsndio ")
 
-    target_link_libraries(${target_name} dl ${ENGINE_NAME})
+    target_link_libraries(${target_name} dl ${ENGINE_NAME} X11-xcb xcb)
 
     target_include_directories(${target_name} PRIVATE
         ${CC_PROJECT_DIR}/../common/Classes

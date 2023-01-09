@@ -42,6 +42,14 @@
     #include "swappy/swappy_common.h"
 #endif
 
+#if CC_PLATFORM == CC_PLATFORM_LINUX
+#include "platform/linux/modules/SystemWindowManager.h"
+#include "platform/linux/modules/SystemWindow.h"
+#include <X11/Xlib.h>
+#include <xcb/xcb.h>
+#include <X11/Xlib-xcb.h>
+#endif
+
 namespace cc {
 namespace gfx {
 
@@ -494,6 +502,16 @@ void CCVKSwapchain::createVkSurface() {
 #elif defined(VK_USE_PLATFORM_XCB_KHR)
     VkXcbSurfaceCreateInfoKHR surfaceCreateInfo{VK_STRUCTURE_TYPE_XCB_SURFACE_CREATE_INFO_KHR};
     surfaceCreateInfo.connection = nullptr; // TODO
+    #if (CC_PLATFORM == CC_PLATFORM_LINUX)
+        // deps: https://github.com/go-vgo/robotgo/issues/19
+        auto *windowMgr = BasePlatform::getPlatform()->getInterface<SystemWindowManager>();
+        // ISystemWindow *window = windowMgr->getWindowFromSDLWindow(reinterpret_cast<SDL_Window*>(_windowHandle));
+        auto *window = static_cast<SystemWindow*>(windowMgr->getWindow(1));
+        ::Display *display = reinterpret_cast<::Display*>(window->getDisplay());
+        xcb_connection_t *connection = ::XGetXCBConnection(display);
+        surfaceCreateInfo.connection = connection;
+
+    #endif
     surfaceCreateInfo.window = reinterpret_cast<uint64_t>(_windowHandle);
     VK_CHECK(vkCreateXcbSurfaceKHR(gpuContext->vkInstance, &surfaceCreateInfo, nullptr, &_gpuSwapchain->vkSurface));
 #else
