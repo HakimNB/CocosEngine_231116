@@ -107,9 +107,9 @@ export class CompactValueTypeArray {
      */
     public static compress (values: any[], elementType: ElementType, unit: StorageUnit, arrayBuffer: ArrayBuffer, byteOffset: number, presumedByteOffset: number): CompactValueTypeArray {
         const elementTraits = getElementTraits(elementType);
-        const storageConstructor = getStorageConstructor(unit);
+        const StorageConstructor = getStorageConstructor(unit);
         const unitCount = elementTraits.requiredUnits * values.length;
-        const storage = new storageConstructor(arrayBuffer, byteOffset, unitCount);
+        const storage = new StorageConstructor(arrayBuffer, byteOffset, unitCount);
         for (let i = 0; i < values.length; ++i) {
             elementTraits.compress(storage, i, values[i]);
         }
@@ -129,8 +129,8 @@ export class CompactValueTypeArray {
     public decompress<T> (arrayBuffer: ArrayBuffer): T[] {
         const { storageUnit, elementType } = extractStorageUnitElementType(this._unitElement);
         const elementTraits = getElementTraits(elementType);
-        const storageConstructor = getStorageConstructor(storageUnit);
-        const storage = new storageConstructor(arrayBuffer, this._byteOffset, this._unitCount);
+        const StorageConstructor = getStorageConstructor(storageUnit);
+        const storage = new StorageConstructor(arrayBuffer, this._byteOffset, this._unitCount);
         const result = new Array<T>(this._length);
         for (let i = 0; i < this._length; ++i) {
             result[i] = elementTraits.decompress(storage, i);
@@ -161,13 +161,15 @@ function getStorageConstructor (unit: StorageUnit) {
         return Float32Array;
     case StorageUnit.Float64:
         return Float64Array;
+    default:
+        throw new Error(`Bad unit type ${unit as number}`);
     }
 }
 
 interface CompactTraits {
     requiredUnits: number;
-    compress (storage: CompactValueTypeArrayStorage, index: number, value: any): void;
-    decompress (storage: CompactValueTypeArrayStorage, index: number): any;
+    compress(storage: CompactValueTypeArrayStorage, index: number, value: any): void;
+    decompress(storage: CompactValueTypeArrayStorage, index: number): any;
 }
 
 const BuiltinElementTypeTraits: Record<ElementType, CompactTraits> = {
@@ -241,6 +243,6 @@ interface CompactValueTypeArrayStorage {
     [n: number]: number;
 }
 
-export function isCompactValueTypeArray (value: any): value is CompactValueTypeArray  {
+export function isCompactValueTypeArray (value: any): value is CompactValueTypeArray {
     return value instanceof CompactValueTypeArray;
 }

@@ -29,11 +29,7 @@ function deepFlatten (strList, array) {
     for (const item of array) {
         if (Array.isArray(item)) {
             deepFlatten(strList, item);
-        }
-        // else if (item instanceof Declaration) {
-        //     strList.push(item.toString());
-        // }
-        else {
+        } else {
             strList.push(item);
         }
     }

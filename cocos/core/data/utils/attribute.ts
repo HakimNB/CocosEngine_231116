@@ -28,6 +28,7 @@ import { log, warnID } from '../../platform/debug';
 import { formatStr, get, getClassName, isChildClassOf, value } from '../../utils/js';
 import { isPlainEmptyObj_DEV } from '../../utils/misc';
 import { legacyCC } from '../../global-exports';
+import type { IParsedAttribute } from '../class';
 
 export const DELIMETER = '$_$';
 
@@ -86,7 +87,7 @@ export function attr (constructor: any, propertyName: string): { [attributeName:
 /**
  * Returns a readonly meta object.
  */
-export function getClassAttrs (constructor: any) {
+export function getClassAttrs (constructor: any): IParsedAttribute {
     return (constructor.hasOwnProperty('__attrs__') && constructor.__attrs__) || createAttrs(constructor);
 }
 

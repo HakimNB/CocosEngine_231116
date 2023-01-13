@@ -40,6 +40,8 @@ import { PropertyStash, PropertyStashInternalFlag } from './class-stash';
 const DELIMETER = attributeUtils.DELIMETER;
 const CCCLASS_TAG = '__ctors__'; // Still use this historical name to avoid unsynchronized version issue
 
+const HasOwnProperty = Object.prototype.hasOwnProperty;
+
 /**
  * @engineInternal
  */
@@ -50,14 +52,14 @@ export const ENUM_TAG = 'Enum';
  */
 export const BITMASK_TAG = 'BitMask';
 
-function pushUnique (array, item) {
+function pushUnique<T> (array: T[], item: T) {
     if (array.indexOf(item) < 0) {
         array.push(item);
     }
 }
 
 // both getter and prop must register the name into __props__ array
-function appendProp (cls, name) {
+function appendProp (cls, name: string): void {
     if (DEV) {
         // if (!IDENTIFIER_RE.test(name)) {
         //    error('The property name "' + name + '" is not compliant with JavaScript naming standards');
@@ -75,7 +77,7 @@ function defineProp (cls, className, propName, val) {
     if (DEV) {
         // check base prototype to avoid name collision
         if (CCClass.getInheritanceChain(cls)
-            .some((x) => x.prototype.hasOwnProperty(propName))) {
+            .some((x) => HasOwnProperty.call(x, propName))) {
             errorID(3637, className, propName, className);
             return;
         }
@@ -122,24 +124,25 @@ function defineGetSet (cls, name, propName, val) {
     }
 }
 
-function getDefault (defaultVal) {
+function getDefault<T> (defaultVal: T | { (): T }): T {
     if (typeof defaultVal === 'function') {
         if (EDITOR) {
             try {
-                return defaultVal();
+                return (<{ (): T }>defaultVal)();
             } catch (e) {
                 legacyCC._throw(e);
-                return undefined;
+                return undefined!;
             }
         } else {
-            return defaultVal();
+            return (<{ (): T }>defaultVal)();
         }
     }
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return defaultVal;
 }
 
-function doDefine (className, baseClass, options) {
-    const ctor = options.ctor;
+function doDefine<T extends AnyFunction = any, B = any> (className: string, baseClass: Xctor<B>, options) {
+    const ctor: Xctor<T> = options.ctor;
 
     if (DEV) {
         // check ctor
@@ -156,10 +159,11 @@ function doDefine (className, baseClass, options) {
     }
 
     js.setClassName(className, ctor);
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return ctor;
 }
 
-function define (className, baseClass, options) {
+function define<T extends AnyFunction> (className: string, baseClass: Xctor<any>, options): Xctor<T> | null {
     const Component = legacyCC.Component;
     const frame = RF.peek();
 
@@ -175,7 +179,7 @@ function define (className, baseClass, options) {
         className = className || frame.script;
     }
 
-    const cls = doDefine(className, baseClass, options);
+    const cls: Xctor<T> = doDefine<T>(className, baseClass, options);
 
     if (EDITOR) {
         // for RenderPipeline, RenderFlow, RenderStage
@@ -243,7 +247,7 @@ function getNewValueTypeCodeJit (value) {
 
 // TODO - move escapeForJS, IDENTIFIER_RE, getNewValueTypeCodeJit to misc.js or a new source file
 
-// convert a normal string including newlines, quotes and unicode characters into a string literal
+// convert a normal string including newlines, quotes and Unicode characters into a string literal
 // ready to use in JavaScript source
 function escapeForJS (s) {
     return JSON.stringify(s)
@@ -252,10 +256,7 @@ function escapeForJS (s) {
         .replace(/\u2029/g, '\\u2029');
 }
 
-// simple test variable name
-const IDENTIFIER_RE = /^[A-Za-z_$][0-9A-Za-z_$]*$/;
-
-function declareProperties (cls, className, properties, baseClass) {
+function declareProperties<T> (cls: Xctor<T>, className: string, properties, baseClass) {
     cls.__props__ = [];
 
     if (baseClass && baseClass.__props__) {
@@ -276,12 +277,13 @@ function declareProperties (cls, className, properties, baseClass) {
         }
     }
 
-    const attrs = attributeUtils.getClassAttrs(cls);
-    cls.__values__ = cls.__props__.filter((prop) => attrs[`${prop + DELIMETER}serializable`] !== false);
+    const attrs: AttrHugeObj<T> = attributeUtils.getClassAttrs(cls) as any;
+    cls.__values__ = cls.__props__.filter((prop) => attrs[`${prop}${DELIMETER}serializable`] !== false);
 }
 
 export function CCClass<TFunction> (options: {
     name?: string;
+    // eslint-disable-next-line @typescript-eslint/ban-types
     extends: null | (Function & { __props__?: any; _sealed?: boolean });
     ctor: TFunction;
     properties?: any;
@@ -358,7 +360,7 @@ CCClass.Attr = attributeUtils;
 CCClass.attr = attributeUtils.attr;
 
 /**
- * Returns if the class is a cc-class or is fast defined.
+ * Returns if the class is a cc-class or is fast-defined.
  * @param constructor The constructor of the class.
  * @returns Judge result.
  * @engineInternal
@@ -366,13 +368,16 @@ CCClass.attr = attributeUtils.attr;
 // eslint-disable-next-line @typescript-eslint/ban-types
 export function isCCClassOrFastDefined<T> (constructor: Constructor<T>) {
     // eslint-disable-next-line no-prototype-builtins, @typescript-eslint/no-unsafe-return
-    return  constructor?.hasOwnProperty?.('__values__');
+    return constructor?.hasOwnProperty?.('__values__');
 }
 
 CCClass.isCCClassOrFastDefined = isCCClassOrFastDefined;
 
 /**
- * Return all super classes.
+ * @en
+ * Return all superclasses.
+ * @zh
+ * 获取所有父类
  * @param constructor The Constructor.
  */
 function getInheritanceChain (constructor) {
@@ -392,21 +397,21 @@ function getInheritanceChain (constructor) {
 CCClass.getInheritanceChain = getInheritanceChain;
 
 const PrimitiveTypes = {
-    // Specify that the input value must be integer in Properties.
-    // Also used to indicates that the type of elements in array or the type of value in dictionary is integer.
+    // Specify that the input value must be an integer in Properties.
+    // Is also used to indicate that the type of elements in an array or the type of value in a dictionary is an integer.
     Integer: 'Number',
-    // Indicates that the type of elements in array or the type of value in dictionary is double.
+    // Indicates that the type of elements in an array or the type of value in a dictionary is double.
     Float: 'Number',
     Boolean: 'Boolean',
     String: 'String',
 };
 
-interface IParsedAttribute extends IAcceptableAttributes {
-    ctor?: Function;
+export interface IParsedAttribute extends IAcceptableAttributes {
+    ctor?: AnyFunction;
     enumList?: readonly any[];
     bitmaskList?: any[];
 }
-type OnAfterProp = (constructor: Function, mainPropertyName: string) => void;
+type OnAfterProp = (constructor: AnyFunction, mainPropertyName: string) => void;
 const onAfterProps_ET: OnAfterProp[] = [];
 
 interface AttributesRecord {
@@ -415,10 +420,10 @@ interface AttributesRecord {
     default?: unknown;
 }
 
-function parseAttributes (constructor: Function, attributes: PropertyStash, className: string, propertyName: string, usedInGetter) {
+function parseAttributes<T> (constructor: AnyFunction, attributes: PropertyStash<T>, className: string, propertyName: string, usedInGetter) {
     const ERR_Type = DEV ? 'The %s of %s must be type %s' : '';
 
-    let attrs: IParsedAttribute | null = null;
+    let attrs: IParsedAttribute = null!;
     let propertyNamePrefix = '';
     function initAttrs () {
         propertyNamePrefix = propertyName + DELIMETER;
@@ -455,10 +460,10 @@ function parseAttributes (constructor: Function, attributes: PropertyStash, clas
         else if (typeof type === 'object') {
             if (Enum.isEnum(type)) {
                 (attrs || initAttrs())[`${propertyNamePrefix}type`] = ENUM_TAG;
-                attrs![`${propertyNamePrefix}enumList`] = Enum.getList(type);
+                attrs[`${propertyNamePrefix}enumList`] = Enum.getList(type);
             } else if (BitMask.isBitMask(type)) {
                 (attrs || initAttrs())[`${propertyNamePrefix}type`] = BITMASK_TAG;
-                attrs![`${propertyNamePrefix}bitmaskList`] = BitMask.getList(type);
+                attrs[`${propertyNamePrefix}bitmaskList`] = BitMask.getList(type);
             } else if (DEV) {
                 errorID(3645, className, propertyName, type);
             }
@@ -466,7 +471,7 @@ function parseAttributes (constructor: Function, attributes: PropertyStash, clas
             // Do not warn missing-default if the type is object
             warnOnNoDefault = false;
             (attrs || initAttrs())[`${propertyNamePrefix}type`] = 'Object';
-            attrs![`${propertyNamePrefix}ctor`] = type;
+            attrs[`${propertyNamePrefix}ctor`] = type;
             if (((EDITOR && !window.Build) || TEST) && !attributes._short) {
                 onAfterProps_ET.push(attributeUtils.getObjTypeChecker_ET(type));
             }
@@ -483,11 +488,11 @@ function parseAttributes (constructor: Function, attributes: PropertyStash, clas
         // warnID(3654, className, propertyName);
     }
 
-    const parseSimpleAttribute = (attributeName: keyof IAcceptableAttributes, expectType: string) => {
+    const parseSimpleAttribute = (attributeName: string & keyof IAcceptableAttributes, expectType: string) => {
         if (attributeName in attributes) {
             const val = attributes[attributeName];
             if (typeof val === expectType) {
-                (attrs || initAttrs())[propertyNamePrefix + attributeName] = val;
+                (attrs || initAttrs())[`${propertyNamePrefix}${attributeName}`] = val;
             } else if (DEV) {
                 error(ERR_Type, attributeName, className, propertyName, expectType);
             }
@@ -574,9 +579,9 @@ function parseAttributes (constructor: Function, attributes: PropertyStash, clas
         if (Array.isArray(range)) {
             if (range.length >= 2) {
                 (attrs || initAttrs())[`${propertyNamePrefix}min`] = range[0];
-                attrs![`${propertyNamePrefix}max`] = range[1];
+                attrs[`${propertyNamePrefix}max`] = range[1];
                 if (range.length > 2) {
-                    attrs![`${propertyNamePrefix}step`] = range[2];
+                    attrs[`${propertyNamePrefix}step`] = range[2];
                 }
             } else if (DEV) {
                 errorID(3647);

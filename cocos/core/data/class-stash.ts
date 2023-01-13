@@ -22,19 +22,19 @@
  THE SOFTWARE.
 */
 
-import { IExposedAttributes } from './utils/attribute-defines';
+import type { IExposedAttributes } from './utils/attribute-defines';
 
 /**
  * Class slash stores information collected from decorators.
- * Once class decorator entered, class definition begins. It process the stash and remove it.
+ * Once the class decorator entered, the class definition begins. It processes the stash and removes it.
  */
-export interface ClassStash {
+export interface ClassStash<T = unknown> {
     /**
-     * When extract default values under TypeScript environment,
-     * we have to construct an object of current class and get its member values.
+     * When extracting default values under the TypeScript environment,
+     * We have to construct an object of the current class and get its member values.
      * This field stores the create-once object.
      */
-    default?: unknown;
+    default?: T;
 
     /**
      * Just a kind of organization.
@@ -48,26 +48,26 @@ export interface ClassStash {
 
     /**
      * The error properties.
-     * We record them here to ensure only once error report is given to each property.
+     * We record them here to ensure only one error report is given to each property.
      */
     errorProps?: Record<PropertyKey, true>;
 }
 
-export interface PropertyStash extends IExposedAttributes {
+export interface PropertyStash<T = any> extends IExposedAttributes {
     /**
      * The property's default value.
      */
-    default?: unknown;
+    default?: T;
 
     /**
      * The property's getter, if it's an accessor.
      */
-    get?: () => unknown;
+    get?: () => T;
 
     /**
      * The property's setter, if it's an accessor.
      */
-    set?: (value: unknown) => void;
+    set?: (value: T) => void;
 
     /**
      * Reserved for deprecated usage.
@@ -85,17 +85,17 @@ export enum PropertyStashInternalFlag {
      * Indicates this property is reflected using "standalone property decorators" such as
      * `@editable`, `@visible`, `serializable`.
      * All standalone property decorators would set this flag;
-     * non standalone property decorators won't set this flag.
+     * non-standalone property decorators won't set this flag.
      */
     STANDALONE = 1 << 0,
 
     /**
-     * Indicates this property is visible, if no other explicit visibility decorators(`@visible`s) attached.
+     * Indicates this property is visible, if no other explicit visibility decorators(`@visible`s) are attached.
      */
     IMPLICIT_VISIBLE = 1 << 1,
 
     /**
-     * Indicates this property is serializable, if no other explicit visibility decorators(`@serializable`s) attached.
+     * Indicates this property is serializable, if no other explicit visibility decorators(`@serializable`s) are attached.
      */
     IMPLICIT_SERIALIZABLE = 1 << 2,
 }
