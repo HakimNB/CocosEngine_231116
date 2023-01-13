@@ -531,7 +531,7 @@ export function extend (cls: Function, base: Function) {
  * @returns @en Super class. @zh 父类。
  */
 // eslint-disable-next-line @typescript-eslint/ban-types
-export function getSuper (constructor: Function) {
+export function getSuper<T> (constructor: Xctor<T>): Xctor<any> {
     const proto = constructor.prototype; // bound function do not have prototype
     const dunderProto = proto && Object.getPrototypeOf(proto);
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
@@ -603,8 +603,8 @@ export const _idToClass: Record<string, Constructor> = createMap(true);
  */
 export const _nameToClass: Record<string, Constructor> = createMap(true);
 
-function setup (tag: string, table: Record<string | number, any>, allowExist: boolean) {
-    return function (id: string, constructor: Constructor) {
+function setup<T> (tag: string, table: Record<string | number, any>, allowExist: boolean) {
+    return function<T> (id: string, constructor: Xctor<T>) {
         // deregister old
         // eslint-disable-next-line no-prototype-builtins
         if (constructor.prototype.hasOwnProperty(tag)) {
@@ -653,7 +653,7 @@ const doSetClassName = setup('__classname__', _nameToClass, true);
  * @param className @en Class name to register. @zh 注册的类名。
  * @param constructor @en Constructor to register. @zh 注册的构造函数。
  */
-export function setClassName (className: string, constructor: Constructor) {
+export function setClassName<T> (className: string, constructor: Constructor<T>) {
     doSetClassName(className, constructor);
     // auto set class id
     // eslint-disable-next-line no-prototype-builtins

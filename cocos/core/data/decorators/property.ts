@@ -40,14 +40,14 @@ export type PropertyType = SimplePropertyType | SimplePropertyType[];
  * @zh CCClass 属性选项。
  * @en CCClass property options
  */
-export type IPropertyOptions = IExposedAttributes
+export type IPropertyOptions<T> = IExposedAttributes<T>
 
 /**
  * @en Declare as a CCClass property with options
  * @zh 声明属性为 CCClass 属性。
  * @param options property options
  */
-export function property (options?: IPropertyOptions): LegacyPropertyDecorator;
+export function property<T> (options?: IPropertyOptions<T>): LegacyPropertyDecorator<T>;
 
 /**
  * @en Declare as a CCClass property with the property type
@@ -55,32 +55,32 @@ export function property (options?: IPropertyOptions): LegacyPropertyDecorator;
  * 等价于`@property({type})`。
  * @param type A [[ccclass]] type or a [[ValueType]]
  */
-export function property (type: PropertyType): LegacyPropertyDecorator;
+export function property <T>(type: PropertyType): LegacyPropertyDecorator<T>;
 
 /**
  * @en Declare as a CCClass property
  * @zh 标注属性为 cc 属性。<br/>
  * 等价于`@property()`。
  */
-export function property (...args: Parameters<LegacyPropertyDecorator>): void;
+export function property<T> (...args: Parameters<LegacyPropertyDecorator<T>>): void;
 
-export function property (
-    target?: Parameters<LegacyPropertyDecorator>[0] | PropertyType,
-    propertyKey?: Parameters<LegacyPropertyDecorator>[1],
-    descriptorOrInitializer?: Parameters<LegacyPropertyDecorator>[2],
+export function property<T> (
+    target?: Parameters<LegacyPropertyDecorator<T>>[0] | PropertyType,
+    propertyKey?: Parameters<LegacyPropertyDecorator<T>>[1],
+    descriptorOrInitializer?: Parameters<LegacyPropertyDecorator<T>>[2],
 ) {
-    let options: IPropertyOptions | PropertyType | null = null;
+    let options: IPropertyOptions<T> | PropertyType | null = null;
     function normalized (
-        target: Parameters<LegacyPropertyDecorator>[0],
-        propertyKey: Parameters<LegacyPropertyDecorator>[1],
-        descriptorOrInitializer: Parameters<LegacyPropertyDecorator>[2],
+        target: Parameters<LegacyPropertyDecorator<T>>[0],
+        propertyKey: Parameters<LegacyPropertyDecorator<T>>[1],
+        descriptorOrInitializer: Parameters<LegacyPropertyDecorator<T>>[2],
     ) {
         const classStash = getOrCreateClassStash(target);
-        const propertyStash = getOrCreateEmptyPropertyStash(
+        const propertyStash = getOrCreateEmptyPropertyStash<T>(
             target,
             propertyKey,
         );
-        const classConstructor = target.constructor;
+        const classConstructor: Xctor<any> = target.constructor as any;
         mergePropertyOptions(
             classStash,
             propertyStash,
@@ -103,13 +103,13 @@ export function property (
         return normalized;
     } else {
         // @property
-        normalized(target as Parameters<LegacyPropertyDecorator>[0], propertyKey, descriptorOrInitializer);
+        normalized(<Record<string, any>>target, propertyKey, descriptorOrInitializer);
         return undefined;
     }
 }
 
-function getDefaultFromInitializer (initializer: Initializer) {
-    let value: unknown;
+function getDefaultFromInitializer<T> (initializer: Initializer<T>): T|Initializer<T> {
+    let value: T;
     try {
         value = initializer();
     } catch (e) {
@@ -126,8 +126,8 @@ function getDefaultFromInitializer (initializer: Initializer) {
     }
 }
 
-function extractActualDefaultValues (classConstructor: new () => unknown) {
-    let dummyObj: unknown;
+function extractActualDefaultValues<T> (classConstructor: new () => T): T | Record<string, never> | undefined {
+    let dummyObj: T;
     try {
         // eslint-disable-next-line new-cap
         dummyObj = new classConstructor();
@@ -140,31 +140,31 @@ function extractActualDefaultValues (classConstructor: new () => unknown) {
     return dummyObj;
 }
 
-function getOrCreateClassStash (target: Parameters<LegacyPropertyDecorator>[0]): ClassStash {
-    const cache = getClassCache(target.constructor) as ClassStash;
+function getOrCreateClassStash<T> (target: Parameters<LegacyPropertyDecorator<T>>[0]): ClassStash<any> {
+    const cache = getClassCache(target.constructor) as ClassStash<any>;
     return cache;
 }
 
-function getOrCreateEmptyPropertyStash (
-    target: Parameters<LegacyPropertyDecorator>[0],
-    propertyKey: Parameters<LegacyPropertyDecorator>[1],
-): PropertyStash {
-    const classStash = getClassCache(target.constructor) as ClassStash;
+function getOrCreateEmptyPropertyStash<T> (
+    target: Parameters<LegacyPropertyDecorator<T>>[0],
+    propertyKey: Parameters<LegacyPropertyDecorator<T>>[1],
+): PropertyStash<T> {
+    const classStash = getClassCache(target.constructor) as ClassStash<any>;
     const ccclassProto = getSubDict(classStash, 'proto');
     const properties = getSubDict(ccclassProto, 'properties');
-    const propertyStash = properties[(propertyKey as string)] ??= {} as PropertyStash;
+    const propertyStash: PropertyStash<T> = properties[(propertyKey as string)] ??= {} as PropertyStash<any>;
     return propertyStash;
 }
 
-export function getOrCreatePropertyStash (
-    target: Parameters<LegacyPropertyDecorator>[0],
-    propertyKey: Parameters<LegacyPropertyDecorator>[1],
-    descriptorOrInitializer?: Parameters<LegacyPropertyDecorator>[2],
-): PropertyStash {
-    const classStash = getClassCache(target.constructor) as ClassStash;
+export function getOrCreatePropertyStash<T> (
+    target: Parameters<LegacyPropertyDecorator<T>>[0],
+    propertyKey: Parameters<LegacyPropertyDecorator<T>>[1],
+    descriptorOrInitializer?: Parameters<LegacyPropertyDecorator<T>>[2],
+): PropertyStash<T> {
+    const classStash = getClassCache(target.constructor) as ClassStash<T>;
     const ccclassProto = getSubDict(classStash, 'proto');
     const properties = getSubDict(ccclassProto, 'properties');
-    const propertyStash = properties[(propertyKey as string)] ??= {} as PropertyStash;
+    const propertyStash: PropertyStash<T> = properties[(propertyKey as string)] ??= {} as PropertyStash<T>;
     propertyStash.__internalFlags |= PropertyStashInternalFlag.STANDALONE;
     if (descriptorOrInitializer && typeof descriptorOrInitializer !== 'function' && (descriptorOrInitializer.get || descriptorOrInitializer.set)) {
         if (descriptorOrInitializer.get) {
@@ -185,19 +185,19 @@ export function getOrCreatePropertyStash (
     return propertyStash;
 }
 
-function mergePropertyOptions (
-    cache: ClassStash,
-    propertyStash: PropertyStash,
-    ctor,
-    propertyKey: Parameters<LegacyPropertyDecorator>[1],
+function mergePropertyOptions<T> (
+    cache: ClassStash<any>,
+    propertyStash: PropertyStash<T>,
+    ctor: Xctor<any>,
+    propertyKey: Parameters<LegacyPropertyDecorator<T>>[1],
     options,
-    descriptorOrInitializer: Parameters<LegacyPropertyDecorator>[2] | undefined,
+    descriptorOrInitializer: Parameters<LegacyPropertyDecorator<T>>[2] | undefined,
 ) {
     let fullOptions;
     const isGetset = descriptorOrInitializer && typeof descriptorOrInitializer !== 'function'
         && (descriptorOrInitializer.get || descriptorOrInitializer.set);
     if (options) {
-        fullOptions = getFullFormOfProperty(options, isGetset);
+        fullOptions = getFullFormOfProperty(options, !!isGetset);
     }
     // @ts-expect-error enum PropertyStashInternalFlag is used as number
     const propertyRecord: PropertyStash = mixin(propertyStash, fullOptions || options || {});
@@ -211,11 +211,11 @@ function mergePropertyOptions (
                 warnID(3655, propertyKey, getClassName(ctor), propertyKey, propertyKey);
             }
         }
-        if ((<BabelPropertyDecoratorDescriptor>descriptorOrInitializer).get) {
-            propertyRecord.get = (<BabelPropertyDecoratorDescriptor>descriptorOrInitializer).get;
+        if ((<BabelPropertyDecoratorDescriptor<T>>descriptorOrInitializer).get) {
+            propertyRecord.get = (<BabelPropertyDecoratorDescriptor<T>>descriptorOrInitializer).get;
         }
-        if ((<BabelPropertyDecoratorDescriptor>descriptorOrInitializer).set) {
-            propertyRecord.set = (<BabelPropertyDecoratorDescriptor>descriptorOrInitializer).set;
+        if ((<BabelPropertyDecoratorDescriptor<T>>descriptorOrInitializer).set) {
+            propertyRecord.set = (<BabelPropertyDecoratorDescriptor<T>>descriptorOrInitializer).set;
         }
     } else { // Target property is non-accessor
         if (DEV && (propertyRecord.get || propertyRecord.set)) {
@@ -241,12 +241,12 @@ function mergePropertyOptions (
     }
 }
 
-function setDefaultValue<T> (
-    classStash: ClassStash,
-    propertyStash: PropertyStash,
+function setDefaultValue<T, V> (
+    classStash: ClassStash<T>,
+    propertyStash: PropertyStash<V>,
     classConstructor: new () => T,
     propertyKey: PropertyKey,
-    descriptorOrInitializer: BabelPropertyDecoratorDescriptor | Initializer | undefined | null,
+    descriptorOrInitializer: BabelPropertyDecoratorDescriptor<V> | Initializer<V> | undefined | null,
 ) {
     if (descriptorOrInitializer !== undefined) {
         if (typeof descriptorOrInitializer === 'function') {
@@ -264,7 +264,7 @@ function setDefaultValue<T> (
         // In case of TypeScript, we can not directly capture the initializer.
         // We have to be hacking to extract the value.
         // We should fallback to TypeScript case only when `descriptorOrInitializer` is undefined.
-        const actualDefaultValues = classStash.default || (classStash.default = extractActualDefaultValues(classConstructor));
+        const actualDefaultValues = classStash.default || (classStash.default = extractActualDefaultValues(classConstructor) as T);
         // eslint-disable-next-line no-prototype-builtins
         if ((actualDefaultValues as any).hasOwnProperty(propertyKey)) {
             propertyStash.default = (actualDefaultValues as any)[propertyKey];

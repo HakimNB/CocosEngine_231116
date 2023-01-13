@@ -28,6 +28,7 @@ import { error, errorID, warn, warnID } from '../../platform/debug';
 import * as js from '../../utils/js';
 import { PrimitiveType } from './attribute';
 import { legacyCC } from '../../global-exports';
+import { PropertyStash } from '../class-stash';
 
 // 增加预处理属性这个步骤的目的是降低 CCClass 的实现难度，将比较稳定的通用逻辑和一些需求比较灵活的属性需求分隔开。
 
@@ -80,7 +81,7 @@ function parseNotify (val, propName, notify, properties) {
     }
 }
 
-function parseType (val, type, className, propName) {
+function parseType<T> (val: PropertyStash, type: Xctor<T>|Xctor<T>[], className: string, propName: string) {
     const STATIC_CHECK = (EDITOR && DEV) || TEST;
 
     if (Array.isArray(type)) {
@@ -155,7 +156,7 @@ function getBaseClassWherePropertyDefined_DEV (propName, cls) {
     }
 }
 
-function _wrapOptions (isGetset: boolean, _default, type?: Function | Function[]) {
+function _wrapOptions (isGetset: boolean, _default: PropertyStash|Array<any>, type?: Function | Function[]) {
     const res: {
         default?: any,
         _short?: boolean,
@@ -167,7 +168,7 @@ function _wrapOptions (isGetset: boolean, _default, type?: Function | Function[]
     return res;
 }
 
-export function getFullFormOfProperty (options, isGetset) {
+export function getFullFormOfProperty (options: PropertyStash, isGetset: boolean) {
     const isLiteral = options && options.constructor === Object;
     if (!isLiteral) {
         if (Array.isArray(options) && options.length > 0) {
@@ -184,7 +185,7 @@ export function getFullFormOfProperty (options, isGetset) {
     return null;
 }
 
-export function preprocessAttrs (properties, className, cls) {
+export function preprocessAttrs<T> (properties: {[key: string]: PropertyStash}, className: string, cls: Xctor<T>) {
     for (const propName in properties) {
         let val = properties[propName];
         const fullForm = getFullFormOfProperty(val, false);

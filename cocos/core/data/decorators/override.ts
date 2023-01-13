@@ -29,7 +29,7 @@ import { getOrCreatePropertyStash } from './property';
  *
  * @engineInternal
  */
-export const override: LegacyPropertyDecorator = (target, propertyKey, descriptorOrInitializer) => {
+export const override: LegacyPropertyDecorator<boolean> = (target, propertyKey, descriptorOrInitializer) => {
     const propertyStash = getOrCreatePropertyStash(target, propertyKey, descriptorOrInitializer);
     propertyStash.override = true;
 };

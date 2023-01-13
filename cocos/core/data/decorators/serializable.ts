@@ -37,7 +37,7 @@ const WITH_SERIALIZATION = EDITOR || TEST;
 /**
  * @engineInternal
  */
-export const serializable: LegacyPropertyDecorator = (target, propertyKey, descriptorOrInitializer) => {
+export const serializable: LegacyPropertyDecorator<boolean> = (target, propertyKey, descriptorOrInitializer) => {
     const propertyStash = getOrCreatePropertyStash(target, propertyKey, descriptorOrInitializer);
     setImplicitSerializable(propertyStash);
 };
@@ -45,7 +45,7 @@ export const serializable: LegacyPropertyDecorator = (target, propertyKey, descr
 /**
  * @engineInternal
  */
-export function formerlySerializedAs (name: string): LegacyPropertyDecorator {
+export function formerlySerializedAs (name: string): LegacyPropertyDecorator<string> {
     return (target, propertyKey, descriptorOrInitializer) => {
         const propertyStash = getOrCreatePropertyStash(target, propertyKey, descriptorOrInitializer);
         propertyStash.formerlySerializedAs = name;
@@ -59,13 +59,13 @@ export function formerlySerializedAs (name: string): LegacyPropertyDecorator {
  * @zh
  * 设置该属性仅在编辑器中生效。
  */
-export const editorOnly: LegacyPropertyDecorator = (target, propertyKey, descriptorOrInitializer) => {
+export const editorOnly: LegacyPropertyDecorator<boolean> = (target, propertyKey, descriptorOrInitializer) => {
     const propertyStash = getOrCreatePropertyStash(target, propertyKey, descriptorOrInitializer);
     propertyStash.editorOnly = true;
     setImplicitSerializable(propertyStash);
 };
 
-function setImplicitSerializable (propertyStash: PropertyStash) {
+function setImplicitSerializable<T> (propertyStash: PropertyStash<T>) {
     propertyStash.__internalFlags |= PropertyStashInternalFlag.IMPLICIT_SERIALIZABLE;
 }
 

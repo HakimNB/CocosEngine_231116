@@ -27,9 +27,18 @@ import { CCClass } from '../class';
 import { error } from '../../platform/debug';
 import { getClassName } from '../../utils/js-typed';
 
-export type Initializer = () => unknown;
+export type Initializer<T> = () => T;
 
-export type BabelPropertyDecoratorDescriptor = PropertyDescriptor & { initializer?: Initializer };
+export interface PropertyDescriptor<T> {
+    configurable?: boolean;
+    enumerable?: boolean;
+    value?: T;
+    writable?: boolean;
+    get?(): T;
+    set?(v: T): void;
+}
+
+export type BabelPropertyDecoratorDescriptor<T> = PropertyDescriptor<T> & { initializer?: Initializer<T> };
 
 /**
  * @en
@@ -40,8 +49,8 @@ export type BabelPropertyDecoratorDescriptor = PropertyDescriptor & { initialize
  * 该签名同时兼容 TypeScript legacy 装饰器以及 Babel legacy 装饰器。
  * 第三个参数在 Babel 情况下，会传入 descriptor。对于一些被优化的引擎内部装饰器，会传入 initializer。
  */
-export type LegacyPropertyDecorator = (
-    target: Record<string, any>, propertyKey: string | symbol, descriptorOrInitializer?: BabelPropertyDecoratorDescriptor | Initializer | null,
+export type LegacyPropertyDecorator<T> = (
+    target: Record<string, any>, propertyKey: string | symbol, descriptorOrInitializer?: BabelPropertyDecoratorDescriptor<T> | Initializer<T> | null,
 ) => void;
 
 /**
@@ -50,7 +59,7 @@ export type LegacyPropertyDecorator = (
  * @zh
  * 一个什么也不做的类（或属性）装饰器。
  */
-export const emptyDecorator: ClassDecorator & LegacyPropertyDecorator = () => {};
+export const emptyDecorator: ClassDecorator & LegacyPropertyDecorator<unknown> = () => {};
 
 /**
  * @en

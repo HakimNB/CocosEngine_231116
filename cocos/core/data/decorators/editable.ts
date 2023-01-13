@@ -47,7 +47,7 @@ import { LegacyPropertyDecorator, emptyDecorator, makeSmartEditorClassDecorator,
  * }
  * ```
  */
-export const executeInEditMode: ClassDecorator & ((yes?: boolean) => ClassDecorator) =    DEV ? makeSmartEditorClassDecorator('executeInEditMode', true) : emptySmartClassDecorator;
+export const executeInEditMode: ClassDecorator & ((yes?: boolean) => ClassDecorator) = DEV ? makeSmartEditorClassDecorator('executeInEditMode', true) : emptySmartClassDecorator;
 
 /**
  * @en Add the current component to the specific menu path in `Add Component` selector of the inspector panel
@@ -65,7 +65,7 @@ export const executeInEditMode: ClassDecorator & ((yes?: boolean) => ClassDecora
  * }
  * ```
  */
-export const menu: (path: string) => ClassDecorator =    DEV ? makeEditorClassDecoratorFn('menu') : emptyDecoratorFn;
+export const menu: (path: string) => ClassDecorator = DEV ? makeEditorClassDecoratorFn('menu') : emptyDecoratorFn;
 
 /**
  * @en When [[_decorator.executeInEditMode]] is set,
@@ -84,7 +84,7 @@ export const menu: (path: string) => ClassDecorator =    DEV ? makeEditorClassDe
  * }
  * ```
  */
-export const playOnFocus: ClassDecorator & ((yes?: boolean) => ClassDecorator) =    DEV ? makeSmartEditorClassDecorator<boolean>('playOnFocus', true) : emptySmartClassDecorator;
+export const playOnFocus: ClassDecorator & ((yes?: boolean) => ClassDecorator) = DEV ? makeSmartEditorClassDecorator<boolean>('playOnFocus', true) : emptySmartClassDecorator;
 
 /**
  * @en Use a customized inspector page in the **inspector**
@@ -102,7 +102,7 @@ export const playOnFocus: ClassDecorator & ((yes?: boolean) => ClassDecorator) =
  * }
  * ```
  */
-export const inspector: (url: string) => ClassDecorator =    DEV ? makeEditorClassDecoratorFn('inspector') : emptyDecoratorFn;
+export const inspector: (url: string) => ClassDecorator = DEV ? makeEditorClassDecoratorFn('inspector') : emptyDecoratorFn;
 
 /**
  * @en Define the icon of the component.
@@ -121,13 +121,13 @@ export const inspector: (url: string) => ClassDecorator =    DEV ? makeEditorCla
  * }
  * ```
  */
-export const icon: (url: string) => ClassDecorator =    DEV ? makeEditorClassDecoratorFn('icon') : emptyDecoratorFn;
+export const icon: (url: string) => ClassDecorator = DEV ? makeEditorClassDecoratorFn('icon') : emptyDecoratorFn;
 
 /**
- * @en Define the help documentation url,
- * if given, the component section in the **Inspector** will have a help documentation icon reference to the web page given.
+ * @en Define the help documentation URL,
+ * if given, the component section in the **Inspector** will have a help documentation icon referring to the web page given.
  * @zh 指定当前组件的帮助文档的 url，设置过后，在 **属性检查器** 中就会出现一个帮助图标，用户点击将打开指定的网页。
- * @param url The url of the help documentation
+ * @param url The URL of the help documentation
  * @example
  * ```ts
  * import { _decorator, Component } from 'cc';
@@ -149,7 +149,7 @@ export const help: (url: string) => ClassDecorator = DEV ? makeEditorClassDecora
  * 允许该属性与编辑器交互。
  * @engineInternal
  */
-export const editable: LegacyPropertyDecorator = !DEV
+export const editable: LegacyPropertyDecorator<any> = !DEV
     ? emptyDecorator
     : (target, propertyKey, descriptorOrInitializer) => {
         const propertyStash = getOrCreatePropertyStash(target, propertyKey, descriptorOrInitializer);
@@ -164,7 +164,7 @@ export const editable: LegacyPropertyDecorator = !DEV
  * @param condition 展示条件，当返回 `true` 时展示；否则不展示。
  * @engineInternal
  */
-export const visible: (condition: boolean | (() => boolean)) => LegacyPropertyDecorator = !DEV
+export const visible: <T>(condition: boolean | ((...any: any[]) => boolean)) => LegacyPropertyDecorator<T> = !DEV
     ? emptyDecoratorFn
     : setPropertyStashVar1WithImplicitVisible('visible');
 
@@ -174,7 +174,7 @@ export const visible: (condition: boolean | (() => boolean)) => LegacyPropertyDe
  * @zh
  * 设置该属性在编辑器中仅是可读的。
  */
-export const readOnly: LegacyPropertyDecorator = !DEV
+export const readOnly: LegacyPropertyDecorator<boolean> = !DEV
     ? emptyDecorator
     : setPropertyStashWithImplicitVisible('readonly', true);
 
@@ -186,7 +186,7 @@ export const readOnly: LegacyPropertyDecorator = !DEV
  * @param text 显示名称。
  * @engineInternal
  */
-export const displayName: (text: string) => LegacyPropertyDecorator = !DEV
+export const displayName: (text: string) => LegacyPropertyDecorator<string> = !DEV
     ? emptyDecoratorFn
     : setPropertyStashVar1WithImplicitVisible('displayName');
 
@@ -198,7 +198,7 @@ export const displayName: (text: string) => LegacyPropertyDecorator = !DEV
  * @param text 工具提示。
  * @engineInternal
  */
-export const tooltip: (text: string) => LegacyPropertyDecorator = !DEV
+export const tooltip: <T>(text: string) => LegacyPropertyDecorator<T> = !DEV
     ? emptyDecoratorFn
     : setPropertyStashWithImplicitI18n('tooltip');
 
@@ -209,7 +209,7 @@ export const tooltip: (text: string) => LegacyPropertyDecorator = !DEV
  * 设置在属性检查器上该属性所属的分类标签。
  * @param options 分组的配置。
  */
-export const group: (options: NonNullable<IExposedAttributes['group']>) => LegacyPropertyDecorator = !DEV
+export const group: (options: NonNullable<IExposedAttributes['group']>) => LegacyPropertyDecorator<typeof options> = !DEV
     ? emptyDecoratorFn
     : setPropertyStashVar1WithImplicitVisible('group');
 
@@ -278,7 +278,7 @@ export const slide: LegacyPropertyDecorator = !DEV
  * @param order 显示顺序。
  * @engineInternal
  */
-export const displayOrder: (order: number) => LegacyPropertyDecorator = !DEV
+export const displayOrder: (order: number) => LegacyPropertyDecorator<any> = !DEV
     ? emptyDecoratorFn
     : setPropertyStashVar1WithImplicitVisible('displayOrder');
 
@@ -293,7 +293,7 @@ export const unit: (name:
 | 'lm'
 | 'lx'
 | 'cd/m²'
-) => LegacyPropertyDecorator = !DEV
+) => LegacyPropertyDecorator<any> = !DEV
     ? emptyDecoratorFn
     : setPropertyStashVar1WithImplicitVisible('unit');
 
@@ -342,24 +342,24 @@ function setPropertyStashWithImplicitVisible<TKey extends keyof PropertyStash> (
     };
 }
 
-function setPropertyStashVar1WithImplicitVisible<TKey extends keyof PropertyStash> (
+function setPropertyStashVar1WithImplicitVisible<T, TKey extends keyof PropertyStash<T>> (
     key: TKey,
 ) {
-    return (value: NonNullable<PropertyStash[TKey]>): LegacyPropertyDecorator => (target, propertyKey, descriptorOrInitializer) => {
+    return (value: NonNullable<PropertyStash<T>[TKey]>): LegacyPropertyDecorator<T> => (target, propertyKey, descriptorOrInitializer) => {
         const propertyStash = getOrCreatePropertyStash(target, propertyKey, descriptorOrInitializer);
         propertyStash[key] = value;
         setImplicitVisible(propertyStash);
     };
 }
 
-function setImplicitVisible (propertyStash: PropertyStash) {
+function setImplicitVisible<T> (propertyStash: PropertyStash<T>) {
     propertyStash.__internalFlags |= PropertyStashInternalFlag.IMPLICIT_VISIBLE;
 }
 
-function setPropertyStashWithImplicitI18n<TKey extends keyof PropertyStash> (
+function setPropertyStashWithImplicitI18n<T, TKey extends keyof PropertyStash<T>> (
     key: TKey,
 ) {
-    return (value: NonNullable<PropertyStash[TKey]>): LegacyPropertyDecorator => (target, propertyKey, descriptorOrInitializer) => {
+    return (value: NonNullable<PropertyStash<T>[TKey]>): LegacyPropertyDecorator<T> => (target, propertyKey, descriptorOrInitializer) => {
         const propertyStash = getOrCreatePropertyStash(target, propertyKey, descriptorOrInitializer);
         const prefix = 'i18n:';
         if (value.startsWith(prefix)) {

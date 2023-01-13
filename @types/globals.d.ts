@@ -103,3 +103,55 @@ declare type Setter = (value: any) => void;
 declare const Buffer: any;
 
 declare type EnumAlias<EnumT> = EnumT[keyof EnumT];
+
+declare interface Instance<T> {
+    constructor: Xctor<T>;
+}
+
+declare interface Xctor<T> extends Constructor<T> {
+    __props__: string[];
+    __values__: string[];
+    __attrs__: AttrHugeObj<T>;
+    __cid__: string;
+    __classname__: string;
+    $super?: Xctor<unknown>;
+    __ccclassCache__?: {
+        proto: {
+            properties: { [key: string]: any }
+        }
+    }
+    _sealed?: boolean;
+}
+declare interface Xattr<T> {
+    visible?: boolean;
+    editable?: boolean;
+    serializable?: boolean;
+    default?: T | { (): T };
+    ctor?: Xctor<T>;
+    hasGetter?: boolean;
+    hasSetter?: boolean;
+}
+
+declare type StringTypeExtract1<T> = T extends `${infer T1}$_$${infer _}` ? T1 : never;
+declare type StringTypeExtract2<T> = T extends `${infer _}$_$${infer T2}` ? T2 : never;
+declare type TestAndReadField<T, Key> = Key extends keyof T ? T[Key] : never;
+
+// declare type ExcludeFunction<M, K extends keyof M> = M[K] extends {(...args: any[]): any} ? never : K;
+declare type NonFunctionPartial<T> = {
+    [K in keyof T as T[K] extends AnyFunction ? never : K]: T[K]
+}
+
+// declare type AttrKeysType<T> = `${string & keyof T}$_$${keyof Xattr<T>}`;
+declare type MakeAttributeName<S, T> = `${string & S}$_$${string & T}`;
+declare type AttrHugeObj<T,
+    Key_ofT extends keyof T = keyof NonFunctionPartial<T>,
+    // Key_ofT extends keyof T = keyof T,
+    FieldTypes_ofT extends T[Key_ofT] = T[Key_ofT],
+    All_Attrs extends Xattr<FieldTypes_ofT> = Xattr<FieldTypes_ofT>,
+    Key_ofAttrs extends keyof All_Attrs = keyof All_Attrs
+>
+    =
+    { [Key_ofHuge in MakeAttributeName<Key_ofT, Key_ofAttrs>]:
+        TestAndReadField<Xattr<TestAndReadField<T, StringTypeExtract1<Key_ofHuge>>>, StringTypeExtract2<Key_ofHuge>> };
+
+declare type AnyXctor = Xctor<any>;

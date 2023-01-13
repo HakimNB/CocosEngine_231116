@@ -28,13 +28,13 @@ import { IExposedAttributes } from './utils/attribute-defines';
  * Class slash stores information collected from decorators.
  * Once class decorator entered, class definition begins. It process the stash and remove it.
  */
-export interface ClassStash {
+export interface ClassStash<T> {
     /**
      * When extract default values under TypeScript environment,
      * we have to construct an object of current class and get its member values.
      * This field stores the create-once object.
      */
-    default?: unknown;
+    default?: T;
 
     /**
      * Just a kind of organization.
@@ -43,7 +43,7 @@ export interface ClassStash {
         /**
          * The property stashes.
          */
-        properties?: Record<PropertyKey, PropertyStash>;
+        properties?: Record<PropertyKey, PropertyStash<any>>;
     };
 
     /**
@@ -53,21 +53,21 @@ export interface ClassStash {
     errorProps?: Record<PropertyKey, true>;
 }
 
-export interface PropertyStash extends IExposedAttributes {
+export interface PropertyStash<T> extends IExposedAttributes<T> {
     /**
      * The property's default value.
      */
-    default?: unknown;
+    default?: T | {(...args: any[]): T};
 
     /**
      * The property's getter, if it's an accessor.
      */
-    get?: () => unknown;
+    get?: () => T;
 
     /**
      * The property's setter, if it's an accessor.
      */
-    set?: (value: unknown) => void;
+    set?: (value: T) => void;
 
     /**
      * Reserved for deprecated usage.

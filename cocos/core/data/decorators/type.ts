@@ -55,11 +55,11 @@ export const string = type(CCString);
  * @zh 标记该属性的类型。
  * @param type
  */
-export function type (type: Function | [Function] | any): PropertyDecorator;
+export function type<T> (type: Xctor<T> | [Xctor<T>] | any): PropertyDecorator;
 
-export function type<T> (type: PrimitiveType<T> | [PrimitiveType<T>]): PropertyDecorator;
+export function type<T> (type: PrimitiveType | [PrimitiveType]): PropertyDecorator;
 
-export function type<T> (type: PrimitiveType<T> | Function | [PrimitiveType<T>] | [Function]): LegacyPropertyDecorator {
+export function type<T> (type: PrimitiveType | Xctor<T> | [PrimitiveType] | [Xctor<T>]): LegacyPropertyDecorator<T> {
     return property({
         type,
     });

@@ -28,11 +28,12 @@ import { log, warnID } from '../../platform/debug';
 import { formatStr, get, getClassName, isChildClassOf, value } from '../../utils/js';
 import { isPlainEmptyObj_DEV } from '../../utils/misc';
 import { legacyCC } from '../../global-exports';
+import { CCClass } from '../class';
 
 export const DELIMETER = '$_$';
 
-export function createAttrsSingle (owner: Object, superAttrs?: any) {
-    const attrs = superAttrs ? Object.create(superAttrs) : {};
+export function createAttrsSingle<N, M> (owner: Xctor<N>|Instance<N>, superAttrs?: AttrHugeObj<M>) {
+    const attrs: AttrHugeObj<N> = superAttrs ? Object.create(superAttrs) : {};
     value(owner, '__attrs__', attrs);
     return attrs;
 }
@@ -40,14 +41,14 @@ export function createAttrsSingle (owner: Object, superAttrs?: any) {
 /**
  * @param subclass Should not have '__attrs__'.
  */
-export function createAttrs (subclass: any) {
+export function createAttrs<T> (subclass: Instance<T>|Xctor<T>): AttrHugeObj<T> {
     if (typeof subclass !== 'function') {
         // attributes only in instance
-        const instance = subclass;
+        const instance: Instance<T> = subclass;
         return createAttrsSingle(instance, getClassAttrs(instance.constructor));
     }
-    let superClass: any;
-    const chains: any[] = legacyCC.Class.getInheritanceChain(subclass);
+    const chains = CCClass.getInheritanceChain(subclass);
+    let superClass: Xctor<any>|undefined;
     for (let i = chains.length - 1; i >= 0; i--) {
         const cls = chains[i];
         const attrs = cls.hasOwnProperty('__attrs__') && cls.__attrs__;
@@ -71,10 +72,10 @@ export function createAttrs (subclass: any) {
  * @param propertyName The name of property or function, used to retrieve the attributes.
  * @private
  */
-export function attr (constructor: any, propertyName: string): { [attributeName: string]: any; } {
+export function attr<T, K extends keyof T & string> (constructor: Xctor<T>, propertyName: K): Xattr<T> {
     const attrs = getClassAttrs(constructor);
     const prefix = propertyName + DELIMETER;
-    const ret = {};
+    const ret: Xattr<T> = {};
     for (const key in attrs) {
         if (key.startsWith(prefix)) {
             ret[key.slice(prefix.length)] = attrs[key];
@@ -83,24 +84,64 @@ export function attr (constructor: any, propertyName: string): { [attributeName:
     return ret;
 }
 
+// class B {
+//     position = 343;
+// }
+// class N extends B {
+//     name = 'N';
+//     age =3;
+// }
+// const p = attr(N as Xctor<N>, 'position');
+
 /**
  * Returns a readonly meta object.
  */
-export function getClassAttrs (constructor: any) {
+export function getClassAttrs<T> (constructor: Xctor<T>): AttrHugeObj<T> {
     return (constructor.hasOwnProperty('__attrs__') && constructor.__attrs__) || createAttrs(constructor);
 }
 
-export function setClassAttr (ctor, propName, key, value) {
+export function setClassAttr<T> (ctor: Xctor<T>, propName: keyof T & string, key: keyof Xattr<any>, value: Xattr<any>[typeof key]) {
     getClassAttrs(ctor)[propName + DELIMETER + key] = value;
 }
 
-export class PrimitiveType<T> {
-    public name: string;
+class NxBase {
+    position = 333;
+}
+class Nx extends NxBase {
+    name= '3';
+    id= 4;
+    update = (dt: number) => {
 
-    public default: T;
+    };
+    sdjf: string[] = ['1', '4'];
+}
 
-    constructor (name: string, defaultValue: T) {
-        this.name = name;
+const ms = getClassAttrs(Nx as Xctor<Nx>);
+ms.name$_$visible = true;
+ms.id$_$editable = false;
+ms.name$_$default = '343';
+ms.name$_$visible = false;
+ms.position$_$visible = true;
+ms.sdjf$_$visible = true;
+// ms.update$_$default
+ms.id$_$default = () => 3434;
+const mt = attr(Nx as Xctor<Nx>, 'position');
+mt.ctor;
+
+// // ms.id$_$visible = 454;
+
+// const nx = new Nx();
+// type sbt = SubKeys<Nx>;
+// let ttt: sbt;
+
+type PrimitiveTypeName = 'Integer'|'Float'|'Boolean'|'String';
+export class PrimitiveType {
+    // public name: PrimitiveTypeName ;
+
+    public default: PrimitiveTypeName;
+
+    constructor (public name: PrimitiveTypeName, defaultValue: any) {
+        // this.name = name;
         this.default = defaultValue;
     }
 

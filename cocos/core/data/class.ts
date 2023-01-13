@@ -50,14 +50,14 @@ export const ENUM_TAG = 'Enum';
  */
 export const BITMASK_TAG = 'BitMask';
 
-function pushUnique (array, item) {
+function pushUnique<T> (array: T[], item: T) {
     if (array.indexOf(item) < 0) {
         array.push(item);
     }
 }
 
 // both getter and prop must register the name into __props__ array
-function appendProp (cls, name) {
+function appendProp<T> (cls: Xctor<T>, name: string) {
     if (DEV) {
         // if (!IDENTIFIER_RE.test(name)) {
         //    error('The property name "' + name + '" is not compliant with JavaScript naming standards');
@@ -71,7 +71,7 @@ function appendProp (cls, name) {
     pushUnique(cls.__props__, name);
 }
 
-function defineProp (cls, className, propName, val) {
+function defineProp<T> (cls: Xctor<T>, className: string, propName: (string & keyof T), val) {
     if (DEV) {
         // check base prototype to avoid name collision
         if (CCClass.getInheritanceChain(cls)
@@ -93,7 +93,7 @@ function defineProp (cls, className, propName, val) {
     }
 }
 
-function defineGetSet (cls, name, propName, val) {
+function defineGetSet (cls: AnyXctor, name: string, propName: string, val) {
     const getter = val.get;
     const setter = val.set;
 
@@ -122,24 +122,28 @@ function defineGetSet (cls, name, propName, val) {
     }
 }
 
-function getDefault (defaultVal) {
+type ValueOrReturnType<T> = T extends () => infer R ? (R | undefined) : T;
+// type ValueOrReturnType<T> = T extends () => infer R ? R : T;
+
+function getDefault<T> (defaultVal: T): ValueOrReturnType<T> {
+    type ret = ValueOrReturnType<T>;
     if (typeof defaultVal === 'function') {
         if (EDITOR) {
             try {
-                return defaultVal();
+                return defaultVal() as ret;
             } catch (e) {
                 legacyCC._throw(e);
-                return undefined;
+                return undefined as ret;
             }
         } else {
-            return defaultVal();
+            return defaultVal() as ret;
         }
     }
-    return defaultVal;
+    return defaultVal as ret;
 }
 
-function doDefine (className, baseClass, options) {
-    const ctor = options.ctor;
+function doDefine<P> (className: string, baseClass: Xctor<P>, options) {
+    const ctor: Xctor<any> = options.ctor;
 
     if (DEV) {
         // check ctor
@@ -159,7 +163,7 @@ function doDefine (className, baseClass, options) {
     return ctor;
 }
 
-function define (className, baseClass, options) {
+function define<P> (className: string, baseClass: Xctor<P>, options) {
     const Component = legacyCC.Component;
     const frame = RF.peek();
 
@@ -222,9 +226,9 @@ function define (className, baseClass, options) {
     return cls;
 }
 
-function getNewValueTypeCodeJit (value) {
+function getNewValueTypeCodeJit (value: string) {
     const clsName = js.getClassName(value);
-    const type = value.constructor;
+    const type = value.constructor as AnyXctor;
     let res = `new ${clsName}(`;
     for (let i = 0; i < type.__props__.length; i++) {
         const prop = type.__props__[i];
@@ -255,7 +259,7 @@ function escapeForJS (s) {
 // simple test variable name
 const IDENTIFIER_RE = /^[A-Za-z_$][0-9A-Za-z_$]*$/;
 
-function declareProperties (cls, className, properties, baseClass) {
+function declareProperties<T> (cls: Xctor<T>, className: string, properties?: { [key: string]: PropertyStash<any> }, baseClass?: Xctor<unknown>) {
     cls.__props__ = [];
 
     if (baseClass && baseClass.__props__) {
@@ -280,10 +284,10 @@ function declareProperties (cls, className, properties, baseClass) {
     cls.__values__ = cls.__props__.filter((prop) => attrs[`${prop + DELIMETER}serializable`] !== false);
 }
 
-export function CCClass<TFunction> (options: {
+export function CCClass<T> (options: {
     name?: string;
-    extends: null | (Function & { __props__?: any; _sealed?: boolean });
-    ctor: TFunction;
+    extends: null | Xctor<any>;
+    ctor: Xctor<T>;
     properties?: any;
     editor?: any;
 }) {
@@ -291,7 +295,7 @@ export function CCClass<TFunction> (options: {
     const base = options.extends/* || CCObject */;
 
     // create constructor
-    const cls = define(name, base, options);
+    const cls = define(name!, base!, options)!;
     if (!name) {
         name = legacyCC.js.getClassName(cls);
     }
@@ -303,7 +307,7 @@ export function CCClass<TFunction> (options: {
 
     // define Properties
     const properties = options.properties;
-    declareProperties(cls, name, properties, base);
+    declareProperties(cls, name!, properties, base as Xctor<any>);
 
     const editor = options.editor;
     if (editor) {
@@ -343,7 +347,7 @@ CCClass._isCCClass = function isCCClass (constructor): boolean {
 // @param {Object} serializableFields
 // @private
 //
-CCClass.fastDefine = function (className, constructor, serializableFields) {
+CCClass.fastDefine = function <T> (className: string, constructor: Xctor<T>, serializableFields) {
     js.setClassName(className, constructor);
     const props = constructor.__props__ = constructor.__values__ = Object.keys(serializableFields);
     const attrs = attributeUtils.getClassAttrs(constructor);
@@ -366,7 +370,7 @@ CCClass.attr = attributeUtils.attr;
 // eslint-disable-next-line @typescript-eslint/ban-types
 export function isCCClassOrFastDefined<T> (constructor: Constructor<T>) {
     // eslint-disable-next-line no-prototype-builtins, @typescript-eslint/no-unsafe-return
-    return  constructor?.hasOwnProperty?.('__values__');
+    return constructor?.hasOwnProperty?.('__values__');
 }
 
 CCClass.isCCClassOrFastDefined = isCCClassOrFastDefined;
@@ -375,14 +379,14 @@ CCClass.isCCClassOrFastDefined = isCCClassOrFastDefined;
  * Return all super classes.
  * @param constructor The Constructor.
  */
-function getInheritanceChain (constructor) {
-    const chain: any[] = [];
+function getInheritanceChain<T> (constructor: Xctor<T>) {
+    const chain: Xctor<any>[] = [];
     for (; ;) {
         constructor = getSuper(constructor);
         if (!constructor) {
             break;
         }
-        if (constructor !== Object) {
+        if ((constructor as any) !== Object) {
             chain.push(constructor);
         }
     }
@@ -401,12 +405,12 @@ const PrimitiveTypes = {
     String: 'String',
 };
 
-interface IParsedAttribute extends IAcceptableAttributes {
-    ctor?: Function;
+interface IParsedAttribute<T> extends IAcceptableAttributes<T> {
+    ctor?: Constructor<T>;
     enumList?: readonly any[];
     bitmaskList?: any[];
 }
-type OnAfterProp = (constructor: Function, mainPropertyName: string) => void;
+type OnAfterProp = (constructor: AnyXctor, mainPropertyName: string) => void;
 const onAfterProps_ET: OnAfterProp[] = [];
 
 interface AttributesRecord {
@@ -415,10 +419,10 @@ interface AttributesRecord {
     default?: unknown;
 }
 
-function parseAttributes (constructor: Function, attributes: PropertyStash, className: string, propertyName: string, usedInGetter) {
+function parseAttributes<T> (constructor: Xctor<T>, attributes: PropertyStash, className: string, propertyName: (string & keyof T), usedInGetter: boolean) {
     const ERR_Type = DEV ? 'The %s of %s must be type %s' : '';
 
-    let attrs: IParsedAttribute | null = null;
+    let attrs: IParsedAttribute<T> | null = null;
     let propertyNamePrefix = '';
     function initAttrs () {
         propertyNamePrefix = propertyName + DELIMETER;
@@ -443,10 +447,8 @@ function parseAttributes (constructor: Function, attributes: PropertyStash, clas
             if (((EDITOR && !window.Build) || TEST) && !attributes._short) {
                 onAfterProps_ET.push(attributeUtils.getTypeChecker_ET(primitiveType, `cc.${type}`));
             }
-        } else if (type === 'Object') {
-            if (DEV) {
-                errorID(3644, className, propertyName);
-            }
+        } else if (type === 'Object' && DEV) {
+            errorID(3644, className, propertyName);
         }
         // else if (type === Attr.ScriptUuid) {
         //     (attrs || initAttrs())[propertyNamePrefix + 'type'] = 'Script';
@@ -483,7 +485,7 @@ function parseAttributes (constructor: Function, attributes: PropertyStash, clas
         // warnID(3654, className, propertyName);
     }
 
-    const parseSimpleAttribute = (attributeName: keyof IAcceptableAttributes, expectType: string) => {
+    const parseSimpleAttribute = <T>(attributeName: keyof IAcceptableAttributes<T>, expectType: string) => {
         if (attributeName in attributes) {
             const val = attributes[attributeName];
             if (typeof val === expectType) {
@@ -590,12 +592,10 @@ function parseAttributes (constructor: Function, attributes: PropertyStash, clas
     parseSimpleAttribute('step', 'number');
 }
 
-CCClass.isArray = function (defaultVal) {
-    defaultVal = getDefault(defaultVal);
-    return Array.isArray(defaultVal);
-};
+type IsDefaultArray<T, R = ValueOrReturnType<T>> = R extends Array<any> ? true : false;
 
-CCClass.getDefault = getDefault;
+CCClass.isArray = <T>(defaultVal: T): IsDefaultArray<T> => Array.isArray(getDefault(defaultVal)) as IsDefaultArray<T>;
+
 CCClass.escapeForJS = escapeForJS;
 CCClass.IDENTIFIER_RE = IDENTIFIER_RE;
 CCClass.getNewValueTypeCode = (SUPPORT_JIT && getNewValueTypeCodeJit) as ((value: any) => string);

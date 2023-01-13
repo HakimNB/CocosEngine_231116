@@ -50,8 +50,8 @@ import { CACHE_KEY, makeSmartClassDecorator } from './utils';
  * }
  * ```
  */
-export const ccclass: ((name?: string) => ClassDecorator) & ClassDecorator = makeSmartClassDecorator<string>((constructor, name) => {
-    let base = getSuper(constructor);
+export const ccclass: ((name?: string) => ClassDecorator) & ClassDecorator = makeSmartClassDecorator<string>((constructor: Xctor<any>, name: string) => {
+    let base: unknown|Xctor<any> = getSuper(constructor);
     if (base === Object) {
         base = null;
     }
@@ -71,7 +71,7 @@ export const ccclass: ((name?: string) => ClassDecorator) & ClassDecorator = mak
         constructor[CACHE_KEY] = undefined;
     }
 
-    const res = CCClass(proto);
+    const res: Xctor<any> = CCClass(proto);
 
     // validate methods
     if (DEV) {

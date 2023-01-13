@@ -22,6 +22,9 @@
  THE SOFTWARE.
 */
 
+import { Primitive } from '../../../primitive/primitive';
+import { PrimitiveType, CCFloat, CCString, CCInteger, CCBoolean } from './attribute';
+
 type GroupOptions = { name: string; } & Partial<{
     id: string;
     name: string;
@@ -29,11 +32,11 @@ type GroupOptions = { name: string; } & Partial<{
     style: string;
 }>;
 
-export interface IExposedAttributes {
+export interface IExposedAttributes<T> {
     /**
      * 指定属性的类型。
      */
-    type?: any;
+    type?: Xctor<T>|Xctor<T>[]|PrimitiveType|[PrimitiveType];
 
     /**
      * 控制是否在编辑器中显示该属性。
@@ -149,6 +152,6 @@ export interface IExposedAttributes {
     userData?: Record<string, any>;
 }
 
-export interface IAcceptableAttributes extends IExposedAttributes {
+export interface IAcceptableAttributes<T> extends IExposedAttributes<T> {
     _short?: boolean;
 }

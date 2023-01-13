@@ -367,6 +367,7 @@ export class Sprite extends UIRenderer {
      */
     @visible(function (this: Sprite) {
         return this._type === SpriteType.SIMPLE;
+        // return "#4";
     })
     @displayOrder(8)
     @tooltip('i18n:sprite.trim')
