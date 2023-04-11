@@ -25,6 +25,7 @@
 ****************************************************************************/
 
 #include "platform/java/jni/JniHelper.h"
+#include <jni.h>
 #if ANDROID
     #include <android/log.h>
 #else
@@ -314,7 +315,7 @@ bool JniHelper::getStaticMethodInfo(JniMethodInfo &methodinfo,
     return true;
 }
 
-//NOLINTNEXTLINE
+// NOLINTNEXTLINE
 bool JniHelper::getMethodInfoDefaultClassLoader(JniMethodInfo &methodinfo,
                                                 const char *className,
                                                 const char *methodName,
@@ -402,6 +403,21 @@ ccstd::string JniHelper::jstring2string(jstring jstr) {
     return strValue;
 }
 
+ccstd::vector<ccstd::string> JniHelper::jstringArray2stringArray(jobjectArray stringArray) {
+    JNIEnv *env = JniHelper::getEnv();
+    int len = env->GetArrayLength(stringArray);
+
+    ccstd::vector<ccstd::string> vec;
+    for (int i = 0; i < len; i++) {
+        auto *stringObject = static_cast<jstring>(env->GetObjectArrayElement(stringArray, i));
+        const char *utfString = env->GetStringUTFChars(stringObject, nullptr);
+        std::string str = utfString;
+        vec.push_back(str);
+        env->ReleaseStringUTFChars(stringObject, utfString);
+    }
+    return vec;
+}
+
 jstring JniHelper::convert(JniHelper::LocalRefMapType *localRefs, cc::JniMethodInfo *t, const char *x) {
     jstring ret = nullptr;
     if (x) {
@@ -444,4 +460,38 @@ void JniHelper::reportError(const ccstd::string &className, const ccstd::string 
     LOGE("Failed to find static java method. Class name: %s, method name: %s, signature: %s ", className.c_str(), methodName.c_str(), signature.c_str());
 }
 
-} //namespace cc
+ClassLoader JniHelper::loadJar(const char *fullpath) {
+    jobject newLoader = JniHelper::callStaticRawObjectMethod("com/cocos/lib/CocosHelper", "loadJar", "Ljava/lang/ClassLoader;", fullpath);
+    assert(newLoader);
+    return ClassLoader(newLoader);
+}
+
+jclass ClassLoader::loadClass(const char *name) {
+    if (!_classLoader || !name) return nullptr;
+    auto *env = JniHelper::getEnv();
+    jstring classPath = env->NewStringUTF(name);
+    jmethodID loadClass = JniHelper::loadclassMethodMethodId;
+    auto *klass = static_cast<jclass>(env->CallObjectMethod(_classLoader, JniHelper::loadclassMethodMethodId, classPath));
+    env->DeleteLocalRef(classPath);
+    return klass;
+}
+
+ClassLoader::ClassLoader(jobject loader) {
+    if (loader) {
+        _classLoader = JniHelper::getEnv()->NewGlobalRef(loader);
+    }
+}
+ClassLoader::~ClassLoader() {
+    if (_classLoader) {
+        JniHelper::getEnv()->DeleteGlobalRef(_classLoader);
+    }
+}
+ClassLoader &ClassLoader::operator=(ClassLoader &&o) noexcept {
+    if (_classLoader) {
+        JniHelper::getEnv()->DeleteGlobalRef(_classLoader);
+    }
+    _classLoader = o._classLoader;
+    o._classLoader = nullptr;
+    return *this;
+}
+} // namespace cc

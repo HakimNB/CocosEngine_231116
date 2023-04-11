@@ -48,6 +48,7 @@ void setAccelerometerEnabledJNI(bool isEnabled);
 void setAccelerometerIntervalJNI(float interval);
 float *getDeviceMotionValueJNI();
 void finishActivity();
+std::string copyToLibFile(const std::string &);
 /**
  * support for High Performance Emulator
  */

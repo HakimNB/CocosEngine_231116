@@ -49,6 +49,7 @@ bool hasPrivate(v8::Isolate *isolate, v8::Local<v8::Value> value);
 void setPrivate(v8::Isolate *isolate, ObjectWrap &wrap, Object *obj);
 Object *getPrivate(v8::Isolate *isolate, v8::Local<v8::Value> value);
 void clearPrivate(v8::Isolate *isolate, ObjectWrap &wrap);
+void *getCallbackPtr(const v8::FunctionCallbackInfo<v8::Value> &);
 
 } // namespace internal
 } // namespace se

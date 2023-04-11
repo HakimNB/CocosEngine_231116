@@ -50,14 +50,15 @@ template <typename T>
 void genericConstructor(const v8::FunctionCallbackInfo<v8::Value> &v8args) {
     using context_type = typename class_<T>::Context;
     v8::Isolate *isolate = v8args.GetIsolate();
-    v8::HandleScope handleScope(isolate);
+    se::AutoHandleScope scope;
     int ctorInvokeTimes{0};
     bool constructed{false};
     bool needDeleteValueArray{false};
     se::ValueArray &args = se::gValueArrayPool.get(v8args.Length(), needDeleteValueArray);
     se::CallbackDepthGuard depthGuard{args, se::gValueArrayPool._depth, needDeleteValueArray};
     se::internal::jsToSeArgs(v8args, args);
-    auto *self = reinterpret_cast<context_type *>(v8args.Data().IsEmpty() ? nullptr : v8args.Data().As<v8::External>()->Value());
+    auto *self = reinterpret_cast<context_type *>(se::internal::getCallbackPtr(v8args));
+
     se::Object *thisObject = se::Object::_createJSObject(self->kls, v8args.This());
     if (!self->finalizeCallbacks.empty()) {
         auto *finalizer = &genericFinalizer<T>;
@@ -97,10 +98,10 @@ void genericConstructor(const v8::FunctionCallbackInfo<v8::Value> &v8args) {
 // v8 property callback
 template <typename ContextType>
 void genericAccessorSet(const v8::FunctionCallbackInfo<v8::Value> &v8args) {
-    auto *attr = reinterpret_cast<ContextType *>(v8args.Data().IsEmpty() ? nullptr : v8args.Data().As<v8::External>()->Value());
+    auto *attr = reinterpret_cast<ContextType *>(se::internal::getCallbackPtr(v8args));
     assert(attr);
     v8::Isolate *isolate = v8args.GetIsolate();
-    v8::HandleScope handleScope(isolate);
+    se::AutoHandleScope scope;
     bool ret = true;
     auto *thisObject = reinterpret_cast<se::Object *>(se::internal::getPrivate(isolate, v8args.This()));
     bool needDeleteValueArray{false};
@@ -116,10 +117,10 @@ void genericAccessorSet(const v8::FunctionCallbackInfo<v8::Value> &v8args) {
 }
 template <typename ContextType>
 void genericAccessorGet(const v8::FunctionCallbackInfo<v8::Value> &v8args) {
-    auto *attr = reinterpret_cast<ContextType *>(v8args.Data().IsEmpty() ? nullptr : v8args.Data().As<v8::External>()->Value());
+    auto *attr = reinterpret_cast<ContextType *>(se::internal::getCallbackPtr(v8args));
     assert(attr);
     v8::Isolate *isolate = v8args.GetIsolate();
-    v8::HandleScope handleScope(isolate);
+    se::AutoHandleScope scope;
     bool ret = true;
     auto *thisObject = reinterpret_cast<se::Object *>(se::internal::getPrivate(isolate, v8args.This()));
     se::State state(thisObject);

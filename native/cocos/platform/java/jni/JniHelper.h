@@ -34,6 +34,7 @@
 #include "base/std/container/unordered_map.h"
 #include "base/std/container/vector.h"
 #include "math/Vec3.h"
+#include "platform/java/jni/JniHelper.h"
 
 // The macro must be used this way to find the native method. The principle is not well understood.
 #define JNI_METHOD2(CLASS2, FUNC2) Java_##CLASS2##_##FUNC2
@@ -67,6 +68,25 @@ using JniMethodInfo = struct JniMethodInfo_ { // NOLINT(readability-identifier-n
     jmethodID methodID;
 };
 
+class JniHelper;
+class CC_DLL ClassLoader {
+public:
+    explicit ClassLoader(jobject loader);
+    ~ClassLoader();
+    jclass loadClass(const char *name);
+
+    ClassLoader(const ClassLoader &) = delete;
+    ClassLoader(ClassLoader &&o) noexcept {
+        _classLoader = o._classLoader;
+        o._classLoader = nullptr;
+    }
+    ClassLoader &operator=(ClassLoader &&o)  noexcept;
+    ClassLoader &operator=(const ClassLoader &) = delete;
+
+private:
+    jobject _classLoader;
+};
+
 class CC_DLL JniHelper {
 public:
     using LocalRefMapType = ccstd::unordered_map<JNIEnv *, ccstd::vector<jobject>>;
@@ -75,6 +95,7 @@ public:
     static JNIEnv *getEnv();
     static jobject getActivity();
     static jobject getContext();
+    static ClassLoader loadJar(const char *fullpath);
 
     static void init(JNIEnv *env, jobject context);
     static void onDestroy();
@@ -92,6 +113,7 @@ public:
                               const char *paramCode);
 
     static ccstd::string jstring2string(jstring str);
+    static ccstd::vector<ccstd::string> jstringArray2stringArray(jobjectArray str);
 
     static jmethodID loadclassMethodMethodId;
     static jobject classloader;
@@ -390,6 +412,30 @@ public:
         }
         return ret;
     }
+
+    template <typename... Ts>
+    static jobject callStaticRawObjectMethod(const ccstd::string &className,
+                                             const ccstd::string &methodName,
+                                             const ccstd::string &returnType,
+                                             Ts... xs) {
+        jobject ret;
+
+        cc::JniMethodInfo t;
+        ccstd::string signature = "(" + ccstd::string(getJNISignature(xs...)) + ")" + returnType;
+        if (cc::JniHelper::getStaticMethodInfo(t, className.c_str(), methodName.c_str(), signature.c_str())) {
+            LocalRefMapType localRefs;
+            ret = t.env->CallStaticObjectMethod(t.classID, t.methodID, convert(&localRefs, &t, xs)...);
+            CLEAR_EXCEPTON(t.env);
+#ifndef __OHOS__
+            ccDeleteLocalRef(t.env, t.classID);
+#endif
+            deleteLocalRefs(t.env, &localRefs);
+        } else {
+            reportError(className, methodName, signature);
+        }
+        return ret;
+    }
+
     static bool setClassLoaderFrom(jobject contextInstance);
 
 private:
@@ -551,6 +597,10 @@ private:
     }
 
     static void reportError(const ccstd::string &className, const ccstd::string &methodName, const ccstd::string &signature);
+
+    friend class ClassLoader;
 };
+
+
 
 } // namespace cc

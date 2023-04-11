@@ -26,7 +26,7 @@
 
 #include "../GFXObject.h"
 #include "base/std/hash/hash.h"
-#include "gfx-base/GFXDef-common.h"
+#include "renderer/gfx-base/GFXDef-common.h"
 
 namespace cc {
 namespace gfx {

@@ -25,10 +25,9 @@
  ****************************************************************************/
 package com.cocos.lib;
 
+import android.content.BroadcastReceiver;
 import android.content.ClipData;
 import android.content.ClipboardManager;
-import android.app.Activity;
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -54,18 +53,20 @@ import android.view.WindowManager;
 import com.android.vending.expansion.zipfile.APKExpansionSupport;
 import com.android.vending.expansion.zipfile.ZipResourceFile;
 
+import dalvik.system.DexClassLoader;
+
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Collections;
+import java.nio.file.Files;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.util.Arrays;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Locale;
 import java.util.Queue;
-import java.util.concurrent.locks.ReentrantLock;
-
 
 public class CocosHelper {
     // ===========================================================
@@ -93,18 +94,20 @@ public class CocosHelper {
     static class LockedTaskQ {
         private final Object readMtx = new Object();
         private Queue<Runnable> sTaskQ = new LinkedList<>();
+
         public void addTask(Runnable runnable) {
             synchronized (readMtx) {
                 sTaskQ.add(runnable);
             }
         }
-        public void runTasks(){
+
+        public void runTasks() {
             Queue<Runnable> tmp;
             synchronized (readMtx) {
                 tmp = sTaskQ;
                 sTaskQ = new LinkedList<>();
             }
-            for(Runnable runnable : tmp){
+            for (Runnable runnable : tmp) {
                 runnable.run();
             }
         }
@@ -112,6 +115,7 @@ public class CocosHelper {
 
     private static LockedTaskQ sTaskQOnGameThread = new LockedTaskQ();
     private static LockedTaskQ sForegroundTaskQOnGameThread = new LockedTaskQ();
+
     /**
      * Battery receiver to getting battery level.
      */
@@ -143,7 +147,7 @@ public class CocosHelper {
         context.unregisterReceiver(sBatteryReceiver);
     }
 
-    //Run on game thread forever, no matter foreground or background
+    // Run on game thread forever, no matter foreground or background
     public static void runOnGameThread(final Runnable runnable) {
         sTaskQOnGameThread.addTask(runnable);
     }
@@ -151,6 +155,7 @@ public class CocosHelper {
     static void flushTasksOnGameThread() {
         sTaskQOnGameThread.runTasks();
     }
+
     public static void runOnGameThreadAtForeground(final Runnable runnable) {
         sForegroundTaskQOnGameThread.addTask(runnable);
     }
@@ -240,17 +245,17 @@ public class CocosHelper {
                     Class<?> vibrationEffectClass = Class.forName("android.os.VibrationEffect");
                     if (vibrationEffectClass != null) {
                         final int DEFAULT_AMPLITUDE = CocosReflectionHelper.<Integer>getConstantValue(vibrationEffectClass,
-                                "DEFAULT_AMPLITUDE");
-                        //VibrationEffect.createOneShot(long milliseconds, int amplitude)
+                            "DEFAULT_AMPLITUDE");
+                        // VibrationEffect.createOneShot(long milliseconds, int amplitude)
                         final Method method = vibrationEffectClass.getMethod("createOneShot",
-                                new Class[]{Long.TYPE, Integer.TYPE});
+                            new Class[]{Long.TYPE, Integer.TYPE});
                         Class<?> type = method.getReturnType();
 
                         Object effect = method.invoke(vibrationEffectClass,
-                                new Object[]{(long) (duration * 1000), DEFAULT_AMPLITUDE});
-                        //sVibrateService.vibrate(VibrationEffect effect);
+                            new Object[]{(long) (duration * 1000), DEFAULT_AMPLITUDE});
+                        // sVibrateService.vibrate(VibrationEffect effect);
                         CocosReflectionHelper.invokeInstanceMethod(sVibrateService, "vibrate",
-                                new Class[]{type}, new Object[]{(effect)});
+                            new Class[]{type}, new Object[]{(effect)});
                     }
                 } else {
                     sVibrateService.vibrate((long) (duration * 1000));
@@ -367,14 +372,16 @@ public class CocosHelper {
             do {
                 Object windowInsectObj = GlobalObject.getActivity().getWindow().getDecorView().getRootWindowInsets();
 
-                if (windowInsectObj == null) break;
+                if (windowInsectObj == null)
+                    break;
 
                 Class<?> windowInsets = WindowInsets.class;
                 try {
                     Method wiGetDisplayCutout = windowInsets.getMethod("getDisplayCutout");
                     Object cutout = wiGetDisplayCutout.invoke(windowInsectObj);
 
-                    if (cutout == null) break;
+                    if (cutout == null)
+                        break;
 
                     Class<?> displayCutout = cutout.getClass();
                     Method dcGetLeft = displayCutout.getMethod("getSafeInsetLeft");
@@ -400,6 +407,7 @@ public class CocosHelper {
         }
         return new float[]{0, 0, 0, 0};
     }
+
     public static void finishActivity() {
         if (GlobalObject.getActivity() == null) {
             Log.e(TAG, "activity is null");
@@ -412,6 +420,7 @@ public class CocosHelper {
             }
         });
     }
+
     public static void setKeepScreenOn(boolean keepScreenOn) {
         if (GlobalObject.getActivity() == null) {
             Log.e(TAG, "activity is null");
@@ -428,8 +437,110 @@ public class CocosHelper {
             }
         });
     }
+
     public static boolean supportHPE() {
         PackageManager pm = GlobalObject.getContext().getPackageManager();
         return pm.hasSystemFeature("com.google.android.play.feature.HPE_EXPERIENCE");
+    }
+
+    public static String copyToLibFile(String srcLib) {
+        File srcFile = new File(srcLib);
+        File dstFile = new File(GlobalObject.getContext().getFilesDir(), srcFile.getName());
+        boolean doCopy = false;
+        if (!srcFile.exists()) {
+            return "";
+        }
+        if (dstFile.exists()) {
+            try {
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                    BasicFileAttributes srcAttr = Files.readAttributes(srcFile.toPath(), BasicFileAttributes.class);
+                    BasicFileAttributes dstAttr = Files.readAttributes(dstFile.toPath(), BasicFileAttributes.class);
+                    if (srcAttr.lastModifiedTime().toMillis() > dstAttr.lastModifiedTime().toMillis()) {
+                        doCopy = true;
+                    } else {
+                        return dstFile.toString();
+                    }
+                } else {
+                    doCopy = false;
+                }
+            } catch (Exception e) {
+                System.err.println(e);
+                doCopy = true;
+            }
+        } else {
+            doCopy = true;
+        }
+        if (doCopy) {
+            FileOutputStream fos = null;
+            FileInputStream fis = null;
+            try {
+                fos = new FileOutputStream(dstFile);
+                fis = new FileInputStream(srcFile);
+                byte block[] = new byte[1024 * 4];
+                int readn = 0;
+                while ((readn = fis.read(block, 0, block.length)) > 0) {
+                    fos.write(block, 0, readn);
+                }
+                dstFile.setExecutable(true);
+            } catch (Exception e) {
+                System.err.println(e);
+                return "";
+            } finally {
+                try {
+                    if (fis != null)
+                        fis.close();
+                    if (fos != null)
+                        fos.close();
+                } catch (Exception e) {
+                    System.err.println(e);
+                }
+            }
+        }
+        return dstFile.toString();
+    }
+
+    public static boolean loadSO(String pathToSo, String args[]) {
+        return nativeLoadSharedLibrary(pathToSo, args);
+    }
+
+    public static boolean unloadSO(String pathToSo) {
+        return nativeUnLoadSharedLibrary(pathToSo);
+    }
+
+    private static native boolean nativeLoadSharedLibrary(String path, String args[]);
+
+    private static native boolean nativeUnLoadSharedLibrary(String path);
+
+    public static ClassLoader loadJar(String path) {
+        DexClassLoader dexClassLoader = null;
+        try {
+            Context context = GlobalObject.getContext();
+            File jarFile = new File(path);
+
+            File optimizedDexOutputPath = context.getDir("dex", Context.MODE_PRIVATE);
+
+            dexClassLoader = new DexClassLoader(
+                jarFile.getAbsolutePath(),
+                optimizedDexOutputPath.getAbsolutePath(),
+                null,
+                context.getClassLoader());
+        } catch (Exception e) {
+            Log.e(TAG, "Error loading JAR " + path, e);
+        }
+        return dexClassLoader;
+    }
+
+    public static void loadJar(String jarPath, String classPath) {
+        try {
+            ClassLoader loader = loadJar(jarPath);
+            Class dstClass = loader.loadClass(classPath);
+            // TODO: save instance
+            Object pluginInstance = dstClass.newInstance();
+            Method initMethod = dstClass.getMethod("pluginInit", String[].class);
+            initMethod.invoke(pluginInstance, new String[]{});
+        } catch (Exception e) {
+            Log.e(TAG, "loadJar2 " + jarPath + "/" + classPath);
+            Log.e(TAG, e.toString());
+        }
     }
 }

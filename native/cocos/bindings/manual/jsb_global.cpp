@@ -31,6 +31,7 @@
 #include "base/ZipUtils.h"
 #include "base/base64.h"
 #include "bindings/auto/jsb_cocos_auto.h"
+#include "bindings/sebind/sebind.h"
 #include "core/data/JSBNativeDataHolder.h"
 #include "gfx-base/GFXDef.h"
 #include "jsb_conversions.h"
@@ -39,7 +40,9 @@
 #include "platform/Image.h"
 #include "platform/interfaces/modules/ISystem.h"
 #include "platform/interfaces/modules/ISystemWindow.h"
+#include "plugins/Plugins.h"
 #include "ui/edit-box/EditBox.h"
+#include "v8/Class.h"
 #include "xxtea/xxtea.h"
 
 #if CC_PLATFORM == CC_PLATFORM_ANDROID
@@ -1395,6 +1398,56 @@ static bool JSB_process_get_argv(se::State &s) // NOLINT(readability-identifier-
 }
 SE_BIND_PROP_GET(JSB_process_get_argv)
 
+static bool JSB_loadDynPlugin(se::State &s) { // NOLINT
+    const auto &args = s.args();
+    if (args.empty()) {
+        SE_LOGE("argument count incorrect");
+        return false;
+    }
+    std::vector<std::string> argStore;
+    std::string path;
+    sevalue_to_native(args[0], &path, nullptr);
+    for (int i = 1; i < args.size(); i++) {
+        std::string additionArg;
+        bool cvtResult = sevalue_to_native(args[i], &additionArg, nullptr);
+        if (!cvtResult) {
+            SE_LOGE("failed to convert argment %d to string", i);
+            return false;
+        }
+        argStore.emplace_back(additionArg);
+    }
+    if (cc_load_dyn_plugin(path.c_str(), argStore)) {
+        SE_LOGE("Failed to load library %s", path.c_str());
+        return false;
+    }
+
+    return true;
+}
+SE_BIND_FUNC(JSB_loadDynPlugin)
+
+static bool JSB_unloadDynPlugin(se::State &s) { // NOLINT
+    const auto &args = s.args();
+    if (args.size() != 1) {
+        SE_LOGE("argument count incorrect");
+        return false;
+    }
+    std::string path;
+    bool cvtResult = sevalue_to_native(args[0], &path, nullptr);
+    cc_unload_dyn_plugin(path.c_str());
+    return true;
+}
+SE_BIND_FUNC(JSB_unloadDynPlugin)
+
+static bool JSB_unloadAllDynPlugin(se::State &s) { // NOLINT
+    const auto &args = s.args();
+    if (!args.empty()) {
+        SE_LOGE("argument count incorrect, 0 expected got %d", static_cast<int>(args.size()));
+    }
+    cc_unload_all_dyn_plugins();
+    return true;
+}
+SE_BIND_FUNC(JSB_unloadAllDynPlugin)
+
 bool jsb_register_global_variables(se::Object *global) { // NOLINT
     gThreadPool = LegacyThreadPool::newFixedThreadPool(3);
 
@@ -1423,6 +1476,10 @@ bool jsb_register_global_variables(se::Object *global) { // NOLINT
     __jsbObj->defineFunction("setCursorEnabled", _SE(JSB_setCursorEnabled));
     __jsbObj->defineFunction("saveByteCode", _SE(JSB_saveByteCode));
     __jsbObj->defineFunction("createExternalArrayBuffer", _SE(jsb_createExternalArrayBuffer));
+
+    __jsbObj->defineFunction("loadDynPlugin", _SE(JSB_loadDynPlugin));
+    __jsbObj->defineFunction("unloadDynPlugin", _SE(JSB_unloadDynPlugin));
+    __jsbObj->defineFunction("unloadAllDynPlugin", _SE(JSB_unloadAllDynPlugin));
 
     // Create process object
     se::HandleObject processObj{se::Object::createPlainObject()};

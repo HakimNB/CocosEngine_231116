@@ -23,7 +23,11 @@
 ****************************************************************************/
 #pragma once
 
+#include <jni.h>
+#include <type_traits>
 #include "plugins/bus/EventBus.h"
+#include "base/std/container/vector.h"
+#include "base/std/container/string.h"
 
 #if _WIN32 && _MSC_VER
     #define CC_PLUGIN_DLL_EXPORT __declspec(dllexport)
@@ -31,16 +35,50 @@
     #define CC_PLUGIN_DLL_EXPORT __attribute__((visibility("default")))
 #endif
 
-extern "C" void cc_load_all_plugins(); //NOLINT
+extern "C" void cc_load_all_plugins(); // NOLINT
+
+int cc_load_dyn_plugin(const char *path, const ccstd::vector<ccstd::string> &args = {}); // NOLINT
+int cc_unload_dyn_plugin(const char *path);                                          // NOLINT
+int cc_unload_all_dyn_plugins();                                                     // NOLINT
+
+#define CC_PLUGIN_INIT_SYM   "cc_plugin_init"
+#define CC_PLUGIN_DEINIT_SYM "cc_plugin_deinit"
+
+using CC_PLUGIN_INIT_FN = void (*)(int, const char **);
+using CC_PLUGIN_DEINIT_FN = void (*)(int, const char **);
+
+template <typename Func>
+inline void cc_plugin_callfn(Func fn, int argc, const char **argv) { // NOLINT
+    if constexpr (std::is_invocable_v<Func, const char *, int, const char **>) {
+        assert(argc > 0);
+        fn(argv[0], argc - 1, argc == 1 ? nullptr : argv + 1);
+    } else if constexpr (std::is_invocable_v<Func, int, const char **>) {
+        fn(argc, argv);
+    } else if constexpr (std::is_invocable_v<Func, const char *>) {
+        assert(argc > 0);
+        fn(argv[0]);
+    } else {
+        fn();
+    }
+}
 
 #if CC_PLUGIN_STATIC
     #define CC_PLUGIN_ENTRY(name, load_func)                   \
         extern "C" void cc_load_plugin_##name() { /* NOLINT */ \
             load_func();                                       \
         }
+    #define CC_PLUGIN_EXIT(name, exit_func)                    \
+        extern "C" void cc_load_plugin_##name() { /* NOLINT */ \
+            exit_func();                                       \
+        }
 #else
-    #define CC_PLUGIN_ENTRY(name, load_func)                           \
-        extern "C" CC_PLUGIN_DLL_EXPORT void cc_load_plugin_##name() { \
-            load_func();                                               \
+    #define CC_PLUGIN_ENTRY(name, load_func)                                                           \
+        extern "C" CC_PLUGIN_DLL_EXPORT void cc_plugin_init(int argc, const char **args) { /* NOLINT*/ \
+            cc_plugin_callfn(load_func, argc, args);                                                   \
+        }
+
+    #define CC_PLUGIN_EXIT(name, exit_func)                                                              \
+        extern "C" CC_PLUGIN_DLL_EXPORT void cc_plugin_deinit(int argc, const char **args) { /* NOLINT*/ \
+            cc_plugin_callfn(exit_func, argc, args);                                                     \
         }
 #endif

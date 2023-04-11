@@ -243,6 +243,14 @@ void clearPrivate(v8::Isolate *isolate, ObjectWrap &wrap) {
     }
 }
 
+
+void* getCallbackPtr(const v8::FunctionCallbackInfo<v8::Value> &args) {
+    if(args.Data().IsEmpty()) {
+        return nullptr;
+    }
+    return args.Data().As<v8::External>()->Value();
+}
+
 } // namespace internal
 } // namespace se
 

@@ -23,9 +23,14 @@
 ****************************************************************************/
 
 #include "JniImp.h"
+#include "platform/java/jni/JniHelper.h"
 
 #if CC_PLATFORM == CC_PLATFORM_ANDROID
+
     #include <android/log.h>
+
+    #include "plugins/Plugins.h"
+
 #else
     #include <hilog/log.h>
 #endif
@@ -47,7 +52,6 @@
 #endif
 #define JNI_AUDIO(FUNC) JNI_METHOD1(COM_AUDIOFOCUS_CLASS_NAME, FUNC)
 
-
 /***********************************************************
  * Functions invoke from cpp to Java.
  ***********************************************************/
@@ -60,9 +64,11 @@ int getObbAssetFileDescriptorJNI(const ccstd::string &path, int64_t *startOffset
     JniMethodInfo methodInfo;
     int fd = 0;
 
-    if (JniHelper::getStaticMethodInfo(methodInfo, JCLS_HELPER, "getObbAssetFileDescriptor", "(Ljava/lang/String;)[J")) {
+    if (JniHelper::getStaticMethodInfo(methodInfo, JCLS_HELPER, "getObbAssetFileDescriptor",
+                                       "(Ljava/lang/String;)[J")) {
         jstring stringArg = methodInfo.env->NewStringUTF(path.c_str());
-        auto *newArray = static_cast<jlongArray>(methodInfo.env->CallStaticObjectMethod(methodInfo.classID, methodInfo.methodID, stringArg));
+        auto *newArray = static_cast<jlongArray>(methodInfo.env->CallStaticObjectMethod(
+            methodInfo.classID, methodInfo.methodID, stringArg));
         jsize theArrayLen = methodInfo.env->GetArrayLength(newArray);
 
         if (3 == theArrayLen) {
@@ -120,6 +126,7 @@ void setKeepScreenOnJNI(bool isEnabled) {
 void finishActivity() {
     JniHelper::callStaticVoidMethod(JCLS_HELPER, "finishActivity");
 }
+
 int getNetworkTypeJNI() {
     return JniHelper::callStaticIntMethod(JCLS_HELPER, "getNetworkType");
 }
@@ -138,12 +145,12 @@ float getBatteryLevelJNI() {
 
 void flushTasksOnGameThreadJNI() {
     JniHelper::callStaticVoidMethod(JCLS_HELPER,
-                                        "flushTasksOnGameThread");
+                                    "flushTasksOnGameThread");
 }
 
 void flushTasksOnGameThreadAtForegroundJNI() {
     JniHelper::callStaticVoidMethod(JCLS_HELPER,
-                                        "flushTasksOnGameThreadAtForeground");
+                                    "flushTasksOnGameThreadAtForeground");
 }
 
 void setAccelerometerEnabledJNI(bool isEnabled) {
@@ -162,11 +169,29 @@ bool getSupportHPE() {
     return JniHelper::callStaticBooleanMethod(JCLS_HELPER, "supportHPE");
 }
 
+std::string copyToLibFile(const std::string &src) {
+    return JniHelper::callStaticStringMethod(JCLS_HELPER, "copyToLibFile", src);
+}
+
 } // namespace cc
 extern "C" {
-JNIEXPORT void JNICALL JNI_AUDIO(nativeSetAudioVolumeFactor)(JNIEnv * /*env*/, jclass /* thiz*/, jfloat volumeFactor) {
+JNIEXPORT void JNICALL
+JNI_AUDIO(nativeSetAudioVolumeFactor)(JNIEnv * /*env*/, jclass /* thiz*/, jfloat volumeFactor) {
 #if CC_USE_AUDIO
     cc::AudioEngine::setVolumeFactor(volumeFactor);
 #endif
+}
+
+JNIEXPORT jboolean JNICALL
+Java_com_cocos_lib_CocosHelper_nativeLoadSharedLibrary(JNIEnv *env, jclass /*this*/, jstring jpath, jobjectArray jargs) { // NOLINT
+    const std::string path = cc::JniHelper::jstring2string(jpath);
+    ccstd::vector<ccstd::string> args = cc::JniHelper::jstringArray2stringArray(jargs);
+    return cc_load_dyn_plugin(path.c_str(), args) == 0;
+}
+
+JNIEXPORT jboolean JNICALL
+Java_com_cocos_lib_CocosHelper_nativeUnLoadSharedLibrary(JNIEnv *env, jclass /*this*/, jstring jpath) { // NOLINT
+    const std::string path = cc::JniHelper::jstring2string(jpath);
+    return cc_unload_dyn_plugin(path.c_str()) == 0;
 }
 }

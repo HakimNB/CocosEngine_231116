@@ -28,7 +28,7 @@
 #include <functional>
 #include <type_traits>
 #include <utility>
-#include "MappingUtils.h"
+#include "bindings/jswrapper/MappingUtils.h"
 #include "base/Macros.h"
 #include "base/Ptr.h"
 #include "base/RefCounted.h"

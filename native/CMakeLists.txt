@@ -1168,8 +1168,6 @@ cocos_source_files(
 
                  cocos/renderer/GFXDeviceManager.h
 
-                 cocos/renderer/gfx-base/SPIRVUtils.h
-                 cocos/renderer/gfx-base/SPIRVUtils.cpp
                  cocos/renderer/gfx-base/GFXObject.h
                  cocos/renderer/gfx-base/GFXObject.cpp
                  cocos/renderer/gfx-base/GFXBarrier.cpp
@@ -1734,6 +1732,13 @@ if(CC_USE_METAL)
                              cocos/renderer/gfx-metal/MTLSemaphore.h
                              cocos/renderer/gfx-metal/MTLSwapchain.h
                              cocos/renderer/gfx-metal/MTLSwapchain.mm
+    )
+endif()
+
+if(CC_USE_VULKAN OR CC_USE_METAL)
+    cocos_source_files(
+                 cocos/renderer/gfx-base/SPIRVUtils.h
+                 cocos/renderer/gfx-base/SPIRVUtils.cpp
     )
 endif()
 
@@ -2883,7 +2888,7 @@ if(USE_MODULES)
     target_link_libraries(ccbindings PUBLIC
         ccfilesystem
         cclog
-        ${se_libs_name}
+        "-Wl,--whole-archive" ${se_libs_name} "-Wl,--no-whole-archive"
         uv
     )
     target_link_libraries(ccgeometry PUBLIC
