@@ -257,7 +257,7 @@ export class Director extends EventTarget {
      * @zh 计算从上一帧到现在的时间间隔，结果保存在私有属性中
      * @deprecated since v3.3.0 no need to use it anymore
      */
-    public calculateDeltaTime (now) {}
+    public calculateDeltaTime (now) { }
 
     /**
      * @en End the life of director in the next frame
@@ -496,7 +496,7 @@ export class Director extends EventTarget {
      * @param sceneName @en The name of the scene to load @zh 场景名称。
      * @param onLoaded @en Callback to execute once the scene is loaded @zh 加载回调。
      */
-    public preloadScene (sceneName: string, onLoaded?: Director.OnSceneLoaded): void;
+    public preloadScene(sceneName: string, onLoaded?: Director.OnSceneLoaded): void;
 
     /**
      * @en
@@ -511,7 +511,7 @@ export class Director extends EventTarget {
      * @param onProgress @en Callback to execute when the load progression change.  @zh 加载进度回调。
      * @param onLoaded @en Callback to execute once the scene is loaded @zh 加载回调。
      */
-    public preloadScene (sceneName: string, onProgress: Director.OnLoadSceneProgress, onLoaded: Director.OnSceneLoaded): void;
+    public preloadScene(sceneName: string, onProgress: Director.OnLoadSceneProgress, onLoaded: Director.OnSceneLoaded): void;
 
     public preloadScene (
         sceneName: string,
@@ -694,7 +694,8 @@ export class Director extends EventTarget {
      * @zh 运行主循环
      * @param dt Delta time in seconds
      */
-    public async tick (dt: number) {
+    public tick (dt: number): Promise<void> | void {
+        let p: Promise<void>|undefined;
         if (!this._invalid) {
             this.emit(Director.EVENT_BEGIN_FRAME);
             if (!EDITOR || cclegacy.GAME_VIEW) {
@@ -727,7 +728,8 @@ export class Director extends EventTarget {
 
             this.emit(Director.EVENT_BEFORE_DRAW);
             uiRendererManager.updateAllDirtyRenderers();
-            const p = this._root!.frameMove(dt);
+            p = this._root!.frameMove(dt)!;
+            // await this._root!.frameMove(dt);
             this.emit(Director.EVENT_AFTER_DRAW);
 
             Node.resetHasChangedFlags();
@@ -735,8 +737,8 @@ export class Director extends EventTarget {
             scalableContainerManager.update(dt);
             this.emit(Director.EVENT_END_FRAME);
             this._totalFrames++;
-            await p;
         }
+        return p;
     }
 
     private buildRenderPipeline () {
@@ -856,6 +858,7 @@ export declare namespace Director {
 }
 
 cclegacy.Director = Director;
+
 /**
  * @en Director of the game, used to control game update loop and scene management
  * @zh 游戏的导演，用于控制游戏更新循环与场景管理。

@@ -1015,22 +1015,16 @@ export class Game extends EventTarget {
             const launchScene = settings.querySettings(Settings.Category.LAUNCH, 'launchScene');
             if (launchScene) {
                 // load scene
-                await new Promise<void>((resolve, reject) => {
-                    director.loadScene(launchScene, () => {
-                        console.log(`Success to load scene: ${launchScene}`);
-                        this._initTime = performance.now();
-                        director.startAnimation();
-                        this.onStart?.();
-                        resolve();
-                    });
-                });
-            } else {
-                await new Promise<void>((resolve, reject) => {
+                director.loadScene(launchScene, () => {
+                    console.log(`Success to load scene: ${launchScene}`);
                     this._initTime = performance.now();
                     director.startAnimation();
                     this.onStart?.();
-                    resolve();
                 });
+            } else {
+                this._initTime = performance.now();
+                director.startAnimation();
+                this.onStart?.();
             }
         } else {
             // console.log('game updateCallback tick');

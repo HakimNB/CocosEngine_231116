@@ -27,22 +27,22 @@ require('./jsb_input');
 let _oldRequestFrameCallback = null;
 let _requestAnimationFrameID = 0;
 const _requestAnimationFrameCallbacks = {};
-const _requestAnimationFrameCallbacks0 = {};
+// const _requestAnimationFrameCallbacks0 = {};
 let _firstTick = true;
 
 jsbWindow.requestAnimationFrame = function (cb, front) {
     const id = ++_requestAnimationFrameID;
-    if (typeof front === 'number') {
-        _requestAnimationFrameCallbacks0[id] = cb;
-    } else {
+    // if (typeof front === 'number') {
+        // _requestAnimationFrameCallbacks0[id] = cb;
+    // } else {
         _requestAnimationFrameCallbacks[id] = cb;
-    }
+    // }
     return id;
 };
 
 jsbWindow.cancelAnimationFrame = function (id) {
     delete _requestAnimationFrameCallbacks[id];
-    delete _requestAnimationFrameCallbacks0[id];
+    // delete _requestAnimationFrameCallbacks0[id];
 };
 
 function tick (nowMilliSeconds) {
@@ -55,13 +55,14 @@ function tick (nowMilliSeconds) {
         }
     }
     // fireTimeout(nowMilliSeconds);
-    for (const id in _requestAnimationFrameCallbacks0) {
-        _oldRequestFrameCallback = _requestAnimationFrameCallbacks0[id];
-        if (_oldRequestFrameCallback) {
-            delete _requestAnimationFrameCallbacks0[id];
-            _oldRequestFrameCallback(nowMilliSeconds);
-        }
-    }
+
+    // for (const id in _requestAnimationFrameCallbacks0) {
+    //     _oldRequestFrameCallback = _requestAnimationFrameCallbacks0[id];
+    //     if (_oldRequestFrameCallback) {
+    //         delete _requestAnimationFrameCallbacks0[id];
+    //         _oldRequestFrameCallback(nowMilliSeconds);
+    //     }
+    // }
 
     for (const id in _requestAnimationFrameCallbacks) {
         _oldRequestFrameCallback = _requestAnimationFrameCallbacks[id];

@@ -163,20 +163,15 @@ void DeviceAgent::present(void *data) {
             next, next,
             {
                 actor->present();
-                frameBoundarySemaphore->signal();
-                // events::StepContinue::broadcast(1);
+                // frameBoundarySemaphore->signal();
                 if (next)
                     uv_async_send(next);
             });
 
-        // events::StepContinue::broadcast(0);
         MessageQueue::freeChunksInFreeQueue(_mainMessageQueue);
         _mainMessageQueue->finishWriting();
         _currentIndex = (_currentIndex + 1) % MAX_FRAME_INDEX;
-        _frameBoundarySemaphore.wait();
-        // if(_frameBoundarySemaphore.tryWait()) {
-        // events::StepContinue::broadcast(1);
-        // }
+        // _frameBoundarySemaphore.wait();
     }
 }
 

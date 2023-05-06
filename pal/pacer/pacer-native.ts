@@ -37,7 +37,7 @@ export class Pacer {
                 await this._onTick();
             }
             if (this._isPlaying) {
-                this._rafHandle = (requestAnimationFrame as any)(this._updateCallback, 123);
+                this._rafHandle = requestAnimationFrame(this._updateCallback);
             }
         };
     }
