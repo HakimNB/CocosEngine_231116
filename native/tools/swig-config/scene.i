@@ -76,8 +76,9 @@ using namespace cc;
 %ignore cc::scene::Pass::initPassFromTarget;
 
 %ignore cc::Root::getEventProcessor;
-%ignore cc::Node::getEventProcessor;
+%ignore cc::Root::frameMoveAsync;
 
+%ignore cc::Node::getEventProcessor;
 %ignore cc::Node::setRTSInternal;
 %ignore cc::Node::setRTS;
 //FIXME: These methods binding code will generate SwigValueWrapper type which is not supported now.

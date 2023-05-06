@@ -288,7 +288,7 @@ void GLES3Device::acquire(Swapchain *const *swapchains, uint32_t count) {
     }
 }
 
-void GLES3Device::present() {
+void GLES3Device::present(void *next) {
     CC_PROFILE(GLES3DevicePresent);
     auto *queue = static_cast<GLES3Queue *>(_queue);
     _numDrawCalls = queue->_numDrawCalls;

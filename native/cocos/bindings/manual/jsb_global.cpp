@@ -406,6 +406,48 @@ static bool JSB_exit(se::State &s) {
 }
 SE_BIND_FUNC(JSB_exit);
 
+static bool JSB_setTimeout(se::State &s) {
+    const auto &args = s.args();
+    const auto argCnt = args.size();
+    if (argCnt != 3) {
+        SE_REPORT_ERROR("incorrect argument cnt %d, %d expected", argCnt, 3);
+        return false;
+    }
+    int32_t delay = args[0].toInt32();
+    se::Value callback = args[1];
+    bool repeat = args[2].toBoolean();
+
+    auto *platform = cc::BasePlatform::getPlatform();
+    int32_t id = platform->setTimeout(
+        delay, [callback]() {
+            se::AutoHandleScope scope;
+            callback.toObject()->call({}, nullptr, nullptr);
+        },
+        repeat);
+    s.rval().setInt32(id);
+
+    return true;
+}
+SE_BIND_FUNC(JSB_setTimeout);
+
+static bool JSB_clearTimeout(se::State &s) {
+    const auto &args = s.args();
+    const auto argCnt = args.size();
+    if (argCnt != 1) {
+        SE_REPORT_ERROR("incorrect argument cnt %d, %d expected", argCnt, 1);
+        return false;
+    }
+    if (args[0].isNullOrUndefined()) {
+        SE_REPORT_ERROR("parameter should not be null or undefined");
+        return false;
+    }
+    int32_t id = args[0].toInt32();
+    auto *platform = cc::BasePlatform::getPlatform();
+    platform->clearTimeout(id);
+    return true;
+}
+SE_BIND_FUNC(JSB_clearTimeout);
+
 static bool JSB_isObjectValid(se::State &s) { // NOLINT
     const auto &args = s.args();
     int argc = static_cast<int>(args.size());
@@ -1453,6 +1495,8 @@ bool jsb_register_global_variables(se::Object *global) { // NOLINT
     global->defineFunction("__close", _SE(JSB_closeWindow));
     global->defineFunction("__isObjectValid", _SE(JSB_isObjectValid));
     global->defineFunction("__exit", _SE(JSB_exit));
+    global->defineFunction("__setTimeout", _SE(JSB_setTimeout));
+    global->defineFunction("__clearTimeout", _SE(JSB_clearTimeout));
 
     se::HandleObject performanceObj(se::Object::createPlainObject());
     performanceObj->defineFunction("now", _SE(js_performance_now));

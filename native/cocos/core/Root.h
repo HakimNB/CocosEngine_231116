@@ -24,20 +24,21 @@
 #pragma once
 
 #include <cstdint>
-//#include "3d/skeletal-animation/DataPoolManager.h"
+#include "uv.h"
+// #include "3d/skeletal-animation/DataPoolManager.h"
 #include "bindings/event/EventDispatcher.h"
 #include "core/event/Event.h"
 #include "core/memop/Pool.h"
-#include "renderer/pipeline/RenderPipeline.h"
 #include "renderer/pipeline/DebugView.h"
+#include "renderer/pipeline/RenderPipeline.h"
 #include "scene/DrawBatch2D.h"
 #include "scene/Light.h"
 #include "scene/Model.h"
+#include "scene/PointLight.h"
+#include "scene/RangedDirectionalLight.h"
 #include "scene/RenderScene.h"
 #include "scene/RenderWindow.h"
 #include "scene/SphereLight.h"
-#include "scene/PointLight.h"
-#include "scene/RangedDirectionalLight.h"
 
 namespace cc {
 class IXRInterface;
@@ -106,6 +107,8 @@ public:
      * @param deltaTime 间隔时间
      */
     void frameMove(float deltaTime, int32_t totalFrames); // NOTE: c++ doesn't have a Director, so totalFrames need to be set from JS
+
+    void frameMoveAsync(float deltaTime, int32_t totalFrames, uv_async_t *async); // NOTE: c++ doesn't have a Director, so totalFrames need to be set from JS
 
     /**
      * @zh
@@ -300,7 +303,7 @@ public:
 private:
     void frameMoveBegin();
     void frameMoveProcess(bool isNeedUpdateScene, int32_t totalFrames);
-    void frameMoveEnd();
+    void frameMoveEnd(uv_async_t *end = nullptr);
     void doXRFrameMove(int32_t totalFrames);
     void addWindowEventListener();
     void removeWindowEventListener();

@@ -48,6 +48,13 @@
 #include "gfx-base/GFXDevice.h"
 #include "pipeline/PipelineSceneData.h"
 
+#ifdef far
+    #undef far
+#endif
+#ifdef near
+    #undef near
+#endif
+
 namespace cc {
 
 namespace render {

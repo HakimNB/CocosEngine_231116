@@ -22,8 +22,19 @@
  THE SOFTWARE.
 ****************************************************************************/
 
+// clang-format off
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#include "application/ApplicationManager.h"
+#include "base/DeferredReleasePool.h"
+#include "engine/EngineEvents.h"
+#include "uv/uv.h"
+// clang-format on
+
 #include "platform/win32/WindowsPlatform.h"
 #include "platform/win32/modules/SystemWindowManager.h"
+
+#include "bindings/jswrapper/SeApi.h"
 
 #include <Windows.h>
 #include <shellapi.h>
@@ -80,15 +91,47 @@ void PVRFrameEnableControlWindow(bool bEnable) {
     RegCloseKey(hKey);
 }
 
+void mainTimerCallback(uv_timer_t *timer) {
+    cc::WindowsPlatform *platform = reinterpret_cast<cc::WindowsPlatform *>(timer->data);
+    platform->step();
+}
+
+struct FnTask {
+    std::function<void()> fn;
+    uv_timer_t *timer;
+    int32_t id;
+    bool repeat;
+};
+
+int32_t timerIndex{1000};
+std::unordered_map<int32_t, FnTask *> timerMap;
+
 } // namespace
 
 namespace cc {
 WindowsPlatform::WindowsPlatform() {
+    mainLoop = malloc(sizeof(uv_loop_t));
+    mainTimer = malloc(sizeof(uv_timer_t));
+    auto *l = static_cast<uv_loop_t *>(mainLoop);
+    auto *t = static_cast<uv_timer_t *>(mainTimer);
+    uv_loop_init(l);
+    uv_timer_init(l, t);
+    t->data = this;
 }
 WindowsPlatform::~WindowsPlatform() {
 #ifdef USE_WIN32_CONSOLE
     FreeConsole();
 #endif
+    auto *l = static_cast<uv_loop_t *>(mainLoop);
+    auto *t = static_cast<uv_timer_t *>(mainTimer);
+    uv_timer_stop(t);
+    uv_close(
+        reinterpret_cast<uv_handle_t *>(t), +[](uv_handle_t *t) {
+            free(t);
+        });
+    uv_loop_close(l);
+    // free(mainTimer);
+    free(mainLoop);
 }
 
 int32_t WindowsPlatform::init() {
@@ -117,11 +160,156 @@ void WindowsPlatform::exit() {
     _quit = true;
 }
 
+int32_t WindowsPlatform::setTimeout(int delay, std::function<void()> &&func, bool repeat) {
+    if (!mainLoop) {
+        return 0;
+    }
+    int32_t id = (timerIndex++);
+    auto *l = static_cast<uv_loop_t *>(mainLoop);
+    uv_timer_t *timer = static_cast<uv_timer_t *>(malloc(sizeof(uv_timer_t)));
+    uv_timer_init(l, timer);
+    auto *task = new FnTask{std::move(func), timer, id, repeat};
+    timer->data = task;
+    timerMap[id] = task;
+
+    uv_timer_start(
+        timer, +[](uv_timer_t *t) {
+            auto *task = reinterpret_cast<FnTask *>(t->data);
+            task->fn();
+            if (!task->repeat) {
+                uv_close(
+                    reinterpret_cast<uv_handle_t *>(t), +[](uv_handle_t *t) {
+                        auto *task = reinterpret_cast<FnTask *>(t->data);
+                        timerMap.erase(task->id);
+                        delete task;
+                        free(reinterpret_cast<uv_timer_t *>(t));
+                    });
+            }
+        },
+        delay, repeat ? delay : 0);
+    return id;
+}
+
+void WindowsPlatform::clearTimeout(int32_t id) {
+    auto itr = timerMap.find(id);
+    if (itr != timerMap.end()) {
+        uv_timer_stop(itr->second->timer);
+        uv_close(
+            reinterpret_cast<uv_handle_t *>(itr->second->timer), +[](uv_handle_t *t) {
+                auto *task = reinterpret_cast<FnTask *>(t->data);
+                timerMap.erase(task->id);
+                delete task;
+                free(reinterpret_cast<uv_timer_t *>(t));
+            });
+    }
+}
+
+int32_t WindowsPlatform::loopWithUV() {
+    QueryPerformanceCounter(&nLast);
+    QueryPerformanceFrequency(&nFreq);
+    auto *l = static_cast<uv_loop_t *>(mainLoop);
+    auto *t = static_cast<uv_timer_t *>(mainTimer);
+    uv_timer_start(t, mainTimerCallback, 0, 0);
+
+    // uv_async_t notify;
+    // notify.data = this;
+    // uv_async_init(
+    //     l, &notify, +[](uv_async_t *async) {
+    //         WindowsPlatform *p = reinterpret_cast<WindowsPlatform *>(async->data);
+    //         // CC_LOG_DEBUG(" - notfiy next frame");
+    //         //p->scheduleNextStep();
+    //     });
+
+    // stepListener.bind([&](int i) {
+    //     stepContinue = i;
+    //     uv_async_send(&notify);
+    // });
+    uv_timer_t we;
+    uv_timer_init(l, &we);
+    we.data = _windowManager.get();
+    uv_timer_start(
+        &we, +[](uv_timer_t *i) {
+            auto *wm = static_cast<ISystemWindowManager *>(i->data);
+            // CC_LOG_DEBUG(" - process event");
+            wm->processEvent();
+        },
+        10, 10);
+
+    uv_prepare_t idle;
+    uv_prepare_init(l, &idle);
+    idle.data = _windowManager.get();
+    uv_prepare_start(
+        &idle, +[](uv_prepare_t *i) {
+            auto *wm = static_cast<ISystemWindowManager *>(i->data);
+            // CC_LOG_DEBUG(" - process event");
+            wm->processEvent();
+            CC_CURRENT_ENGINE()->getScheduler()->update(0.016);
+            se::ScriptEngine::getInstance()->handlePromiseExceptions();
+        });
+
+    uv_check_t post;
+    uv_check_init(l, &post);
+    post.data = this;
+    uv_check_start(&post, [](uv_check_t *post) {
+        // se::ScriptEngine::getInstance()->mainLoopUpdate();
+        cc::DeferredReleasePool::clear();
+        // if (_quit) {
+        // uv_stop(static_cast<uv_loop_t *>(mainLoop));
+        // }
+        se::ScriptEngine::getInstance()->flushTasks();
+    });
+
+    onResume();
+    while (!_quit) {
+        uv_run(l, UV_RUN_ONCE);
+        // uv_run(l, UV_RUN_NOWAIT);
+    }
+    // uv_run(static_cast<uv_loop_t *>(mainLoop), UV_RUN_DEFAULT);
+    onDestroy();
+    uv_prepare_stop(&idle);
+    stepListener.reset();
+    // mainLoop = nullptr;
+    return 0;
+}
+
+void *WindowsPlatform::getLoop() {
+    return mainLoop;
+}
+
+void WindowsPlatform::scheduleNextStep() {
+    QueryPerformanceCounter(&nNow);
+    LONGLONG desiredInterval = (LONGLONG)(1.0 / getFps() * nFreq.QuadPart);
+    LONGLONG actualInterval = nNow.QuadPart - nLast.QuadPart;
+    nLast = nNow;
+    LONG waitMS = static_cast<LONG>((2 * desiredInterval - actualInterval) * 1000LL / nFreq.QuadPart - 1L);
+    // CC_LOG_DEBUG(" -- next tick %d ms, dt %d ms", (int)waitMS, (int)(actualInterval * 1000LL / nFreq.QuadPart));
+    waitMS = waitMS > 0 ? (desiredInterval * 1000LL / nFreq.QuadPart) : 0;
+    if (!_quit) {
+        uv_timer_start(static_cast<uv_timer_t *>(mainTimer), mainTimerCallback, waitMS, 0);
+    }
+}
+
+void WindowsPlatform::step() {
+    // _windowManager->processEvent();
+    events::Tick::broadcast(0);
+
+    // if (stepContinue != 0)
+    scheduleNextStep();
+}
+
+#if 1
+
 int32_t WindowsPlatform::loop() {
-#if CC_EDITOR
+    return loopWithUV();
+}
+
+#else
+
+int32_t WindowsPlatform::loop() {
+    #if CC_EDITOR
     _windowManager->processEvent();
     runTask();
-#else
+    #else
     ///////////////////////////////////////////////////////////////////////////
     /////////////// changing timer resolution
     ///////////////////////////////////////////////////////////////////////////
@@ -174,9 +362,11 @@ int32_t WindowsPlatform::loop() {
         timeEndPeriod(wTimerRes);
 
     onDestroy();
-#endif
+    #endif
     return 0;
 }
+
+#endif
 
 ISystemWindow *WindowsPlatform::createNativeWindow(uint32_t windowId, void *externalHandle) {
     return ccnew SystemWindow(windowId, externalHandle);

@@ -57,12 +57,12 @@ public:
 
     bool initialize(const DeviceInfo &info);
     void destroy();
-    
+
     // aim to ensure waiting for work on gpu done when cpu encodes ahead of gpu certain frame(s).
     virtual void frameSync() = 0;
 
     virtual void acquire(Swapchain *const *swapchains, uint32_t count) = 0;
-    virtual void present() = 0;
+    virtual void present(void * = nullptr) = 0;
 
     virtual void flushCommands(CommandBuffer *const *cmdBuffs, uint32_t count) {}
 

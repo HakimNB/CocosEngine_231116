@@ -88,7 +88,7 @@ void EmptyDevice::acquire(Swapchain *const * /*swapchains*/, uint32_t /*count*/)
     if (_onAcquire) _onAcquire->execute();
 }
 
-void EmptyDevice::present() {
+void EmptyDevice::present(void *) {
     std::this_thread::sleep_for(std::chrono::milliseconds(16));
 }
 

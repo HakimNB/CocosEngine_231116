@@ -759,6 +759,7 @@ bool Object::call(const ValueArray &args, Object *thisObject, Value *rval /* = n
         if (rval != nullptr) {
             internal::jsToSeValue(__isolate, result.ToLocalChecked(), rval);
         }
+        se::ScriptEngine::getInstance()->clearException();
         return true;
     }
     SE_REPORT_ERROR("Invoking function (%p) failed!", this);

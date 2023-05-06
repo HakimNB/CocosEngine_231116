@@ -35,6 +35,7 @@ public:
     explicit Semaphore(int initialCount) noexcept;
 
     void wait() noexcept;
+    bool tryWait() noexcept;
     void signal(int count = 1) noexcept;
     void signalAll() noexcept { CC_ABORT(); } // NOLINT(readability-convert-member-functions-to-static)
 

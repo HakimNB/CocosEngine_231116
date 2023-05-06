@@ -27,17 +27,17 @@ import { assertIsTrue } from '../../cocos/core/data/utils/asserts';
 declare const jsb: any;
 export class Pacer {
     private _rafHandle = 0;
-    private _onTick: (() => void) | null = null;
+    private _onTick: (() => Promise<void>) | null = null;
     private _targetFrameRate = 60;
     private _isPlaying = false;
     private _updateCallback: () => void;
     constructor () {
-        this._updateCallback = () => {
-            if (this._isPlaying) {
-                this._rafHandle = requestAnimationFrame(this._updateCallback);
-            }
+        this._updateCallback = async () => {
             if (this._onTick) {
-                this._onTick();
+                await this._onTick();
+            }
+            if (this._isPlaying) {
+                this._rafHandle = (requestAnimationFrame as any)(this._updateCallback, 123);
             }
         };
     }
@@ -58,11 +58,11 @@ export class Pacer {
         }
     }
 
-    set onTick (val: (() => void) | null) {
+    set onTick (val: (() => Promise<void>) | null) {
         this._onTick = val;
     }
 
-    get onTick (): (() => void) | null {
+    get onTick (): (() => Promise<void>) | null {
         return this._onTick;
     }
 

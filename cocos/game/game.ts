@@ -29,7 +29,7 @@ import { findCanvas, loadJsFile } from 'pal/env';
 import { Pacer } from 'pal/pacer';
 import { ConfigOrientation } from 'pal/screen-adapter';
 import assetManager, { IAssetManagerOptions } from '../asset/asset-manager/asset-manager';
-import { EventTarget, AsyncDelegate, sys, macro, VERSION, cclegacy, screen, Settings, settings, assert, garbageCollectionManager, DebugMode, warn, log, _resetDebugSetting } from '../core';
+import { EventTarget, AsyncDelegate, sys, macro, VERSION, cclegacy, screen, Settings, settings, assert, garbageCollectionManager, DebugMode, warn, log, _resetDebugSetting, debug } from '../core';
 import { input } from '../input';
 import { deviceManager, LegacyRenderMode } from '../gfx';
 import { SplashScreen } from './splash-screen';
@@ -537,8 +537,9 @@ export class Game extends EventTarget {
      * @en Run the game frame by frame with a fixed delta time correspond to frame rate.
      * @zh 以固定帧间隔执行一帧游戏循环，帧间隔与设定的帧率匹配。
      */
-    public step () {
-        director.tick(this._calculateDT(true));
+    public async step () {
+        // console.log('step .. then .. tick ');
+        await director.tick(this._calculateDT(true));
     }
 
     /**
@@ -1003,28 +1004,37 @@ export class Game extends EventTarget {
         return this._deltaTime;
     }
 
-    private _updateCallback () {
+    private async _updateCallback () {
+        // console.log('game updateCallback');
         if (!this._inited) return;
         if (!SplashScreen.instance.isFinished) {
             SplashScreen.instance.update(this._calculateDT(false));
         } else if (this._shouldLoadLaunchScene) {
+            console.log('game updateCallback should load Scene');
             this._shouldLoadLaunchScene = false;
             const launchScene = settings.querySettings(Settings.Category.LAUNCH, 'launchScene');
             if (launchScene) {
                 // load scene
-                director.loadScene(launchScene, () => {
-                    console.log(`Success to load scene: ${launchScene}`);
+                await new Promise<void>((resolve, reject) => {
+                    director.loadScene(launchScene, () => {
+                        console.log(`Success to load scene: ${launchScene}`);
+                        this._initTime = performance.now();
+                        director.startAnimation();
+                        this.onStart?.();
+                        resolve();
+                    });
+                });
+            } else {
+                await new Promise<void>((resolve, reject) => {
                     this._initTime = performance.now();
                     director.startAnimation();
                     this.onStart?.();
+                    resolve();
                 });
-            } else {
-                this._initTime = performance.now();
-                director.startAnimation();
-                this.onStart?.();
             }
         } else {
-            director.tick(this._calculateDT(false));
+            // console.log('game updateCallback tick');
+            await director.tick(this._calculateDT(false));
         }
     }
 

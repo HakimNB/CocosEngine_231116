@@ -35,6 +35,13 @@
 #include "application/ApplicationManager.h"
 #include "platform/interfaces/modules/IXRInterface.h"
 
+#ifdef far
+    #undef far
+#endif
+#ifdef near
+    #undef near
+#endif
+
 namespace cc {
 namespace scene {
 
@@ -384,10 +391,10 @@ Mat4 Camera::worldMatrixToScreen(const Mat4 &worldMatrix, uint32_t width, uint32
 }
 
 /**
-* @en Calculate and set oblique view frustum projection matrix.
-* @zh 计算并设置斜视锥体投影矩阵
-* @param clipPlane clip plane in camera space
-*/
+ * @en Calculate and set oblique view frustum projection matrix.
+ * @zh 计算并设置斜视锥体投影矩阵
+ * @param clipPlane clip plane in camera space
+ */
 void Camera::calculateObliqueMat(const Vec4 &viewSpacePlane) {
     float clipSpaceMinZ = _device->getCapabilities().clipSpaceMinZ;
     Vec4 far{math::sgn(viewSpacePlane.x), math::sgn(viewSpacePlane.y), 1.F, 0.F};

@@ -27,16 +27,22 @@ require('./jsb_input');
 let _oldRequestFrameCallback = null;
 let _requestAnimationFrameID = 0;
 const _requestAnimationFrameCallbacks = {};
+const _requestAnimationFrameCallbacks0 = {};
 let _firstTick = true;
 
-jsbWindow.requestAnimationFrame = function (cb) {
+jsbWindow.requestAnimationFrame = function (cb, front) {
     const id = ++_requestAnimationFrameID;
-    _requestAnimationFrameCallbacks[id] = cb;
+    if (typeof front === 'number') {
+        _requestAnimationFrameCallbacks0[id] = cb;
+    } else {
+        _requestAnimationFrameCallbacks[id] = cb;
+    }
     return id;
 };
 
 jsbWindow.cancelAnimationFrame = function (id) {
     delete _requestAnimationFrameCallbacks[id];
+    delete _requestAnimationFrameCallbacks0[id];
 };
 
 function tick (nowMilliSeconds) {
@@ -48,7 +54,14 @@ function tick (nowMilliSeconds) {
             jsbWindow.onload(event);
         }
     }
-    fireTimeout(nowMilliSeconds);
+    // fireTimeout(nowMilliSeconds);
+    for (const id in _requestAnimationFrameCallbacks0) {
+        _oldRequestFrameCallback = _requestAnimationFrameCallbacks0[id];
+        if (_oldRequestFrameCallback) {
+            delete _requestAnimationFrameCallbacks0[id];
+            _oldRequestFrameCallback(nowMilliSeconds);
+        }
+    }
 
     for (const id in _requestAnimationFrameCallbacks) {
         _oldRequestFrameCallback = _requestAnimationFrameCallbacks[id];
@@ -71,27 +84,14 @@ class TimeoutInfo {
         this.target = target;
         this.args = args;
     }
-}
-
-const _timeoutInfos = {};
-
-function fireTimeout (nowMilliSeconds) {
-    let info;
-    for (const id in _timeoutInfos) {
-        info = _timeoutInfos[id];
+    invoke () {
+        const info = this;
         if (info && info.cb) {
-            if ((nowMilliSeconds - info.start) >= info.delay) {
-                // console.log(`fireTimeout: id ${id}, start: ${info.start}, delay: ${info.delay}, now: ${nowMilliSeconds}`);
-                if (typeof info.cb === 'string') {
-                    Function(info.cb)();
-                } else if (typeof info.cb === 'function') {
-                    info.cb.apply(info.target, info.args);
-                }
-                if (info.isRepeat) {
-                    info.start = nowMilliSeconds;
-                } else {
-                    delete _timeoutInfos[id];
-                }
+            // console.log(`fireTimeout: id ${id}, start: ${info.start}, delay: ${info.delay}, now: ${nowMilliSeconds}`);
+            if (typeof info.cb === 'string') {
+                Function(info.cb)();
+            } else if (typeof info.cb === 'function') {
+                info.cb.apply(info.target, info.args);
             }
         }
     }
@@ -112,8 +112,8 @@ function createTimeoutInfo (prevFuncArgs, isRepeat) {
     }
 
     const info = new TimeoutInfo(cb, delay, isRepeat, this, args);
-    _timeoutInfos[info.id] = info;
-    return info.id;
+
+    return __setTimeout(delay, () => info.invoke(), isRepeat);
 }
 
 if (!window.oh) {
@@ -124,7 +124,7 @@ if (!window.oh) {
     };
 
     jsbWindow.clearTimeout = function (id) {
-        delete _timeoutInfos[id];
+        __clearTimeout(id);
     };
 
     jsbWindow.setInterval = function (cb) {

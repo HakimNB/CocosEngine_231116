@@ -40,6 +40,7 @@ import { uiRendererManager } from '../2d/framework/ui-renderer-manager';
 import { assetManager } from '../asset/asset-manager';
 import { deviceManager } from '../gfx';
 import { releaseManager } from '../asset/asset-manager/release-manager';
+import { legacyCC } from '../core/global-exports';
 
 // ----------------------------------------------------------------------------------------------------------------------
 
@@ -678,14 +679,14 @@ export class Director extends EventTarget {
      * @zh 运行主循环
      * @deprecated Since v3.6, please use [tick] instead
      */
-    public mainLoop (now: number) {
+    public async mainLoop (now: number) {
         let dt;
         if (EDITOR && !cclegacy.GAME_VIEW || TEST) {
             dt = now;
         } else {
             dt = cclegacy.game._calculateDT(now);
         }
-        this.tick(dt);
+        await this.tick(dt);
     }
 
     /**
@@ -693,7 +694,7 @@ export class Director extends EventTarget {
      * @zh 运行主循环
      * @param dt Delta time in seconds
      */
-    public tick (dt: number) {
+    public async tick (dt: number) {
         if (!this._invalid) {
             this.emit(Director.EVENT_BEGIN_FRAME);
             if (!EDITOR || cclegacy.GAME_VIEW) {
@@ -726,7 +727,7 @@ export class Director extends EventTarget {
 
             this.emit(Director.EVENT_BEFORE_DRAW);
             uiRendererManager.updateAllDirtyRenderers();
-            this._root!.frameMove(dt);
+            const p = this._root!.frameMove(dt);
             this.emit(Director.EVENT_AFTER_DRAW);
 
             Node.resetHasChangedFlags();
@@ -734,6 +735,7 @@ export class Director extends EventTarget {
             scalableContainerManager.update(dt);
             this.emit(Director.EVENT_END_FRAME);
             this._totalFrames++;
+            await p;
         }
     }
 
@@ -854,7 +856,6 @@ export declare namespace Director {
 }
 
 cclegacy.Director = Director;
-
 /**
  * @en Director of the game, used to control game update loop and scene management
  * @zh 游戏的导演，用于控制游戏更新循环与场景管理。

@@ -151,8 +151,8 @@ void DeviceValidator::acquire(Swapchain *const *swapchains, uint32_t count) {
     _actor->acquire(swapchainActors.data(), count);
 }
 
-void DeviceValidator::present() {
-    _actor->present();
+void DeviceValidator::present(void *ctx) {
+    _actor->present(ctx);
 
     ++_currentFrame;
 }

@@ -312,6 +312,10 @@ public:
      */
     void mainLoopUpdate();
 
+    void pushTask(void (*cb)(void *), void *data = nullptr);
+
+    void flushTasks();
+
     /**
      *  @brief Gets script virtual machine instance ID. Default value is 1, increase by 1 if `init` is invoked.
      */

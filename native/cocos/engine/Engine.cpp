@@ -258,14 +258,14 @@ void Engine::tick() {
     {
         CC_PROFILE(EngineTick);
 
-        _gfxDevice->frameSync();
+        //_gfxDevice->frameSync();
 
         if (_needRestart) {
             doRestart();
             _needRestart = false;
         }
 
-        static std::chrono::steady_clock::time_point prevTime;
+        static std::chrono::steady_clock::time_point prevTime = std::chrono::steady_clock::now();
         static std::chrono::steady_clock::time_point now;
         static float dt = 0.F;
         static double dtNS = NANOSECONDS_60FPS;
@@ -274,7 +274,7 @@ void Engine::tick() {
 
         // iOS/macOS use its own fps limitation algorithm.
         // Windows for Editor should not sleep,because Editor call tick function synchronously
-#if (CC_PLATFORM == CC_PLATFORM_ANDROID || (CC_PLATFORM == CC_PLATFORM_WINDOWS && !CC_EDITOR) || CC_PLATFORM == CC_PLATFORM_OHOS || CC_PLATFORM == CC_PLATFORM_OPENHARMONY) || (defined(CC_SERVER_MODE) && (CC_PLATFORM == CC_PLATFORM_MAC_OSX))
+#if (CC_PLATFORM == CC_PLATFORM_ANDROID || CC_PLATFORM == CC_PLATFORM_OHOS || CC_PLATFORM == CC_PLATFORM_OPENHARMONY) || (defined(CC_SERVER_MODE) && (CC_PLATFORM == CC_PLATFORM_MAC_OSX))
         if (dtNS < static_cast<double>(_prefererredNanosecondsPerFrame)) {
             CC_PROFILE(EngineSleep);
             std::this_thread::sleep_for(
@@ -283,7 +283,7 @@ void Engine::tick() {
         }
 #endif
 
-        prevTime = std::chrono::steady_clock::now();
+        // prevTime = std::chrono::steady_clock::now();
 
         _scheduler->update(dt);
 
@@ -296,6 +296,8 @@ void Engine::tick() {
         now = std::chrono::steady_clock::now();
         dtNS = dtNS * 0.1 + 0.9 * static_cast<double>(std::chrono::duration_cast<std::chrono::nanoseconds>(now - prevTime).count());
         dt = static_cast<float>(dtNS) / NANOSECONDS_PER_SECOND;
+        prevTime = now;
+        // CC_LOG_DEBUG(" ---- dt : %f", dt);
     }
 
     CC_PROFILER_END_FRAME;

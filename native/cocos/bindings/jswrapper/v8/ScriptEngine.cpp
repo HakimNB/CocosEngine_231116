@@ -80,8 +80,7 @@ namespace {
 void seLogCallback(const v8::FunctionCallbackInfo<v8::Value> &info) {
     if (info[0]->IsString()) {
         v8::String::Utf8Value utf8(v8::Isolate::GetCurrent(), info[0]);
-        cc::Log::logMessage(cc::LogType::KERNEL, cc::LogLevel::LEVEL_DEBUG
-            , "JS: %s", *utf8);
+        cc::Log::logMessage(cc::LogType::KERNEL, cc::LogLevel::LEVEL_DEBUG, "JS: %s", *utf8);
     }
 }
 
@@ -145,8 +144,7 @@ bool jsbConsoleFormatLog(State &state, cc::LogLevel level, int msgIndex = 0) {
     int argc = static_cast<int>(args.size());
     if ((argc - msgIndex) == 1) {
         ccstd::string msg = args[msgIndex].toStringForce();
-        cc::Log::logMessage(cc::LogType::KERNEL, level 
-            ,"JS: %s", msg.c_str());
+        cc::Log::logMessage(cc::LogType::KERNEL, level, "JS: %s", msg.c_str());
     } else if (argc > 1) {
         ccstd::string msg = args[msgIndex].toStringForce();
         size_t pos;
@@ -158,8 +156,7 @@ bool jsbConsoleFormatLog(State &state, cc::LogLevel level, int msgIndex = 0) {
                 msg += " " + args[i].toStringForce();
             }
         }
-        cc::Log::logMessage(cc::LogType::KERNEL, level
-            ,"JS: %s", msg.c_str());
+        cc::Log::logMessage(cc::LogType::KERNEL, level, "JS: %s", msg.c_str());
     }
 
     return true;
@@ -1137,6 +1134,14 @@ bool ScriptEngine::isDebuggerEnabled() const {
 
 void ScriptEngine::mainLoopUpdate() {
     // empty implementation
+}
+
+void ScriptEngine::pushTask(void (*cb)(void *), void *data) {
+    _isolate->EnqueueMicrotask(cb, data);
+}
+
+void ScriptEngine::flushTasks() {
+    _isolate->PerformMicrotaskCheckpoint();
 }
 
 bool ScriptEngine::callFunction(Object *targetObj, const char *funcName, uint32_t argc, Value *args, Value *rval /* = nullptr*/) {

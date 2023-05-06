@@ -29,6 +29,7 @@
 #include "base/threading/MessageQueue.h"
 #include "base/threading/ThreadSafeLinearAllocator.h"
 #include "platform/interfaces/modules/IXRInterface.h"
+#include "uv.h"
 
 #include "BufferAgent.h"
 #include "CommandBufferAgent.h"
@@ -145,7 +146,8 @@ void DeviceAgent::acquire(Swapchain *const *swapchains, uint32_t count) {
         });
 }
 
-void DeviceAgent::present() {
+void DeviceAgent::present(void *data) {
+    uv_async_t *next = reinterpret_cast<uv_async_t *>(data);
     if (_xr) {
         ENQUEUE_MESSAGE_1(
             _mainMessageQueue, DevicePresent,
@@ -154,19 +156,27 @@ void DeviceAgent::present() {
                 actor->present();
             });
     } else {
-        ENQUEUE_MESSAGE_2(
+        ENQUEUE_MESSAGE_3(
             _mainMessageQueue, DevicePresent,
             actor, _actor,
             frameBoundarySemaphore, &_frameBoundarySemaphore,
+            next, next,
             {
                 actor->present();
                 frameBoundarySemaphore->signal();
+                // events::StepContinue::broadcast(1);
+                if (next)
+                    uv_async_send(next);
             });
 
+        // events::StepContinue::broadcast(0);
         MessageQueue::freeChunksInFreeQueue(_mainMessageQueue);
         _mainMessageQueue->finishWriting();
         _currentIndex = (_currentIndex + 1) % MAX_FRAME_INDEX;
         _frameBoundarySemaphore.wait();
+        // if(_frameBoundarySemaphore.tryWait()) {
+        // events::StepContinue::broadcast(1);
+        // }
     }
 }
 

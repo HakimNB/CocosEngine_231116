@@ -37,6 +37,9 @@ Semaphore::Semaphore(int initialCount) noexcept
 void Semaphore::wait() noexcept {
     _semaphore.wait();
 }
+bool Semaphore::tryWait() noexcept {
+    return _semaphore.try_wait();
+}
 
 void Semaphore::signal(int count) noexcept {
     _semaphore.signal(count);

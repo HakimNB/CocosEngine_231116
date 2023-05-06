@@ -135,6 +135,42 @@ static bool js_root_registerListeners(se::State &s) // NOLINT(readability-identi
 }
 SE_BIND_FUNC(js_root_registerListeners) // NOLINT(readability-identifier-naming)
 
+static bool js_root_frameMoveAsync(se::State &state) {
+    auto &args = state.args();
+    auto argCnt = args.size();
+    if (argCnt != 3) {
+        SE_REPORT_ERROR("invalidate argument count %d, % expected", argCnt, 3);
+        return false;
+    }
+    auto deltaTime = args[0].toFloat();
+    auto totalFrames = args[1].toInt32();
+    se::Value *callback = new se::Value(args[2]);
+    uv_loop_t *loop = static_cast<uv_loop_t *>(cc::BasePlatform::getPlatform()->getLoop());
+    uv_async_t *async = static_cast<uv_async_t *>(malloc(sizeof(uv_async_t)));
+    if (async) {
+        async->data = callback;
+        uv_async_init(
+            loop, async, +[](uv_async_t *async) {
+                se::ScriptEngine::getInstance()->pushTask(
+                    +[](void *data) {
+                        uv_async_t *async = reinterpret_cast<uv_async_t *>(data);
+                        se::AutoHandleScope scope;
+                        auto *callback = reinterpret_cast<se::Value *>(async->data);
+                        // CC_LOG_INFO("call js callback function, to return promise");
+                        callback->toObject()->call({}, nullptr);
+                        delete callback;
+                        uv_close(
+                            reinterpret_cast<uv_handle_t *>(async), +[](uv_handle_t *t) { free(t); });
+                    },
+                    async);
+            });
+    }
+    auto *cobj = SE_THIS_OBJECT<cc::Root>(state);
+    cobj->frameMoveAsync(deltaTime, totalFrames, async);
+    return true;
+}
+SE_BIND_FUNC(js_root_frameMoveAsync) // NOLINT(readability-identifier-naming)
+
 static void registerOnTransformChanged(cc::Node *node) {
     node->on<cc::Node::TransformChanged>(
         +[](cc::Node *emitter, cc::TransformBit transformBit) {
@@ -852,6 +888,8 @@ bool register_all_scene_manual(se::Object *obj) // NOLINT(readability-identifier
     }
 
     __jsb_cc_Root_proto->defineFunction("_registerListeners", _SE(js_root_registerListeners));
+
+    __jsb_cc_Root_proto->defineFunction("frameMoveAsync", _SE(js_root_frameMoveAsync));
 
     __jsb_cc_scene_Camera_proto->defineFunction("screenPointToRay", _SE(js_scene_Camera_screenPointToRay));
     __jsb_cc_scene_Camera_proto->defineFunction("screenToWorld", _SE(js_scene_Camera_screenToWorld));

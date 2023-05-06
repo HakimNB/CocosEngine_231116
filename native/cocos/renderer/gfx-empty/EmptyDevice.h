@@ -54,9 +54,9 @@ public:
     using Device::createTexture;
     using Device::createTextureBarrier;
 
-    void frameSync() override {};
+    void frameSync() override{};
     void acquire(Swapchain *const *swapchains, uint32_t count) override;
-    void present() override;
+    void present(void *async = nullptr) override;
 
     CommandBuffer *createCommandBuffer(const CommandBufferInfo &info, bool emptyhas) override;
     Queue *createQueue() override;

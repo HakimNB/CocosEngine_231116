@@ -66,7 +66,7 @@ public:
 
     void frameSync() override{};
     void acquire(Swapchain *const *swapchains, uint32_t count) override;
-    void present() override;
+    void present(void *callback = nullptr) override;
 
     inline const GLESBindingMapping &bindingMappings() const { return _bindingMappings; }
 

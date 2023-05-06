@@ -224,9 +224,19 @@ rootProto._onDirectorPipelineChanged = function () {
     }
 }
 
-const oldFrameMove = rootProto.frameMove;
+// const oldFrameMove = rootProto.frameMove;
+// rootProto.frameMove = function (deltaTime: number) {
+    // oldFrameMove.call(this, deltaTime, legacyCC.director.getTotalFrames());
+// };
+const oldFrameMove = rootProto.frameMoveAsync;
 rootProto.frameMove = function (deltaTime: number) {
-    oldFrameMove.call(this, deltaTime, legacyCC.director.getTotalFrames());
+    return new Promise<void>((resolve, reject)=> {
+        // console.log("frameMove begin")
+        oldFrameMove.call(this, deltaTime, legacyCC.director.getTotalFrames(), ()=>{
+            resolve();
+            // console.log("frameMove done")
+        });
+    });
 };
 
 const oldSetPipeline = rootProto.setRenderPipeline;

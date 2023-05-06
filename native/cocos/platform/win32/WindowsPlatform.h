@@ -24,6 +24,7 @@
 
 #pragma once
 
+#include <Windows.h>
 #include <memory>
 #include "platform/UniversalPlatform.h"
 
@@ -45,14 +46,33 @@ public:
 
     int32_t loop() override;
 
+    int32_t loopWithUV();
+    void step();
+    void scheduleNextStep();
+
     void exit() override;
 
     ISystemWindow *createNativeWindow(uint32_t windowId, void *externalHandle) override;
+
+    int32_t setTimeout(int delay, std::function<void()> &&func, bool repeat) override;
+    void clearTimeout(int32_t id) override;
+
+    void *getLoop() override;
 
 private:
     std::shared_ptr<SystemWindowManager> _windowManager{nullptr};
     std::shared_ptr<SystemWindow> _window{nullptr};
     bool _quit{false};
+
+    void *mainLoop{};
+    void *mainTimer{};
+
+    int stepContinue = 1;
+    events::StepContinue::Listener stepListener;
+
+    LARGE_INTEGER nFreq;
+    LARGE_INTEGER nLast;
+    LARGE_INTEGER nNow;
 };
 
 } // namespace cc

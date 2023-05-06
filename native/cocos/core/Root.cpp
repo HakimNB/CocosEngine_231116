@@ -413,7 +413,8 @@ void Root::frameMoveProcess(bool isNeedUpdateScene, int32_t totalFrames) {
     }
 }
 
-void Root::frameMoveEnd() {
+void Root::frameMoveEnd(uv_async_t *next) {
+    bool nextCalled = false;
     if (_pipelineRuntime != nullptr && !_cameraList.empty()) {
         emit<BeforeCommit>();
         std::stable_sort(_cameraList.begin(), _cameraList.end(), [](const auto *a, const auto *b) {
@@ -436,11 +437,16 @@ void Root::frameMoveEnd() {
         _pipelineRuntime->render(_cameraList);
         emit<AfterRender>();
 #endif
-        _device->present();
+        _device->present(next);
+        nextCalled = true;
     }
 
     if (_batcher != nullptr) {
         _batcher->reset();
+    }
+
+    if (!nextCalled && next) {
+        uv_async_send(next);
     }
 }
 
@@ -464,6 +470,29 @@ void Root::frameMove(float deltaTime, int32_t totalFrames) { // NOLINT
         frameMoveBegin();
         frameMoveProcess(true, totalFrames);
         frameMoveEnd();
+    }
+}
+
+void Root::frameMoveAsync(float deltaTime, int32_t totalFrames, uv_async_t *done) {
+    CCObject::deferredDestroy();
+
+    _frameTime = deltaTime;
+
+    ++_frameCount;
+    _cumulativeTime += deltaTime;
+    _fpsTime += deltaTime;
+    if (_fpsTime > 1.0F) {
+        _fps = _frameCount;
+        _frameCount = 0;
+        _fpsTime = 0.0;
+    }
+
+    if (_xr) {
+        doXRFrameMove(totalFrames);
+    } else {
+        frameMoveBegin();
+        frameMoveProcess(true, totalFrames);
+        frameMoveEnd(done);
     }
 }
 

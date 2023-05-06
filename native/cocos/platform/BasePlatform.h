@@ -81,12 +81,12 @@ public:
     virtual OSType getOSType() const = 0;
 
     /**
-     * @brief Get the SDK version for Android.Other systems also have sdk versions, 
+     * @brief Get the SDK version for Android.Other systems also have sdk versions,
               but they are not currently used.
      */
     virtual int getSdkVersion() const = 0;
     /**
-     * @brief Run the task in the platform thread, 
+     * @brief Run the task in the platform thread,
      * @brief most platforms are the main thread, android is the non-main thread
      * @param task : Tasks running in platform threads
      * @param fps : Task call frequency
@@ -101,6 +101,8 @@ public:
      * @brief Set task call frequency.
      */
     virtual void setFps(int32_t fps) = 0;
+
+    virtual void *getLoop() { return nullptr; }
 
     /**
      * @brief Get target system interface(Non thread safe.).
@@ -160,6 +162,9 @@ public:
     }
 
     virtual ISystemWindow *createNativeWindow(uint32_t windowId, void *externalHandle) = 0;
+
+    virtual int32_t setTimeout(int delay, std::function<void()> &&func, bool repeat) = 0;
+    virtual void clearTimeout(int32_t id) = 0;
 
 private:
     static BasePlatform *createDefaultPlatform();
