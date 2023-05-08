@@ -211,26 +211,12 @@ int32_t WindowsPlatform::loopWithUV() {
     auto *t = static_cast<uv_timer_t *>(mainTimer);
     uv_timer_start(t, mainTimerCallback, 0, 0);
 
-    // uv_async_t notify;
-    // notify.data = this;
-    // uv_async_init(
-    //     l, &notify, +[](uv_async_t *async) {
-    //         WindowsPlatform *p = reinterpret_cast<WindowsPlatform *>(async->data);
-    //         // CC_LOG_DEBUG(" - notfiy next frame");
-    //         //p->scheduleNextStep();
-    //     });
-
-    // stepListener.bind([&](int i) {
-    //     stepContinue = i;
-    //     uv_async_send(&notify);
-    // });
     uv_timer_t we;
     uv_timer_init(l, &we);
     we.data = _windowManager.get();
     uv_timer_start(
         &we, +[](uv_timer_t *i) {
             auto *wm = static_cast<ISystemWindowManager *>(i->data);
-            // CC_LOG_DEBUG(" - process event");
             wm->processEvent();
         },
         10, 10);
@@ -241,7 +227,6 @@ int32_t WindowsPlatform::loopWithUV() {
     uv_prepare_start(
         &idle, +[](uv_prepare_t *i) {
             auto *wm = static_cast<ISystemWindowManager *>(i->data);
-            // CC_LOG_DEBUG(" - process event");
             wm->processEvent();
             CC_CURRENT_ENGINE()->getScheduler()->update(0.016);
             se::ScriptEngine::getInstance()->handlePromiseExceptions();
@@ -251,24 +236,17 @@ int32_t WindowsPlatform::loopWithUV() {
     uv_check_init(l, &post);
     post.data = this;
     uv_check_start(&post, [](uv_check_t *post) {
-        // se::ScriptEngine::getInstance()->mainLoopUpdate();
         cc::DeferredReleasePool::clear();
-        // if (_quit) {
-        // uv_stop(static_cast<uv_loop_t *>(mainLoop));
-        // }
         se::ScriptEngine::getInstance()->flushTasks();
     });
 
     onResume();
     while (!_quit) {
         uv_run(l, UV_RUN_ONCE);
-        // uv_run(l, UV_RUN_NOWAIT);
     }
-    // uv_run(static_cast<uv_loop_t *>(mainLoop), UV_RUN_DEFAULT);
     onDestroy();
     uv_prepare_stop(&idle);
     stepListener.reset();
-    // mainLoop = nullptr;
     return 0;
 }
 
