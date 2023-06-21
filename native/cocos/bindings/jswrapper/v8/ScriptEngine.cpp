@@ -23,6 +23,7 @@
 ****************************************************************************/
 
 #include "ScriptEngine.h"
+#include <tuple>
 #include "engine/EngineEvents.h"
 
 #if SCRIPT_ENGINE_TYPE == SCRIPT_ENGINE_V8
@@ -115,11 +116,12 @@ ccstd::string stackTraceToString(v8::Local<v8::StackTrace> stack) {
         stackStr += tmp;
         stackStr += "]";
         stackStr += (funcName.empty() ? "anonymous" : funcName.c_str());
-        stackStr += "@";
-        stackStr += (scriptName.empty() ? "(no filename)" : scriptName.c_str());
+        stackStr += " (";
+        stackStr += (scriptName.empty() ? "no filename" : scriptName.c_str());
         stackStr += ":";
-        snprintf(tmp, sizeof(tmp), "%d", frame->GetLineNumber());
+        snprintf(tmp, sizeof(tmp), "%d:%d", frame->GetLineNumber(), frame->GetColumn());
         stackStr += tmp;
+        stackStr += ")";
 
         if (i < (e - 1)) {
             stackStr += "\n";
@@ -1202,6 +1204,17 @@ bool ScriptEngine::callFunction(Object *targetObj, const char *funcName, uint32_
         }
     }
     return true;
+}
+
+
+void ScriptEngine::requestInterrupt(void (*callback)(void*), void *data) {
+    using context_t = std::tuple<decltype(callback), void*>;
+    auto *ctx = new context_t(callback, data);
+    _isolate->RequestInterrupt(+[](v8::Isolate * /*isolate*/, void *data){
+        auto *ctx = reinterpret_cast<context_t*>(data);
+        std::get<0>(*ctx)(std::get<1>(*ctx));
+        delete ctx;
+    }, ctx);
 }
 
 // VMStringPool

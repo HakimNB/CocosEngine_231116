@@ -57,6 +57,28 @@ static std::shared_ptr<cc::network::Downloader> gLocalDownloader = nullptr;
 static ccstd::unordered_map<ccstd::string, std::function<void(const ccstd::string &, unsigned char *, uint)>> gLocalDownloaderHandlers;
 static uint64_t gLocalDownloaderTaskId = 1000000;
 
+static int32_t gBlockingTimeoutMS = 1000;
+
+int32_t cc_get_blocking_timeout() {
+    return gBlockingTimeoutMS;
+}
+
+void cc_set_blocking_timeout(int32_t timeoutMS) {
+    gBlockingTimeoutMS = timeoutMS;
+}
+
+static bool jsb_set_blocking_timeout(se::State &state) { // NOLINT
+    gBlockingTimeoutMS = state.args()[0].toInt32();
+    return true;
+}
+SE_BIND_PROP_SET(jsb_set_blocking_timeout)
+
+static bool jsb_get_blocking_timeout(se::State &state) { // NOLINT
+    state.rval().setInt32(gBlockingTimeoutMS);
+    return true;
+}
+SE_BIND_PROP_GET(jsb_get_blocking_timeout)
+
 static cc::network::Downloader *localDownloader() {
     if (!gLocalDownloader) {
         gLocalDownloader = std::make_shared<cc::network::Downloader>();
@@ -1423,6 +1445,8 @@ bool jsb_register_global_variables(se::Object *global) { // NOLINT
     __jsbObj->defineFunction("setCursorEnabled", _SE(JSB_setCursorEnabled));
     __jsbObj->defineFunction("saveByteCode", _SE(JSB_saveByteCode));
     __jsbObj->defineFunction("createExternalArrayBuffer", _SE(jsb_createExternalArrayBuffer));
+
+    __jsbObj->defineProperty("blockingTimeout", _SE(jsb_get_blocking_timeout), _SE(jsb_set_blocking_timeout));
 
     // Create process object
     se::HandleObject processObj{se::Object::createPlainObject()};

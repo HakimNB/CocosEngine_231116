@@ -1401,4 +1401,16 @@ export declare namespace native {
          */
         export const argv: Readonly<string[]>;
     }
+
+
+    /**
+     * @en Sets the threshold for code execution time that is considered as blocking.
+     * @zh 设置检测 JS 代码阻塞超时的阈值.
+     */
+    export let blockingTimeout: number;
+    /**
+     * @en Sets the callback function to be executed when code execution blocking is detected.
+     * @en JS 代码运行阻塞超时执行此回调
+     */
+    export let onBlockingDetected: () => void;
 }

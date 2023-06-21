@@ -30,10 +30,12 @@
 #include "base/DeferredReleasePool.h"
 #include "base/Macros.h"
 #include "bindings/jswrapper/SeApi.h"
+#include "bindings/manual/jsb_global.h"
 #include "core/builtin/BuiltinResMgr.h"
 #include "engine/EngineEvents.h"
 #include "platform/BasePlatform.h"
 #include "platform/FileUtils.h"
+#include "platform/WatchDog.h"
 #include "renderer/GFXDeviceManager.h"
 #include "renderer/core/ProgramLib.h"
 #include "renderer/pipeline/RenderPipeline.h"
@@ -288,7 +290,17 @@ void Engine::tick() {
         _scheduler->update(dt);
 
         se::ScriptEngine::getInstance()->handlePromiseExceptions();
+#if !CC_EDITOR && (CC_PLATFORM == CC_PLATFORM_ANDROID || CC_PLATFORM == CC_PLATFORM_WINDOWS || CC_PLATFORM == CC_PLATFORM_MAC_OSX)
+        {
+            WatchDog watchdog(
+                cc_get_blocking_timeout(), +[]() {
+                    events::ScriptExecutionTimeout::broadcast();
+                });
+            events::Tick::broadcast(dt);
+        }
+#else
         events::Tick::broadcast(dt);
+#endif
         se::ScriptEngine::getInstance()->mainLoopUpdate();
 
         cc::DeferredReleasePool::clear();

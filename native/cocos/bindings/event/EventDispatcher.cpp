@@ -30,6 +30,8 @@
 #include "cocos/platform/interfaces/modules/ISystemWindow.h"
 #include "cocos/platform/interfaces/modules/ISystemWindowManager.h"
 
+extern int32_t cc_get_blocking_timeout(); // NOLINT
+
 namespace {
 se::Value tickVal;
 se::ValueArray tickArgsValArr(1);
@@ -70,6 +72,7 @@ events::Orientation::Listener EventDispatcher::listenerOrientation;
 events::RestartVM::Listener EventDispatcher::listenerRestartVM;
 events::Close::Listener EventDispatcher::listenerClose;
 events::PointerLock::Listener EventDispatcher::listenerPointerLock;
+events::ScriptExecutionTimeout::Listener EventDispatcher::listenerScriptExecutionTimeout;
 
 uint32_t EventDispatcher::hashListenerId = 1;
 
@@ -98,6 +101,7 @@ void EventDispatcher::init() {
         listenerClose.bind(&dispatchCloseEvent);
         listenerRestartVM.bind(&dispatchRestartVM);
         listenerPointerLock.bind(&dispatchPointerlockChangeEvent);
+        listenerScriptExecutionTimeout.bind(&dispatchScriptExecutionTimeout);
         busListenerInited = true;
     }
 }
@@ -442,6 +446,18 @@ void EventDispatcher::doDispatchJsEvent(const char *jsFunctionName, const std::v
     if (func.isObject() && func.toObject()->isFunction()) {
         func.toObject()->call(args, nullptr);
     }
+}
+
+void EventDispatcher::dispatchScriptExecutionTimeout() {
+    se::ScriptEngine::getInstance()->requestInterrupt(
+        +[](void *) {
+            se::AutoHandleScope scope;
+            auto *engine = se::ScriptEngine::getInstance();
+            auto stackString = engine->getCurrentStackTrace();
+            CC_LOG_ERROR("Execution Timeout Detected (timeout: %d ms):\n%s", cc_get_blocking_timeout(), stackString.c_str());
+            doDispatchJsEvent("onBlockingDetected", {});
+        },
+        nullptr);
 }
 
 } // end of namespace cc

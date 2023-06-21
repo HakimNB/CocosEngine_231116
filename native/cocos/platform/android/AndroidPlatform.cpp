@@ -836,6 +836,7 @@ int32_t AndroidPlatform::loop() {
         if (_app->destroyRequested) {
             break;
         }
+
         if (xr && !xr->platformLoopStart()) continue;
         _inputProxy->handleInput();
         if (_inputProxy->isAnimating() && (xr ? xr->getXRConfig(xr::XRConfigKey::SESSION_RUNNING).getBool() : true)) {

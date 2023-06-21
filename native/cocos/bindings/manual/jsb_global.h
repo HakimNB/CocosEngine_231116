@@ -24,6 +24,7 @@
 
 #pragma once
 
+#include <cstdint>
 #include "bindings/jswrapper/PrivateObject.h"
 #include "jsb_global_init.h"
 
@@ -76,3 +77,9 @@ bool jsb_run_script(const ccstd::string &filePath, se::Value *rval = nullptr);  
 bool jsb_run_script_module(const ccstd::string &filePath, se::Value *rval = nullptr); // NOLINT(readability-identifier-naming)
 
 bool jsb_global_load_image(const ccstd::string &path, const se::Value &callbackVal); // NOLINT(readability-identifier-naming)
+
+/**
+ * get the blocking timeout in milliseconds
+ */
+int32_t cc_get_blocking_timeout();     // NOLINT(readability-identifier-naming)
+void cc_set_blocking_timeout(int32_t); // NOLINT(readability-identifier-naming)

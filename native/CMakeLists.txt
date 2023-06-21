@@ -532,11 +532,13 @@ cocos_source_files(
     cocos/platform/BasePlatform.h
     cocos/platform/UniversalPlatform.cpp
     cocos/platform/UniversalPlatform.h
+    cocos/platform/WatchDog.h
 )
 if(WINDOWS)
     cocos_source_files(
         cocos/platform/win32/WindowsPlatform.cpp
         cocos/platform/win32/WindowsPlatform.h
+        cocos/platform/win32/WindowsWatchDog.cpp
     )
 elseif(LINUX)
     cocos_source_files(
@@ -547,6 +549,7 @@ elseif(ANDROID)
     cocos_source_files(
         cocos/platform/android/AndroidPlatform.cpp
         cocos/platform/android/AndroidPlatform.h
+        cocos/platform/android/AndroidWatchDog.cpp
         cocos/platform/android/AndroidKeyCodes.cpp
     )
 elseif(OPENHARMONY)
