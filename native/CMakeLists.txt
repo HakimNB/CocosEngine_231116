@@ -545,15 +545,13 @@ elseif(LINUX)
     cocos_source_files(
         cocos/platform/linux/LinuxPlatform.cpp
         cocos/platform/linux/LinuxPlatform.h
-        cocos/platform/WatchDogUV.cpp
     )
 elseif(ANDROID)
     cocos_source_files(
         cocos/platform/android/AndroidPlatform.cpp
         cocos/platform/android/AndroidPlatform.h
         cocos/platform/android/AndroidKeyCodes.cpp
-        # cocos/platform/android/AndroidWatchDog.cpp
-        cocos/platform/WatchDogUV.cpp
+        cocos/platform/android/AndroidWatchDog.cpp
     )
 elseif(OPENHARMONY)
     cocos_source_files(
@@ -577,7 +575,7 @@ elseif(MACOSX)
         cocos/platform/mac/ViewController.mm
         cocos/platform/mac/AppDelegate.h
         cocos/platform/mac/AppDelegate.mm
-        cocos/platform/WatchDogUV.cpp
+        cocos/platform/WatchDog.cpp
     )
 elseif(IOS)
     cocos_source_files(
@@ -585,7 +583,7 @@ elseif(IOS)
         cocos/platform/ios/IOSPlatform.h
         cocos/platform/ios/AppDelegateBridge.mm
         cocos/platform/ios/AppDelegateBridge.h
-        cocos/platform/WatchDogUV.cpp
+        cocos/platform/WatchDog.cpp
     )
 endif()
 

@@ -455,7 +455,7 @@ void EventDispatcher::dispatchScriptExecutionTimeout() {
             auto *engine = se::ScriptEngine::getInstance();
             auto stackString = engine->getCurrentStackTrace();
             CC_LOG_ERROR("Execution Timeout Detected (timeout: %d ms):\n%s", cc_get_blocking_timeout(), stackString.c_str());
-            doDispatchJsEvent("onBlockingDetected", {});
+            doDispatchJsEvent("onBlockingDetected", {se::Value(stackString)});
         },
         nullptr);
 }

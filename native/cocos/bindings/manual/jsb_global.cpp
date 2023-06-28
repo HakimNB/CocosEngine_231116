@@ -63,10 +63,6 @@ int32_t cc_get_blocking_timeout() {
     return gBlockingTimeoutMS;
 }
 
-void cc_set_blocking_timeout(int32_t timeoutMS) {
-    gBlockingTimeoutMS = timeoutMS;
-}
-
 static bool jsb_set_blocking_timeout(se::State &state) { // NOLINT
     gBlockingTimeoutMS = state.args()[0].toInt32();
     return true;

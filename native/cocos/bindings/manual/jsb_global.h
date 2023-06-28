@@ -82,4 +82,3 @@ bool jsb_global_load_image(const ccstd::string &path, const se::Value &callbackV
  * get the blocking timeout in milliseconds
  */
 int32_t cc_get_blocking_timeout();     // NOLINT(readability-identifier-naming)
-void cc_set_blocking_timeout(int32_t); // NOLINT(readability-identifier-naming)
