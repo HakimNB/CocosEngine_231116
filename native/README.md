@@ -12,9 +12,9 @@ The coding format file is `.clang-format`, and the coding style format file is `
 Build Requirements
 --------------------------------
 - Xcode 11.5+ to build mac games
-- or Visual Studio 2017 15.7+ / Visual Studio 2019 to build win64 games
+- or Visual Studio 2019 / Visual Studio 2022 to build win64 games
 - NDK 21-22 is required to build Android games (23+ is not supported)
-- Cmake 3.8+ is required
+- Cmake 3.24+ is required
 
 System Requirements
 --------------------------------
