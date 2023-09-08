@@ -339,6 +339,14 @@ declare namespace jsb {
         setVerifyCallback (verifyCallback: (path: string, asset: ManifestAsset) => boolean): void;
         setEventCallback (eventCallback: (event: EventAssetsManager) => void): void;
     }
+
+    function sendUDP(host: string, port: number, data: string);
+
+    const thermalInfo: {
+        thermalValue(): number;
+        thermalStatus(): number;
+        frameTime(): number;
+    }|undefined;
 }
 
 declare namespace ns {

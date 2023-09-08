@@ -36,6 +36,9 @@
                 },
                 "taobaoMinigamePlugin": {
                     "type": "boolean"
+                },
+                "adaptive-performance": {
+                    "type":"boolean"
                 }
             },
             "type": "object"
@@ -155,6 +158,9 @@
                     "$ref": "#/definitions/Item"
                 },
                 "xr": {
+                    "$ref": "#/definitions/Item"
+                },
+                "adaptive-performance": {
                     "$ref": "#/definitions/Item"
                 }
             },
