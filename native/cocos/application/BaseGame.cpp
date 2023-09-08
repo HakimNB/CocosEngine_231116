@@ -25,6 +25,7 @@
 #include "BaseGame.h"
 #include <string>
 #include "ApplicationManager.h"
+#include "platform/android/adpf_manager.h"
 #include "platform/interfaces/modules/ISystemWindowManager.h"
 #include "renderer/pipeline/GlobalDescriptorSetManager.h"
 
@@ -35,6 +36,9 @@ int BaseGame::init() {
     cc::pipeline::GlobalDSManager::setDescriptorSetLayout();
 
     cc_load_all_plugins();
+#if CC_PLATFORM == CC_PLATFORM_ANDROID
+    ADPFManager::getInstance().SetApplication();
+#endif
 
 #if CC_PLATFORM == CC_PLATFORM_WINDOWS || CC_PLATFORM == CC_PLATFORM_LINUX || CC_PLATFORM == CC_PLATFORM_QNX || CC_PLATFORM == CC_PLATFORM_MACOS
     // override default value

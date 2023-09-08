@@ -111,6 +111,12 @@
             "modules": ["profiler"],
             "dependentAssets": ["871c3b6c-7379-419d-bda3-794b239ab90d"]
         },
+        "adaptive-performance":{
+            "modules": ["adaptive-performance"],
+            "intrinsicFlags": {
+                "ADAPTIVE_PERFORMANCE": true
+            }
+        },
         "occlusion-query": {
             "modules": [],
             "dependentAssets": ["d9937e59-61fe-4ec6-92ab-7ac5a19c89b0"]
@@ -361,6 +367,13 @@
             "isVirtualModule": false,
             "overrides": {
                 "cocos/animation/marionette/runtime-exports.ts": "cocos/animation/marionette/index-empty.ts"
+            }
+        },
+        {
+            "test": "!context.buildTimeConstants.ADAPTIVE_PERFORMANCE",
+            "isVirtualModule": false,
+            "overrides": {
+                "cocos/adaptive-performance": "cocos/adaptive-performance/index-empty.ts"
             }
         },
         {

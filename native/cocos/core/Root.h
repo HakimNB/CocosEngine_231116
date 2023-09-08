@@ -24,20 +24,20 @@
 #pragma once
 
 #include <cstdint>
-//#include "3d/skeletal-animation/DataPoolManager.h"
+// #include "3d/skeletal-animation/DataPoolManager.h"
 #include "bindings/event/EventDispatcher.h"
 #include "core/event/Event.h"
 #include "core/memop/Pool.h"
-#include "renderer/pipeline/RenderPipeline.h"
 #include "renderer/pipeline/DebugView.h"
+#include "renderer/pipeline/RenderPipeline.h"
 #include "scene/DrawBatch2D.h"
 #include "scene/Light.h"
 #include "scene/Model.h"
+#include "scene/PointLight.h"
+#include "scene/RangedDirectionalLight.h"
 #include "scene/RenderScene.h"
 #include "scene/RenderWindow.h"
 #include "scene/SphereLight.h"
-#include "scene/PointLight.h"
-#include "scene/RangedDirectionalLight.h"
 
 namespace cc {
 class IXRInterface;
@@ -82,7 +82,7 @@ public:
      * @param height 窗口高度
      * @param windowId 窗口 ID
      */
-    void resize(uint32_t width, uint32_t height, uint32_t windowId);
+    void resize(uint32_t width, uint32_t height, uint32_t windowId = 1);
 
     bool setRenderPipeline(pipeline::RenderPipeline *rppl = nullptr);
     void onGlobalPipelineStateChanged();

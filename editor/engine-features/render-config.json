@@ -36,6 +36,11 @@
             "default": ["animation"],
             "category": "animation"
         },
+        "adaptive-performance": {
+            "label": "i18n:ENGINE.features.adaptive-performance.label",
+            "description": "i18n:ENGINE.features.adaptive-performance.description",
+            "default": ["base"]
+        },
         "skeletal-animation": {
             "label": "i18n:ENGINE.features.skeletal_animation.label",
             "description": "i18n:ENGINE.features.skeletal_animation.description",
