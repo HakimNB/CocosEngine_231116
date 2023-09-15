@@ -79,7 +79,7 @@ template <int idx, typename EHandler, typename Head>
 constexpr bool validateParameters(Head && /*unused*/) {
     using element_t = std::remove_reference_t<std::tuple_element_t<idx, typename EHandler::_argument_tuple_types>>;
     using head = std::remove_reference_t<Head>;
-    constexpr bool assignable = std::is_assignable_v<head, element_t> || std::is_convertible_v<head, element_t>;
+    constexpr bool assignable = std::is_assignable<head, element_t>::value || std::is_convertible<head, element_t>::value;
     constexpr bool ret = assignable;
     static_assert(ret, "Parameter type incorrect");
     return ret;
@@ -156,16 +156,34 @@ template <typename F>
 using lambda_without_class_t = typename RemoveClass<function_type_t<F>>::type;
 
 template <typename F>
+using mix_function_type = typename std::conditional<FunctionTrait<F>::IS_LAMBDA,
+                                                    lambda_without_class_t<F>,
+                                                    function_type_t<F>>::type;
+
+template <typename F>
 inline auto convertLambda(F &&lambda) {
-    if constexpr (FunctionTrait<F>::IS_LAMBDA) {
-        return static_cast<lambda_without_class_t<F>>(std::forward<F>(lambda));
-    } else {
-        return static_cast<function_type_t<F>>(std::forward<F>(lambda));
-    }
+    return static_cast<mix_function_type<F>>(std::forward<F>(lambda));
 }
 template <typename T>
 struct TgtEvtFnTrait;
 
+template <typename Func, typename Tuple, std::size_t... I>
+auto apply_impl(Func &&f, Tuple &&t, std::index_sequence<I...>) // NOLINT
+    -> decltype(std::forward<Func>(f)(std::get<I>(std::forward<Tuple>(t))...)) {
+    return std::forward<Func>(f)(std::get<I>(std::forward<Tuple>(t))...);
+}
+
+template <typename Func, typename Tuple>
+auto applyx(Func &&f, Tuple &&t)
+    -> decltype(apply_impl(
+        std::forward<Func>(f),
+        std::forward<Tuple>(t),
+        std::make_index_sequence<std::tuple_size<typename std::decay<Tuple>::type>::value>{})) {
+    return apply_impl(
+        std::forward<Func>(f),
+        std::forward<Tuple>(t),
+        std::make_index_sequence<std::tuple_size<typename std::decay<Tuple>::type>::value>{});
+}
 template <typename C, typename R, typename... ARGS>
 struct TgtEvtFnTrait<R(C *, ARGS...)> {
     using param0_type = C;
@@ -173,29 +191,33 @@ struct TgtEvtFnTrait<R(C *, ARGS...)> {
     constexpr static bool IS_MEMBER_FUNC = false;
     template <typename TgtEvent>
     static constexpr bool accept() {
-        if constexpr (sizeof...(ARGS) == 0) {
-            using event_type = typename TgtEvent::EventType;
-            return std::is_same_v<param0_type, event_type>;
-        } else {
-            return false;
-        }
+        using event_type = typename TgtEvent::EventType;
+        return sizeof...(ARGS) == 0 && std::is_same<param0_type, event_type>::value;
     }
+
+    template <bool COND, typename Func, typename EmitterType, typename EventType>
+    struct invoker {
+        static auto invoke(Func &&func) {
+            return [&func](EmitterType * /*self*/, EventType *event) {
+                func(event);
+            };
+        }
+    };
+    template <typename Func, typename EmitterType, typename EventType>
+    struct invoker<false, Func, EmitterType, EventType> {
+        static auto invoke(Func &&func) {
+            static_assert(std::is_same<param0_type, EmitterType>::value, "mismatch emitter type");
+            return [func](EmitterType *self, EventType *event) {
+                return apply([self, func](auto &&...args) { func(self, args...); }, event->args);
+            };
+        }
+    };
     template <typename TgtEvent>
     static auto wrap(src_func_type func) {
         using event_type = typename TgtEvent::EventType;
         using persist_function_type = typename TgtEvent::_persist_function_type;
         using emitter_type = typename TgtEvent::_emitter_type;
-        persist_function_type ret;
-        if constexpr (accept<TgtEvent>()) {
-            ret = [&func](emitter_type * /*self*/, event_type *event) {
-                func(event);
-            };
-        } else {
-            static_assert(std::is_same_v<param0_type, emitter_type>, "mismatch emitter type");
-            ret = [func](emitter_type *self, event_type *event) {
-                return std::apply([self, func](auto &&...args) { func(self, args...); }, event->args);
-            };
-        }
+        persist_function_type ret = invoker<accept<TgtEvent>(), src_func_type, emitter_type, event_type>::invoke(func);
         return ret;
     }
 };
@@ -206,27 +228,32 @@ struct TgtEvtFnTrait<R(const C *, ARGS...)> {
     constexpr static bool IS_MEMBER_FUNC = false;
     template <typename TgtEvent>
     static constexpr bool accept() {
-        if constexpr (sizeof...(ARGS) == 0) {
-            using event_type = typename TgtEvent::EventType;
-            return std::is_same_v<param0_type, event_type>;
-        } else {
-            return false;
-        }
+        using event_type = typename TgtEvent::EventType;
+        return sizeof...(ARGS) == 0 && std::is_same<param0_type, event_type>::value;
     }
+
+    template <bool COND, typename Func, typename EmitterType, typename EventType>
+    struct invoker {
+        static auto invoke(Func &&func) {
+            return [&func](EmitterType * /*self*/, EventType *event) {
+                func(event);
+            };
+        }
+    };
+    template <typename Func, typename EmitterType, typename EventType>
+    struct invoker<false, Func, EmitterType, EventType> {
+        static auto invoke(Func &&func) {
+            return [func](EmitterType *self, EventType *event) {
+                return apply([self, func](auto &&...args) { func(self, args...); }, event->args);
+            };
+        }
+    };
     template <typename TgtEvent>
     static auto wrap(src_func_type func) {
         using event_type = typename TgtEvent::EventType;
         using emitter_type = typename TgtEvent::_emitter_type;
         using persist_function_type = typename TgtEvent::_persist_function_type;
-        persist_function_type ret;
-        if constexpr (accept<TgtEvent>()) {
-            ret = [func](emitter_type * /*self*/, event_type *event) {
-                func(event);
-            };
-        } else {
-            static_assert(std::is_same_v<param0_type, emitter_type>, "mismatch emitter type");
-            ret = [func](emitter_type *self, event_type *event) { return std::apply([self, func](auto &&...args) { func(self, args...); }, event->args); };
-        }
+        persist_function_type ret = invoker<accept<TgtEvent>(), src_func_type, emitter_type, event_type>::invoke(func);
         return ret;
     }
 };
@@ -237,30 +264,33 @@ struct TgtEvtFnTrait<R (*)(C *, ARGS...)> {
     constexpr static bool IS_MEMBER_FUNC = false;
     template <typename TgtEvent>
     static constexpr bool accept() {
-        if constexpr (sizeof...(ARGS) == 0) {
-            using event_type = typename TgtEvent::EventType;
-            return std::is_same_v<param0_type, event_type>;
-        } else {
-            return false;
-        }
+        using event_type = typename TgtEvent::EventType;
+        return sizeof...(ARGS) == 0 && std::is_same<param0_type, event_type>::value;
     }
+
+    template <bool COND, typename Func, typename EmitterType, typename EventType>
+    struct invoker {
+        static auto invoke(Func &&func) {
+            return [&func](EmitterType * /*self*/, EventType *event) {
+                func(event);
+            };
+        }
+    };
+    template <typename Func, typename EmitterType, typename EventType>
+    struct invoker<false, Func, EmitterType, EventType> {
+        static auto invoke(Func &&func) {
+            static_assert(std::is_same<EmitterType, param0_type>::value, "mismatch emitter type");
+            return [func](EmitterType *self, EventType *event) {
+                return apply([self, func](auto &&...args) { func(self, args...); }, event->args);
+            };
+        }
+    };
     template <typename TgtEvent>
     static auto wrap(src_func_type func) {
         using EventType = typename TgtEvent::EventType;
         using persist_function_type = typename TgtEvent::_persist_function_type;
         using emitter_type = typename TgtEvent::_emitter_type;
-        persist_function_type ret;
-        if constexpr (accept<TgtEvent>()) {
-            auto ret2 = [func](emitter_type * /*self*/, EventType *event) {
-                func(event);
-            };
-            ret = ret2;
-        } else {
-            static_assert(std::is_same_v<emitter_type, param0_type>, "mismatch emitter type");
-            ret = [func](emitter_type *self, EventType *event) {
-                return std::apply([self, func](auto &&...args) { func(self, args...); }, event->args);
-            };
-        }
+        persist_function_type ret = invoker<accept<TgtEvent>(), src_func_type, emitter_type, EventType>::invoke(func);
         return ret;
     }
 };
@@ -271,30 +301,32 @@ struct TgtEvtFnTrait<R (*)(const C *, ARGS...)> {
     constexpr static bool IS_MEMBER_FUNC = false;
     template <typename TgtEvent>
     static constexpr bool accept() {
-        if constexpr (sizeof...(ARGS) == 0) {
-            using event_type = typename TgtEvent::EventType;
-            return std::is_same_v<param0_type, event_type>;
-        } else {
-            return false;
-        }
+        using event_type = typename TgtEvent::EventType;
+        return sizeof...(ARGS) == 0 && std::is_same<param0_type, event_type>::value;
     }
+
+    template <bool COND, typename Func, typename EmitterType, typename EventType>
+    struct invoker {
+        static auto invoke(Func &&func) {
+            return [&func](EmitterType * /*self*/, EventType *event) {
+                func(event);
+            };
+        }
+    };
+    template <typename Func, typename EmitterType, typename EventType>
+    struct invoker<false, Func, EmitterType, EventType> {
+        static auto invoke(Func &&func) {
+            return [func](EmitterType *self, EventType *event) {
+                return applyx([self, func](auto &&...args) { func(self, args...); }, event->args);
+            };
+        }
+    };
     template <typename TgtEvent>
     static auto wrap(src_func_type func) {
         using event_type = typename TgtEvent::EventType;
         using emitter_type = typename TgtEvent::_emitter_type;
         using persist_function_type = typename TgtEvent::_persist_function_type;
-        persist_function_type ret;
-        if constexpr (accept<TgtEvent>()) {
-            ret = [&func](emitter_type * /*self*/, event_type *event) {
-                func(event);
-            };
-            return ret;
-        } else {
-            static_assert(std::is_same_v<emitter_type, param0_type>, "mismatch emitter type");
-            ret = [func](emitter_type *self, event_type *event) {
-                return std::apply([self, func](auto &&...args) { func(self, args...); }, event->args);
-            };
-        }
+        persist_function_type ret = invoker<accept<TgtEvent>(), src_func_type, emitter_type, event_type>::invoke(func);
         return ret;
     }
 };
@@ -305,29 +337,32 @@ struct TgtEvtFnTrait<std::function<R(const C *, ARGS...)>> {
     constexpr static bool IS_MEMBER_FUNC = false;
     template <typename TgtEvent>
     static constexpr bool accept() {
-        if constexpr (sizeof...(ARGS) == 0) {
-            using event_type = typename TgtEvent::EventType;
-            return std::is_same_v<param0_type, event_type>;
-        } else {
-            return false;
-        }
+        using event_type = typename TgtEvent::EventType;
+        return sizeof...(ARGS) == 0 && std::is_same<param0_type, event_type>::value;
     }
+
+    template <bool COND, typename Func, typename EmitterType, typename EventType>
+    struct invoker {
+        static auto invoke(Func &&func) {
+            return [&func](EmitterType * /*self*/, EventType *event) {
+                func(event);
+            };
+        }
+    };
+    template <typename Func, typename EmitterType, typename EventType>
+    struct invoker<false, Func, EmitterType, EventType> {
+        static auto invoke(Func &&func) {
+            return [func](EmitterType *self, EventType *event) {
+                return applyx([self, func](auto &&...args) { func(self, args...); }, event->args);
+            };
+        }
+    };
     template <typename TgtEvent>
     static auto wrap(src_func_type func) {
         using event_type = typename TgtEvent::EventType;
         using emitter_type = typename TgtEvent::_emitter_type;
         using persist_function_type = typename TgtEvent::_persist_function_type;
-        persist_function_type ret;
-        if constexpr (accept<TgtEvent>()) {
-            ret = [&func](emitter_type * /*self*/, event_type *event) {
-                func(event);
-            };
-        } else {
-            static_assert(std::is_same_v<emitter_type, param0_type>, "mismatch emitter type");
-            ret = [func](emitter_type *self, event_type *event) {
-                return std::apply([self, func](auto &&...args) { func(self, args...); }, event->args);
-            };
-        }
+        persist_function_type ret = invoker<accept<TgtEvent>(), src_func_type, emitter_type, event_type>::invoke(func);
         return ret;
     }
 };
@@ -338,29 +373,33 @@ struct TgtEvtFnTrait<std::function<R(C *, ARGS...)>> {
     constexpr static bool IS_MEMBER_FUNC = false;
     template <typename TgtEvent>
     static constexpr bool accept() {
-        if constexpr (sizeof...(ARGS) == 0) {
-            using EventType = typename TgtEvent::EventType;
-            return std::is_same_v<param0_type, EventType>;
-        } else {
-            return false;
-        }
+        using event_type = typename TgtEvent::EventType;
+        return sizeof...(ARGS) == 0 && std::is_same<param0_type, event_type>::value;
     }
+
+    template <bool COND, typename Func, typename EmitterType, typename EventType>
+    struct invoker {
+        static auto invoke(Func &&func) {
+            return [&func](EmitterType * /*self*/, EventType *event) {
+                func(event);
+            };
+        }
+    };
+    template <typename Func, typename EmitterType, typename EventType>
+    struct invoker<false, Func, EmitterType, EventType> {
+        static auto invoke(Func &&func) {
+            return [func](EmitterType *self, EventType *event) {
+                return applyx([self, func](auto &&...args) { func(self, args...); }, event->args);
+            };
+        }
+    };
+
     template <typename TgtEvent>
-    static auto wrap(src_func_type func) {
+    static auto wrap(src_func_type &&func) {
         using event_type = typename TgtEvent::EventType;
         using emitter_type = typename TgtEvent::_emitter_type;
         using persist_function_type = typename TgtEvent::_persist_function_type;
-        persist_function_type ret;
-        if constexpr (accept<TgtEvent>()) {
-            ret = [func](emitter_type * /*self*/, event_type *event) {
-                func(event);
-            };
-        } else {
-            static_assert(std::is_same_v<emitter_type, param0_type>, "mismatch emitter type");
-            ret = [func](emitter_type *self, event_type *event) {
-                return std::apply([self, func](auto &&...args) { func(self, args...); }, event->args);
-            };
-        }
+        persist_function_type ret = invoker<accept<TgtEvent>(), src_func_type, emitter_type, event_type>::invoke(std::forward<src_func_type>(func));
         return ret;
     }
 };
@@ -372,47 +411,58 @@ struct TgtEvtFnTrait<R (C::*)(ARGS...)> {
     constexpr static bool IS_MEMBER_FUNC = true;
     template <typename TgtEvent>
     static constexpr bool accept() {
-        if constexpr (sizeof...(ARGS) == 1) {
-            using event_type = typename TgtEvent::EventType;
-            return std::is_same_v<param0_type, event_type *>;
-        } else {
-            return false;
-        }
+        using event_type = typename TgtEvent::EventType;
+        return sizeof...(ARGS) == 1 && std::is_same<param0_type, event_type>::value;
     }
 
+    template <bool COND, typename Func, typename EmitterType, typename EventType>
+    struct invoker {
+        static auto invoke(Func &&func) {
+            return [&func](EmitterType *self, EventType *event) {
+                (self->*func)(event);
+            };
+        }
+    };
+    template <typename Func, typename EmitterType, typename EventType>
+    struct invoker<false, Func, EmitterType, EventType> {
+        static auto invoke(Func &&func) {
+            return [func](EmitterType *self, EventType *event) {
+                return applyx([&self, func](auto &&...args) { (self->*func)(args...); }, event->args);
+            };
+        }
+    };
     template <typename TgtEvent>
     static auto wrap(src_func_type func) {
         using event_type = typename TgtEvent::EventType;
         using emitter_type = typename TgtEvent::_emitter_type;
         using persist_function_type = typename TgtEvent::_persist_function_type;
-        persist_function_type ret;
-        static_assert(std::is_same_v<emitter_type, context_type>, "mismatch emitter type");
-        if constexpr (accept<TgtEvent>()) {
-            ret = [&func](emitter_type *self, event_type *event) {
-                (self->*func)(event);
-            };
-        } else {
-            ret = [func](emitter_type *self, event_type *event) {
-                return std::apply([&self, func](auto &&...args) { (self->*func)(args...); }, event->args);
-            };
-        }
+        static_assert(std::is_same<emitter_type, context_type>::value, "mismatch emitter type");
+        persist_function_type ret = invoker<accept<TgtEvent>(), src_func_type, emitter_type, event_type>::invoke(func);
         return ret;
     }
+
+    template <bool COND, typename Func, typename ContextType, typename EmitterType, typename EventType>
+    struct invoker2 {
+        static auto invoke(Func &&func, ContextType *ctx) {
+            return [&func, ctx](EmitterType * /*self*/, EventType *event) {
+                (ctx->*func)(event);
+            };
+        }
+    };
+    template <typename Func, typename ContextType, typename EmitterType, typename EventType>
+    struct invoker2<false, Func, ContextType, EmitterType, EventType> {
+        static auto invoke(Func &&func, ContextType *ctx) {
+            return [func, ctx](EmitterType * /*self*/, EventType *event) {
+                return applyx([ctx, func](auto... args) { (ctx->*func)(args...); }, event->args);
+            };
+        }
+    };
     template <typename TgtEvent>
     static auto wrapWithContext(src_func_type func, context_type *ctx) {
         using emitter_type = typename TgtEvent::_emitter_type;
         using event_type = typename TgtEvent::EventType;
         using persist_function_type = typename TgtEvent::_persist_function_type;
-        persist_function_type ret;
-        if constexpr (accept<TgtEvent>()) {
-            ret = [func, ctx](emitter_type * /*self*/, event_type *event) {
-                (ctx->*func)(event);
-            };
-        } else {
-            ret = [func, ctx](emitter_type * /*self*/, event_type *event) {
-                return std::apply([ctx, func](auto... args) { (ctx->*func)(args...); }, event->args);
-            };
-        }
+        persist_function_type ret = invoker2<accept<TgtEvent>(), src_func_type, context_type, emitter_type, event_type>::invoke(func, ctx);
         return ret;
     }
 };
@@ -425,30 +475,32 @@ struct TgtEvtFnTrait<R (C::*)(ARGS...) const> {
 
     template <typename TgtEvent>
     static constexpr bool accept() {
-        if constexpr (sizeof...(ARGS) == 1) {
-            using event_type = typename TgtEvent::EventType;
-            return std::is_same_v<param0_type, event_type *>;
-        } else {
-            return false;
-        }
+        using event_type = typename TgtEvent::EventType;
+        return sizeof...(ARGS) == 1 && std::is_same<param0_type, event_type *>::value;
     }
-
+    template <bool COND, typename Func, typename ContextType, typename EventType>
+    struct invoker2 {
+        static auto invoke(Func &&func) {
+            return [&func](context_type *ctx, EventType *event) {
+                (ctx->*func)(event);
+            };
+        }
+    };
+    template <typename Func, typename ContextType, typename EventType>
+    struct invoker2<false, Func, ContextType, EventType> {
+        static auto invoke(Func &&func) {
+            return [func](context_type *self, EventType *event) {
+                return applyx([self, func](auto &&...args) { (self->*func)(args...); }, event->args);
+            };
+        }
+    };
     template <typename TgtEvent>
     static auto wrap(src_func_type func) {
-        using EventType = typename TgtEvent::EventType;
+        using event_type = typename TgtEvent::EventType;
         using persist_function_type = typename TgtEvent::_persist_function_type;
         using emitter_type = typename TgtEvent::_emitter_type;
-        persist_function_type ret;
-        static_assert(std::is_same_v<emitter_type, context_type>, "mismatch emitter type");
-        if constexpr (accept<TgtEvent>()) {
-            ret = [&func](context_type *self, EventType *event) {
-                (self->*func)(event);
-            };
-        } else {
-            ret = [&func](context_type *self, EventType *event) {
-                return std::apply([self, func](auto &&...args) { (self->*func)(args...); }, event->args);
-            };
-        }
+        static_assert(std::is_same<emitter_type, context_type>::value, "mismatch emitter type");
+        persist_function_type ret = invoker2<accept<TgtEvent>(), src_func_type, context_type, event_type>::invoke(func);
         return ret;
     }
 
@@ -458,7 +510,7 @@ struct TgtEvtFnTrait<R (C::*)(ARGS...) const> {
         using event_type = typename TgtEvent::EventType;
         using persist_function_type = typename TgtEvent::_persist_function_type;
         persist_function_type ret = [func, ctx](emitter_type * /*self*/, event_type *event) {
-            return std::apply([ctx, func](auto &&...args) { (ctx->*func)(args...); }, event->args);
+            return apply([ctx, func](auto &&...args) { (ctx->*func)(args...); }, event->args);
         };
         return ret;
     }

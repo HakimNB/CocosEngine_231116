@@ -27,10 +27,10 @@
 #include <cmath>
 #include <memory>
 #include <type_traits>
+#include "base/HasMemberFunction.h"
 #include "base/Ptr.h"
 #include "base/RefCounted.h"
 #include "base/memory/Memory.h"
-#include "base/HasMemberFunction.h"
 
 namespace se {
 
@@ -98,7 +98,7 @@ public:
     constexpr bool isSharedPtr() const override { return true; }
 
     void *getRaw() const override {
-        if constexpr (std::is_const_v<T>) {
+        if constexpr (std::is_const<T>::value) {
             return reinterpret_cast<void *>(const_cast<std::remove_const_t<T> *>(_data.get()));
         } else {
             return reinterpret_cast<void *>(_data.get());
@@ -116,7 +116,7 @@ public:
     explicit CCIntrusivePtrPrivateObject(const cc::IntrusivePtr<T> &p) : _ptr(p) {}
     explicit CCIntrusivePtrPrivateObject(cc::IntrusivePtr<T> &&p) : _ptr(std::move(p)) {}
     ~CCIntrusivePtrPrivateObject() override {
-        if constexpr (cc::has_setScriptObject<T,void(se::Object *)>::value) {
+        if constexpr (cc::has_setScriptObject<T, void(se::Object *)>::value) {
             _ptr->setScriptObject(nullptr);
         }
     }
@@ -125,7 +125,7 @@ public:
     inline cc::IntrusivePtr<T> &getData() { return _ptr; }
 
     inline void *getRaw() const override {
-        if constexpr (std::is_const_v<T>) {
+        if constexpr (std::is_const<T>::value) {
             return reinterpret_cast<void *>(const_cast<std::remove_const_t<T> *>(_ptr.get()));
         } else {
             return reinterpret_cast<void *>(_ptr.get());
@@ -162,7 +162,7 @@ public:
 
     void *getRaw() const override {
         // CC_ASSERT(_validate);
-        if constexpr (std::is_const_v<T>) {
+        if constexpr (std::is_const<T>::value) {
             return reinterpret_cast<void *>(const_cast<std::remove_const_t<T> *>(_ptr));
         } else {
             return reinterpret_cast<void *>(_ptr);

@@ -370,7 +370,7 @@ void Node::setSiblingIndex(index_t index) {
 }
 
 Node *Node::getChildByPath(const ccstd::string &path) const {
-    size_t end = 0;
+    // size_t end = 0;
     ccstd::vector<ccstd::string> segments = StringUtil::split(path, "/");
     auto *lastNode = const_cast<Node *>(this);
     for (const ccstd::string &segment : segments) {

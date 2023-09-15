@@ -371,7 +371,7 @@ public:
 
     template <typename TgtEvent>
     void off() {
-        static_assert(std::is_base_of_v<TgtEventTraitClass, TgtEvent>, "incorrect template argument");
+        static_assert(std::is_base_of<TgtEventTraitClass, TgtEvent>::value, "incorrect template argument");
         CC_ASSERT(!_emittingEvent[TgtEvent::TYPE_ID]);
         TargetEventListenerBase *&bubblingHandlers = _bubblingHandlers[TgtEvent::TYPE_ID];
 
@@ -393,7 +393,7 @@ public:
 
     template <typename TgtEvent, typename... ARGS>
     void emit(Self *self, ARGS &&...args) { /* TODO() : statistics */
-        using _handler_function_type = TargetEventListener<TgtEvent>;
+        // using _handler_function_type = TargetEventListener<TgtEvent>;
         using EventType = typename TgtEvent::EventType;
         static_assert(sizeof...(ARGS) == TgtEvent::ARG_COUNT, "Parameter count incorrect for function EventTarget::emit");
         if (_bubblingHandlers[TgtEvent::TYPE_ID] == nullptr) return;
@@ -409,7 +409,7 @@ public:
     void emitEvtObj(Self *self, EvtObj *eventObj) {
         using EventType = typename TgtEvent::EventType;
         using _handler_function_type = TargetEventListener<TgtEvent>;
-        static_assert(std::is_same_v<EventType, EvtObj>, "Event type mismatch");
+        static_assert(std::is_same<EventType, EvtObj>::value, "Event type mismatch");
         _emittingEvent[TgtEvent::TYPE_ID]++;
         if constexpr (useCapture) {
             TargetEventListenerBase *&handlers = _capturingHandlers[TgtEvent::TYPE_ID];
@@ -446,7 +446,7 @@ public:
     }
 
     template <typename TgtEvent, typename EvtType>
-    std::enable_if_t<std::is_same_v<typename TgtEvent::EventType, std::decay_t<EvtType>>, void>
+    std::enable_if_t<std::is_same<typename TgtEvent::EventType, std::decay_t<EvtType>>::value, void>
     dispatchEvent(Self *self, EvtType &eventObj) {
         if constexpr (HAS_PARENT) {
             std::vector<Self *> parents;
@@ -499,11 +499,11 @@ public:
     template <typename TgtEvent, typename... ARGS>
     std::enable_if_t<sizeof...(ARGS) != 1 ||
                          (sizeof...(ARGS) == 1 &&
-                          !std::is_same_v<typename TgtEvent::EventType,
-                                          std::remove_pointer_t<typename intl::HeadType<ARGS...>::head>>),
+                          !std::is_same<typename TgtEvent::EventType,
+                                        std::remove_pointer_t<typename intl::HeadType<ARGS...>::head>>::value),
                      void>
     dispatchEvent(Self *self, ARGS &&...args) {
-        using _handler_function_type = TargetEventListener<TgtEvent>;
+        // using _handler_function_type = TargetEventListener<TgtEvent>;
         using EventType = typename TgtEvent::EventType;
         static_assert(sizeof...(ARGS) == TgtEvent::ARG_COUNT, "Parameter count incorrect for function EventTarget::emit");
         intl::validateParameters<0, TgtEvent, ARGS...>(std::forward<ARGS>(args)...);
@@ -516,7 +516,7 @@ public:
 
     template <typename TgtEvent>
     void dispatchEvent(Self *self) {
-        using _handler_function_type = TargetEventListener<TgtEvent>;
+        // using _handler_function_type = TargetEventListener<TgtEvent>;
         using EventType = typename TgtEvent::EventType;
         static_assert(0 == TgtEvent::ARG_COUNT, "Parameter count incorrect for function EventTarget::emit");
         EventType eventObj;

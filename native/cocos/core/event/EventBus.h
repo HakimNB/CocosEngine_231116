@@ -103,7 +103,7 @@ bool BusEventListenerContainer::broadcast(ARGS &&...args) {
     if (!_isBroadcasting && hasPendingListeners()) {
         addOrRemovePendingListeners();
     }
-    return false;
+    return ret;
 }
 
 template <typename EHandler>
