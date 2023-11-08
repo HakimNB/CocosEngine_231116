@@ -88,10 +88,12 @@ void ADPFManager::Initialize() {
 
 // Initialize JNI calls for the powermanager.
 bool ADPFManager::InitializePowerManager() {
+    CC_LOG_INFO("ADPFManager::InitializePowerManager");
     #if __ANDROID_API__ >= 31
     if (android_get_device_api_level() >= 31) {
         // Initialize the powermanager using NDK API.
         thermal_manager_ = AThermal_acquireManager();
+        CC_LOG_INFO("ADPFManager::InitializePowerManager NDK");
         return true;
     }
     #endif
@@ -144,6 +146,7 @@ float ADPFManager::UpdateThermalStatusHeadRoom() {
         if (!std::isnan(thermal_headroom_)) {
             thermal_headroom_valid_ = thermal_headroom_;
         }
+        CC_LOG_INFO("ADPFManager::UpdateThermalStatusHeadRoom NDK %d", thermal_headroom_);
         return thermal_headroom_;
     }
     #endif
@@ -163,6 +166,7 @@ float ADPFManager::UpdateThermalStatusHeadRoom() {
 
 // Initialize JNI calls for the PowerHintManager.
 bool ADPFManager::InitializePerformanceHintManager() {
+    CC_LOG_INFO("ADPFManager::InitializePerformanceHintManager");
     JNIEnv *env = cc::JniHelper::getEnv();
     auto *javaGameActivity = cc::JniHelper::getActivity();
 
