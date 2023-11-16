@@ -15,6 +15,7 @@
  */
 
 #include "adpf_manager.h"
+#include "platform/BasePlatform.h"
 
 #if CC_PLATFORM == CC_PLATFORM_ANDROID && __ANDROID_API__ >= 30
 
@@ -64,15 +65,22 @@ void ADPFManager::Initialize() {
     InitializePerformanceHintManager();
 
     beforeTick.bind([&]() {
+        CC_LOG_INFO("Before Tick: ");
         this->BeginPerfHintSession();
         this->Monitor();
     });
 
     afterTick.bind([&]() {
-        auto frameDuration = std::chrono::duration_cast<std::chrono::nanoseconds>(
-                                 std::chrono::milliseconds(16))
-                                 .count();
-        this->EndPerfHintSession(frameDuration);
+        // auto frameDuration = std::chrono::duration_cast<std::chrono::nanoseconds>(
+        //                          std::chrono::milliseconds(16))
+        //                          .count();
+        // CC_LOG_INFO("After Tick: %ld", frameDuration); // 16,000,000
+        // this->EndPerfHintSession(frameDuration);
+
+        auto fps = cc::BasePlatform::getPlatform()->getFps();
+        auto frameDurationNS = 1000000000LL / fps;
+        CC_LOG_INFO("After Tick FPS: %ld frameDuration: %ld", fps, frameDurationNS); // 60 && 16,666,666
+        this->EndPerfHintSession(frameDurationNS);
     });
 
     if (thermal_manager_) {
@@ -160,6 +168,11 @@ float ADPFManager::UpdateThermalStatusHeadRoom() {
     thermal_headroom_ =
         env->CallFloatMethod(obj_power_service_, get_thermal_headroom_,
                              kThermalHeadroomUpdateThreshold);
+
+    if (!std::isnan(thermal_headroom_)) {
+        thermal_headroom_valid_ = thermal_headroom_;
+    }
+
     ALOGE("Current thermal Headroom %f", thermal_headroom_);
     return thermal_headroom_;
 }
