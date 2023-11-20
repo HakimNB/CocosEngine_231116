@@ -34,6 +34,9 @@
 #include "base/Log.h"
 #include "base/memory/Memory.h"
 
+#include <chrono>
+#include "platform/android/adpf_manager.h"
+
 using namespace cc; //NOLINT
 
 namespace {
@@ -238,6 +241,9 @@ void AudioPlayer::rotateBufferThread(int offsetFrame) {
         bool needToExitThread = false;
 
         while (!_isDestroyed) {
+            // ++ KIM 231117 startTime
+            auto startTime = std::chrono::high_resolution_clock::now();
+
             alGetSourcei(_alSource, AL_SOURCE_STATE, &sourceState);
             if (sourceState == AL_PLAYING) {
                 alGetSourcei(_alSource, AL_BUFFERS_PROCESSED, &bufferProcessed);
@@ -282,6 +288,12 @@ void AudioPlayer::rotateBufferThread(int offsetFrame) {
             if (_isDestroyed || needToExitThread) {
                 break;
             }
+
+            // ++ KIM 231117 endTime & report
+            auto endTime = std::chrono::high_resolution_clock::now();
+            auto durationNanos = std::chrono::duration_cast<std::chrono::nanoseconds>(endTime-startTime).count();
+            CC_LOG_DEBUG("AudioPlayer duration CCL_LOG_DEBUG %ld", durationNanos);
+            ALOGV("AudioPlayer duration ALOGV %ld", durationNanos);
 
             _sleepCondition.wait_for(lk, std::chrono::milliseconds(75));
         }

@@ -76,12 +76,14 @@ AudioDecoder::~AudioDecoder() {
 }
 
 bool AudioDecoder::init(const ccstd::string &url, int sampleRate) {
+    ALOGV("AudioDecoder::init threadId: %ld", std::this_thread::get_id());
     _url = url;
     _sampleRate = sampleRate;
     return true;
 }
 
 bool AudioDecoder::start() {
+    ALOGV("AudioDecoder::start threadId: %ld", std::this_thread::get_id());
     auto oldTime = clockNow();
     auto nowTime = oldTime;
     bool ret;
@@ -122,6 +124,7 @@ bool AudioDecoder::start() {
 }
 
 bool AudioDecoder::resample() {
+    ALOGV("AudioDecoder::resample threadId: %ld", std::this_thread::get_id());
     if (_result.sampleRate == _sampleRate) {
         ALOGI("No need to resample since the sample rate (%d) of the decoded pcm data is the same as the device output sample rate",
               _sampleRate);
@@ -226,6 +229,7 @@ bool AudioDecoder::resample() {
 
 //-----------------------------------------------------------------
 bool AudioDecoder::interleave() {
+    ALOGV("AudioDecoder::interleave threadId: %ld", std::this_thread::get_id());
     if (_result.numChannels == 2) {
         ALOGI("Audio channel count is 2, no need to interleave");
         return true;

@@ -58,6 +58,7 @@ float ADPFManager::GetThermalStatusNormalized() const {
 
 // Invoke the API first to set the android_app instance.
 void ADPFManager::Initialize() {
+    CC_LOG_INFO("ADPFManager::Initialize");
     // Initialize PowerManager reference.
     InitializePowerManager();
 
@@ -65,7 +66,7 @@ void ADPFManager::Initialize() {
     InitializePerformanceHintManager();
 
     beforeTick.bind([&]() {
-        CC_LOG_INFO("Before Tick: ");
+        // CC_LOG_INFO("Before Tick: ");
         this->BeginPerfHintSession();
         this->Monitor();
     });
@@ -79,7 +80,7 @@ void ADPFManager::Initialize() {
 
         auto fps = cc::BasePlatform::getPlatform()->getFps();
         auto frameDurationNS = 1000000000LL / fps;
-        CC_LOG_INFO("After Tick FPS: %ld frameDuration: %ld", fps, frameDurationNS); // 60 && 16,666,666
+        // CC_LOG_INFO("After Tick FPS: %ld frameDuration: %ld", fps, frameDurationNS); // 60 && 16,666,666
         this->EndPerfHintSession(frameDurationNS);
     });
 
@@ -180,6 +181,7 @@ float ADPFManager::UpdateThermalStatusHeadRoom() {
 // Initialize JNI calls for the PowerHintManager.
 bool ADPFManager::InitializePerformanceHintManager() {
     CC_LOG_INFO("ADPFManager::InitializePerformanceHintManager");
+
     JNIEnv *env = cc::JniHelper::getEnv();
     auto *javaGameActivity = cc::JniHelper::getActivity();
 
@@ -231,6 +233,10 @@ bool ADPFManager::InitializePerformanceHintManager() {
         update_target_work_duration_ = env->GetMethodID(
             cls_perfhint_session, "updateTargetWorkDuration", "(J)V");
     }
+
+    // ++ KIM 231117 PERFHINT
+
+    // -- KIM 231117 PERFHINT
 
     // Free local references
     env->DeleteLocalRef(obj_hintsession);

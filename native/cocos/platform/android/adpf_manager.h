@@ -140,6 +140,8 @@ private:
     jobject obj_power_service_;
     jmethodID get_thermal_headroom_;
 
+    std::map<std::string, jobject> map_hint_sessions;
+
     jobject obj_perfhint_service_;
     jobject obj_perfhint_session_;
     jmethodID report_actual_work_duration_;
