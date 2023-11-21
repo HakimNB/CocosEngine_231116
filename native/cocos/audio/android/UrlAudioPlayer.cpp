@@ -63,14 +63,14 @@ UrlAudioPlayer::UrlAudioPlayer(SLEngineItf engineItf, SLObjectItf outputMixObjec
         __playerContainer.reserve(10);
     });
 
-    ALOGV("UrlAudioPlayer::constructor threadId: %ld", std::this_thread::get_id());
-
     __playerContainerMutex.lock();
     __playerContainer.push_back(this);
     ALOGV("Current UrlAudioPlayer instance count: %d", (int)__playerContainer.size());
     __playerContainerMutex.unlock();
 
     _callerThreadId = callerThreadUtils->getCallerThreadId();
+
+    ALOGV("UrlAudioPlayer::constructor threadId: %ld callerThreadId: %ld", std::this_thread::get_id(), _callerThreadId);
 }
 
 UrlAudioPlayer::~UrlAudioPlayer() {

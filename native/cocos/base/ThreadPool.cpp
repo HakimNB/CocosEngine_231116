@@ -338,6 +338,7 @@ void LegacyThreadPool::setThread(int tid) {
     std::shared_ptr<std::atomic<bool>> abortPtr(
         _abortFlags[tid]); // a copy of the shared ptr to the flag
     auto f = [this, tid, abortPtr /* a copy of the shared ptr to the abort */]() {
+        LOGD("LegacyThreadPool::setThread new threadId: %ld", std::this_thread::get_id());
         std::atomic<bool> &abort = *abortPtr;
         Task task;
         bool isPop = _taskQueue.pop(task);
@@ -373,6 +374,7 @@ void LegacyThreadPool::setThread(int tid) {
             }
         }
     };
+    LOGD("LegacyThreadPool::setThread about to createThread from threadId: %ld", std::this_thread::get_id());
     _threads[tid].reset(
         ccnew std::thread(f)); // compiler may not support std::make_unique()
 }

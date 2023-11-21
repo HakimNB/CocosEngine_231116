@@ -25,6 +25,7 @@
 #include "MessageQueue.h"
 #include "AutoReleasePool.h"
 #include "base/Utils.h"
+#include "base/Log.h"
 
 namespace cc {
 
@@ -136,6 +137,8 @@ void MessageQueue::runConsumerThread() noexcept {
 
     _reader.terminateConsumerThread = false;
     _reader.flushingFinished = false;
+
+    CC_LOG_DEBUG("MessageQueue::runConsumerThread about to createThread threadId: %ld", std::this_thread::get_id());
 
     _consumerThread = ccnew std::thread(&MessageQueue::consumerThreadLoop, this);
     _workerAttached = true;
@@ -272,6 +275,7 @@ MessageQueue::~MessageQueue() {
 }
 
 void MessageQueue::consumerThreadLoop() noexcept {
+    CC_LOG_DEBUG("MessageQueue::consumerThreadLoop created threadId: %ld", std::this_thread::get_id());
     while (!_reader.terminateConsumerThread) {
         AutoReleasePool autoReleasePool;
         flushMessages();

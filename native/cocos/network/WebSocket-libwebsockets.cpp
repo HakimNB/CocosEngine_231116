@@ -429,6 +429,7 @@ WsThreadHelper::~WsThreadHelper() {
 
 bool WsThreadHelper::createWebSocketThread() {
     // Creates websocket thread
+    LOGD("WsThreadHelper::createWebSocketThread about to createThread from threadId: %ld", std::this_thread::get_id());
     _subThreadInstance = ccnew std::thread(&WsThreadHelper::wsThreadEntryFunc, this);
     return true;
 }
@@ -498,6 +499,7 @@ void WsThreadHelper::onSubThreadEnded() {
 
 void WsThreadHelper::wsThreadEntryFunc() const {
     LOGD("WebSocket thread start, helper instance: %p\n", this);
+    LOGD("WsThreadHelper::wsThreadEntryFunc new threadId: %ld", std::this_thread::get_id());
     onSubThreadStarted();
 
     while (!_needQuit) {

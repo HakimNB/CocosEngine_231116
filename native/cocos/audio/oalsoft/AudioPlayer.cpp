@@ -184,6 +184,7 @@ bool AudioPlayer::play2d() {
             if (_streamingSource) {
                 alSourceQueueBuffers(_alSource, QUEUEBUFFER_NUM, _bufferIds);
                 CHECK_AL_ERROR_DEBUG();
+                ALOGV("AudioPlayer::play2d about to createThread from threadId: %ld", std::this_thread::get_id());
                 _rotateBufferThread = ccnew std::thread(&AudioPlayer::rotateBufferThread, this,
                                                         _audioCache->_queBufferFrames * QUEUEBUFFER_NUM + 1);
             } else {
@@ -221,6 +222,7 @@ bool AudioPlayer::play2d() {
 }
 
 void AudioPlayer::rotateBufferThread(int offsetFrame) {
+    ALOGD("AudioPlayer::rotateBufferThread new threadId: %ld", std::this_thread::get_id());
     char *tmpBuffer = nullptr;
     AudioDecoder *decoder = AudioDecoderManager::createDecoder(_audioCache->_fileFullPath.c_str());
     do {
@@ -293,7 +295,7 @@ void AudioPlayer::rotateBufferThread(int offsetFrame) {
             auto endTime = std::chrono::high_resolution_clock::now();
             auto durationNanos = std::chrono::duration_cast<std::chrono::nanoseconds>(endTime-startTime).count();
             CC_LOG_DEBUG("AudioPlayer duration CCL_LOG_DEBUG %ld", durationNanos);
-            ALOGV("AudioPlayer duration ALOGV %ld", durationNanos);
+            ALOGD("AudioPlayer duration ALOGV %ld", durationNanos);
 
             _sleepCondition.wait_for(lk, std::chrono::milliseconds(75));
         }

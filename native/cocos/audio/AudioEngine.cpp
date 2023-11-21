@@ -90,6 +90,7 @@ class AudioEngine::AudioEngineThreadPool {
 public:
     explicit AudioEngineThreadPool(int threads = 4) {
         for (int index = 0; index < threads; ++index) {
+            CC_LOG_ERROR("AudioEngineThreadPool::AudioEngineThreadPool about to createThread from threadId: %ld", std::this_thread::get_id());
             _workers.emplace_back(std::thread([this]() {
                 threadFunc();
             }));
@@ -116,6 +117,7 @@ public:
 
 private:
     void threadFunc() {
+        CC_LOG_ERROR("AudioEngine::threadFunc new threadId: %ld", std::this_thread::get_id());
         while (true) {
             std::function<void()> task = nullptr;
             {
