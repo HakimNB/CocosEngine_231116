@@ -27,6 +27,10 @@
 #include "base/Utils.h"
 #include "base/Log.h"
 
+#if CC_PLATFORM == CC_PLATFORM_ANDROID
+    #include "platform/android/adpf_manager.h"
+#endif
+
 namespace cc {
 
 namespace {
@@ -283,6 +287,9 @@ void MessageQueue::consumerThreadLoop() noexcept {
         auto postTime = std::chrono::high_resolution_clock::now();
         auto durationNanos = std::chrono::duration_cast<std::chrono::nanoseconds>(postTime-preTime).count();
         CC_LOG_DEBUG("MessageQueue::consumerThreadLoop workDuration: %ld threadId: %ld", durationNanos, std::this_thread::get_id());
+#if CC_SUPPORT_ADPF
+        ADPFManager::getInstance().reportThreadWorkDuration(std::this_thread::get_id(), durationNanos);
+#endif
     }
 
     _workerAttached = false;

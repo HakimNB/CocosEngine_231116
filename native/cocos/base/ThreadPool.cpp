@@ -29,6 +29,10 @@
 #include "base/memory/Memory.h"
 #include "platform/StdC.h"
 
+#if CC_PLATFORM == CC_PLATFORM_ANDROID
+    #include "platform/android/adpf_manager.h"
+#endif
+
 #ifdef __ANDROID__
     #include <android/log.h>
     #define LOG_TAG   "ThreadPool"
@@ -351,6 +355,9 @@ void LegacyThreadPool::setThread(int tid) {
                 auto postTime = std::chrono::high_resolution_clock::now();
                 auto durationNanos = std::chrono::duration_cast<std::chrono::nanoseconds>(postTime-preTime).count();
                 LOGD("LegacyThreadPool::setThread workDuration: %ld threadId: %ld", durationNanos, std::this_thread::get_id());
+#if CC_SUPPORT_ADPF
+                ADPFManager::getInstance().reportThreadWorkDuration(std::this_thread::get_id(), durationNanos);
+#endif
                 if (abort) {
                     return; // the thread is wanted to stop, return even if the queue is not empty yet
                 }

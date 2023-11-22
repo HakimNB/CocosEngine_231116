@@ -25,6 +25,7 @@
 
     #include <chrono>
     #include <memory>
+    #include <thread>
     #include "3d/models/SkinningModel.h"
     #include "engine/EngineEvents.h"
     #include "platform/java/jni/JniHelper.h"
@@ -101,6 +102,8 @@ public:
     AThermalManager *GetThermalManager() { return thermal_manager_; }
 
     void Initialize();
+
+    void reportThreadWorkDuration(std::thread::id threadId, long workDuration);
 
 private:
     // Update thermal headroom each sec.

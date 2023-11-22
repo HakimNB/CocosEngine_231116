@@ -56,6 +56,10 @@ float ADPFManager::GetThermalStatusNormalized() const {
     return levelValue;
 }
 
+void ADPFManager::reportThreadWorkDuration(std::thread::id threadId, long workDuration) {
+    CC_LOG_INFO("ADPFManager::reportThreadWorkDuration threadId: %ld workDuration: %ld", threadId, workDuration);
+}
+
 // Invoke the API first to set the android_app instance.
 void ADPFManager::Initialize() {
     CC_LOG_INFO("ADPFManager::Initialize");
