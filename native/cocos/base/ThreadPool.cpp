@@ -344,9 +344,13 @@ void LegacyThreadPool::setThread(int tid) {
         bool isPop = _taskQueue.pop(task);
         while (true) {
             while (isPop) { // if there is anything in the queue
+                auto preTime = std::chrono::high_resolution_clock::now();
                 std::unique_ptr<std::function<void(int)>> func(
                     task.callback); // at return, delete the function even if an exception occurred
                 (*task.callback)(tid);
+                auto postTime = std::chrono::high_resolution_clock::now();
+                auto durationNanos = std::chrono::duration_cast<std::chrono::nanoseconds>(postTime-preTime).count();
+                LOGD("LegacyThreadPool::setThread workDuration: %ld threadId: %ld", durationNanos, std::this_thread::get_id());
                 if (abort) {
                     return; // the thread is wanted to stop, return even if the queue is not empty yet
                 }

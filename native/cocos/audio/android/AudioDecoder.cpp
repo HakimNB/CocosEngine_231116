@@ -117,6 +117,9 @@ bool AudioDecoder::start() {
         nowTime = clockNow();
         ALOGD("Interleave (%s) wasted %fms", _url.c_str(), intervalInMS(oldTime, nowTime));
 
+        auto durationNanos = std::chrono::duration_cast<std::chrono::nanoseconds>(nowTime-oldTime).count();
+        ALOGD("AudioDecoder::start workDuration: %ld threadId: %ld", durationNanos, std::this_thread::get_id());
+
     } while (false);
 
     ALOGV_IF(!ret, "%s returns false, decode (%s)", __FUNCTION__, _url.c_str());

@@ -277,8 +277,12 @@ MessageQueue::~MessageQueue() {
 void MessageQueue::consumerThreadLoop() noexcept {
     CC_LOG_DEBUG("MessageQueue::consumerThreadLoop created threadId: %ld", std::this_thread::get_id());
     while (!_reader.terminateConsumerThread) {
+        auto preTime = std::chrono::high_resolution_clock::now();
         AutoReleasePool autoReleasePool;
         flushMessages();
+        auto postTime = std::chrono::high_resolution_clock::now();
+        auto durationNanos = std::chrono::duration_cast<std::chrono::nanoseconds>(postTime-preTime).count();
+        CC_LOG_DEBUG("MessageQueue::consumerThreadLoop workDuration: %ld threadId: %ld", durationNanos, std::this_thread::get_id());
     }
 
     _workerAttached = false;
