@@ -56,15 +56,14 @@ float ADPFManager::GetThermalStatusNormalized() const {
     return levelValue;
 }
 
-void ADPFManager::reportThreadWorkDuration(std::thread::id thread_id, long work_duration) {
-    CC_LOG_INFO("ADPFManager::reportThreadWorkDuration threadId: %ld workDuration: %ld", thread_id, work_duration);
-
+void ADPFManager::reportThreadWorkDuration(int32_t thread_id, long work_duration) {
+//    CC_LOG_INFO("ADPFManager::reportThreadWorkDuration threadId: %ld workDuration: %ld", thread_id, work_duration);
     JNIEnv *env = cc::JniHelper::getEnv();
 
     std::ostringstream ss;
     ss << thread_id;
     std::string key = ss.str();
-    
+
     jobject obj_hintsession = getHintSession(key, true);
     if ( obj_hintsession == NULL ) {
         CC_LOG_ERROR("ADPFManager::reportThreadWorkDuration unable to get hint session %s", key.c_str());
@@ -278,7 +277,7 @@ bool ADPFManager::InitializePerformanceHintManager() {
     jobject obj_hintsession = env->CallObjectMethod(
         obj_perfhint_service_, create_hint_session_, array, DEFAULT_TARGET_NS);
     jboolean check = env->ExceptionCheck();
-    CC_LOG_DEBUG("ADPFManager::InitializePerformanceHintManager %d %x", check, obj_hintsession);
+    CC_LOG_DEBUG("ADPFManager::InitializePerformanceHintManager threadId: %ld gettid: %d getpid: %ld  %d %x", std::this_thread::get_id(), gettid(), getpid(), check, obj_hintsession);
     if (obj_hintsession == nullptr) {
         CC_LOG_DEBUG("Failed First to create a perf hint session.");
     } else {

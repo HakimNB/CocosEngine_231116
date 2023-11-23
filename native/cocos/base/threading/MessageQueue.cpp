@@ -28,6 +28,7 @@
 #include "base/Log.h"
 
 #if CC_PLATFORM == CC_PLATFORM_ANDROID
+    #include <unistd.h>
     #include "platform/android/adpf_manager.h"
 #endif
 
@@ -142,7 +143,8 @@ void MessageQueue::runConsumerThread() noexcept {
     _reader.terminateConsumerThread = false;
     _reader.flushingFinished = false;
 
-    CC_LOG_DEBUG("MessageQueue::runConsumerThread about to createThread threadId: %ld", std::this_thread::get_id());
+    // CC_LOG_DEBUG("MessageQueue::runConsumerThread about to createThread threadId: %ld", std::this_thread::get_id());
+    CC_LOG_DEBUG("MessageQueue::runConsumerThread about to createThread threadId: %ld gettid: %ld getpid: %ld", std::this_thread::get_id(), gettid(), getpid());
 
     _consumerThread = ccnew std::thread(&MessageQueue::consumerThreadLoop, this);
     _workerAttached = true;
@@ -279,16 +281,18 @@ MessageQueue::~MessageQueue() {
 }
 
 void MessageQueue::consumerThreadLoop() noexcept {
-    CC_LOG_DEBUG("MessageQueue::consumerThreadLoop created threadId: %ld", std::this_thread::get_id());
+    // CC_LOG_DEBUG("MessageQueue::consumerThreadLoop created threadId: %ld", std::this_thread::get_id());
+    CC_LOG_DEBUG("MessageQueue::consumerThreadLoop created threadId: %ld gettid: %ld getpid: %ld", std::this_thread::get_id(), gettid(), getpid());
     while (!_reader.terminateConsumerThread) {
         auto preTime = std::chrono::high_resolution_clock::now();
         AutoReleasePool autoReleasePool;
         flushMessages();
         auto postTime = std::chrono::high_resolution_clock::now();
         auto durationNanos = std::chrono::duration_cast<std::chrono::nanoseconds>(postTime-preTime).count();
-        CC_LOG_DEBUG("MessageQueue::consumerThreadLoop workDuration: %ld threadId: %ld", durationNanos, std::this_thread::get_id());
+         CC_LOG_DEBUG("MessageQueue::consumerThreadLoop workDuration: %ld threadId: %ld gettid: %ld getpid: %ld", durationNanos, std::this_thread::get_id(), gettid(), getpid());
 #if CC_SUPPORT_ADPF
-        ADPFManager::getInstance().reportThreadWorkDuration(std::this_thread::get_id(), durationNanos);
+        //  ADPFManager::getInstance().reportThreadWorkDuration(std::this_thread::get_id(), durationNanos);
+       ADPFManager::getInstance().reportThreadWorkDuration(gettid(), durationNanos);
 #endif
     }
 

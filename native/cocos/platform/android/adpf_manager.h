@@ -109,7 +109,7 @@ public:
 
     void Initialize();
 
-    void reportThreadWorkDuration(std::thread::id thread_id, long work_duration);
+    void reportThreadWorkDuration(int32_t thread_id, long work_duration);
 
 private:
     // Update thermal headroom each sec.

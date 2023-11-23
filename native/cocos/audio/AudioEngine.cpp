@@ -35,6 +35,7 @@
 #include "platform/FileUtils.h"
 
 #if CC_PLATFORM == CC_PLATFORM_ANDROID
+    #include <unistd.h>
     #include "audio/android/AudioEngine-inl.h"
 #elif CC_PLATFORM == CC_PLATFORM_IOS || CC_PLATFORM == CC_PLATFORM_MACOS
     #include "audio/apple/AudioEngine-inl.h"
@@ -90,7 +91,7 @@ class AudioEngine::AudioEngineThreadPool {
 public:
     explicit AudioEngineThreadPool(int threads = 4) {
         for (int index = 0; index < threads; ++index) {
-            CC_LOG_ERROR("AudioEngineThreadPool::AudioEngineThreadPool about to createThread from threadId: %ld", std::this_thread::get_id());
+            CC_LOG_ERROR("AudioEngineThreadPool::AudioEngineThreadPool about to createThread from threadId: %ld gettid: %ld getpid: %ld", std::this_thread::get_id(), gettid(), getpid());
             _workers.emplace_back(std::thread([this]() {
                 threadFunc();
             }));
@@ -117,7 +118,8 @@ public:
 
 private:
     void threadFunc() {
-        CC_LOG_ERROR("AudioEngine::threadFunc new threadId: %ld", std::this_thread::get_id());
+        // CC_LOG_ERROR("AudioEngine::threadFunc new threadId: %ld", std::this_thread::get_id());
+        CC_LOG_ERROR("AudioEngine::threadFunc new threadId: %ld gettid: %ld getpid: %ld", std::this_thread::get_id(), gettid(), getpid());
         while (true) {
             std::function<void()> task = nullptr;
             {

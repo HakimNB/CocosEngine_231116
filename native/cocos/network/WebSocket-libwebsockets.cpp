@@ -148,6 +148,7 @@ static void wsLog(const char *format, ...) {
 
 // Since CC_LOG_DEBUG isn't thread safe, we uses LOGD for multi-thread logging.
 #if CC_PLATFORM == CC_PLATFORM_ANDROID
+    #include <unistd.h>
     #if CC_DEBUG > 0
         #define LOGD(...) __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, __VA_ARGS__)
     #else
@@ -429,7 +430,8 @@ WsThreadHelper::~WsThreadHelper() {
 
 bool WsThreadHelper::createWebSocketThread() {
     // Creates websocket thread
-    LOGD("WsThreadHelper::createWebSocketThread about to createThread from threadId: %ld", std::this_thread::get_id());
+    // LOGD("WsThreadHelper::createWebSocketThread about to createThread from threadId: %ld", std::this_thread::get_id());
+    LOGD("WsThreadHelper::createWebSocketThread about to createThread from threadId: %ld gettid: %ld getpid: %ld", std::this_thread::get_id(), gettid(), getpid());
     _subThreadInstance = ccnew std::thread(&WsThreadHelper::wsThreadEntryFunc, this);
     return true;
 }
@@ -499,6 +501,7 @@ void WsThreadHelper::onSubThreadEnded() {
 
 void WsThreadHelper::wsThreadEntryFunc() const {
     LOGD("WebSocket thread start, helper instance: %p\n", this);
+    // LOGD("WsThreadHelper::wsThreadEntryFunc new threadId: %ld", std::this_thread::get_id());
     LOGD("WsThreadHelper::wsThreadEntryFunc new threadId: %ld", std::this_thread::get_id());
     onSubThreadStarted();
 
