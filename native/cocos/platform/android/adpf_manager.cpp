@@ -56,8 +56,62 @@ float ADPFManager::GetThermalStatusNormalized() const {
     return levelValue;
 }
 
-void ADPFManager::reportThreadWorkDuration(std::thread::id threadId, long workDuration) {
-    CC_LOG_INFO("ADPFManager::reportThreadWorkDuration threadId: %ld workDuration: %ld", threadId, workDuration);
+void ADPFManager::reportThreadWorkDuration(std::thread::id thread_id, long work_duration) {
+    CC_LOG_INFO("ADPFManager::reportThreadWorkDuration threadId: %ld workDuration: %ld", thread_id, work_duration);
+
+    JNIEnv *env = cc::JniHelper::getEnv();
+
+    std::ostringstream ss;
+    ss << thread_id;
+    std::string key = ss.str();
+    
+    jobject obj_hintsession = getHintSession(key, true);
+    if ( obj_hintsession == NULL ) {
+        CC_LOG_ERROR("ADPFManager::reportThreadWorkDuration unable to get hint session %s", key.c_str());
+        return;
+    }
+    if ( report_actual_work_duration_ == NULL ) {
+        CC_LOG_ERROR("ADPFManager::reportThreadWorkDuration unable to get method id, is it initialized?");
+        return;
+    }
+    env->CallVoidMethod(obj_hintsession, report_actual_work_duration_, work_duration);
+}
+
+jobject ADPFManager::getHintSession(std::string name, bool create_if_needed) {
+    JNIEnv *env = cc::JniHelper::getEnv();
+    auto *javaGameActivity = cc::JniHelper::getActivity();
+
+    auto pos = map_hint_sessions.find(name);
+    if ( pos == map_hint_sessions.end() ) {
+        // not found
+        if ( create_if_needed ) {
+            jintArray array = env->NewIntArray(1);
+            int32_t tid = atoi(name.c_str());
+//            int32_t tid = getpid();
+            CC_LOG_DEBUG("ADPFManager::getHintSession getpid %d %s", tid, name.c_str());
+            env->SetIntArrayRegion(array, 0, 1, &tid);
+
+            const jlong DEFAULT_TARGET_NS = 16666666;
+
+            jobject obj_hintsession = env->CallObjectMethod(obj_perfhint_service_, create_hint_session_, array, DEFAULT_TARGET_NS);
+            jboolean check = env->ExceptionCheck();
+            CC_LOG_DEBUG("ADPFManager::getHintSession done createHintSession %d %x", check, obj_hintsession);
+
+            if ( obj_hintsession == nullptr ) {
+                CC_LOG_ERROR("Failed to create a perf hint session.");
+                return NULL;
+            }
+            CC_LOG_DEBUG("getHintSession about to global new obj_hintsession");
+            obj_hintsession = env->NewGlobalRef(obj_hintsession);
+            map_hint_sessions[name] = obj_hintsession;
+            return obj_hintsession;
+        } else {
+            return NULL;
+        }
+    } else {
+        jobject session = pos->second;
+        return session;
+    }
 }
 
 // Invoke the API first to set the android_app instance.
@@ -208,7 +262,7 @@ bool ADPFManager::InitializePerformanceHintManager() {
 
     // Retrieve methods IDs for the APIs.
     jclass cls_perfhint_service = env->GetObjectClass(obj_perfhint_service_);
-    jmethodID mid_createhintsession =
+    create_hint_session_ =
         env->GetMethodID(cls_perfhint_service, "createHintSession",
                          "([IJ)Landroid/os/PerformanceHintManager$Session;");
     jmethodID mid_preferedupdaterate = env->GetMethodID(
@@ -222,9 +276,11 @@ bool ADPFManager::InitializePerformanceHintManager() {
 
     // Create Hint session for the thread.
     jobject obj_hintsession = env->CallObjectMethod(
-        obj_perfhint_service_, mid_createhintsession, array, DEFAULT_TARGET_NS);
+        obj_perfhint_service_, create_hint_session_, array, DEFAULT_TARGET_NS);
+    jboolean check = env->ExceptionCheck();
+    CC_LOG_DEBUG("ADPFManager::InitializePerformanceHintManager %d %x", check, obj_hintsession);
     if (obj_hintsession == nullptr) {
-        ALOGI("Failed to create a perf hint session.");
+        CC_LOG_DEBUG("Failed First to create a perf hint session.");
     } else {
         obj_perfhint_session_ = env->NewGlobalRef(obj_hintsession);
         preferred_update_rate_ =
@@ -237,10 +293,6 @@ bool ADPFManager::InitializePerformanceHintManager() {
         update_target_work_duration_ = env->GetMethodID(
             cls_perfhint_session, "updateTargetWorkDuration", "(J)V");
     }
-
-    // ++ KIM 231117 PERFHINT
-
-    // -- KIM 231117 PERFHINT
 
     // Free local references
     env->DeleteLocalRef(obj_hintsession);

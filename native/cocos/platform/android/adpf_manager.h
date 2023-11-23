@@ -63,6 +63,12 @@ public:
                 AThermal_releaseManager(thermal_manager_);
             }
         }
+
+        // clean all hint sessions
+        for ( const auto& kv : map_hint_sessions ) {
+            jobject global_hint_session = kv.second;
+            env->DeleteGlobalRef(global_hint_session);
+        }
     }
 
     // Delete copy constructor since the class is used as a singleton.
@@ -103,7 +109,7 @@ public:
 
     void Initialize();
 
-    void reportThreadWorkDuration(std::thread::id threadId, long workDuration);
+    void reportThreadWorkDuration(std::thread::id thread_id, long work_duration);
 
 private:
     // Update thermal headroom each sec.
@@ -135,6 +141,8 @@ private:
 
     bool InitializePerformanceHintManager();
 
+    jobject getHintSession(std::string name, bool create_if_needed);
+
     AThermalManager *thermal_manager_ = nullptr;
     int32_t thermal_status_;
     float thermal_headroom_ = 0;
@@ -147,6 +155,7 @@ private:
 
     jobject obj_perfhint_service_;
     jobject obj_perfhint_session_;
+    jmethodID create_hint_session_;
     jmethodID report_actual_work_duration_;
     jmethodID update_target_work_duration_;
     jlong preferred_update_rate_;
