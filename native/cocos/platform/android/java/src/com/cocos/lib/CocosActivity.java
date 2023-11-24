@@ -80,6 +80,14 @@ public class CocosActivity extends GameActivity {
         setImmersiveMode();
 
         Utils.hideVirtualButton();
+
+        Log.d("CocosActivity", "CocosActivity.onCreate threadId: " + Thread.currentThread().getId());
+        runOnUiThread(new Runnable() {
+            @Override
+                public void run() {
+                    Log.d("CocosActivity", "CocosActivity.onCreate runOnUIThread threadId: " + Thread.currentThread().getId());
+                }
+        });
     }
 
     private void setImmersiveMode() {

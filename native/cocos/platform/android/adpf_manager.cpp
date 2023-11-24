@@ -124,6 +124,7 @@ void ADPFManager::Initialize() {
 
     beforeTick.bind([&]() {
         // CC_LOG_INFO("Before Tick: ");
+        // CC_LOG_DEBUG("beginTick threadId: %ld gettid: %ld getpid: %ld", std::this_thread::get_id(), gettid(), getpi);
         this->BeginPerfHintSession();
         this->Monitor();
     });
@@ -139,6 +140,7 @@ void ADPFManager::Initialize() {
         auto frameDurationNS = 1000000000LL / fps;
         // CC_LOG_INFO("After Tick FPS: %ld frameDuration: %ld", fps, frameDurationNS); // 60 && 16,666,666
         this->EndPerfHintSession(frameDurationNS);
+        // CC_LOG_DEBUG("afterTick threadId: %ld gettid: %ld getpid: %ld", std::this_thread::get_id(), gettid(), getpid());
     });
 
     if (thermal_manager_) {

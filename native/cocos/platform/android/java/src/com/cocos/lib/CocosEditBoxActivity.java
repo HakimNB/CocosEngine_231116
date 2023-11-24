@@ -415,6 +415,7 @@ public class CocosEditBoxActivity extends Activity {
     }
 
     private void openKeyboard() {
+        Log.d("CocosEditBoxAbility", "CocosEditBoxAbility.openKeyboard threadId: " + Thread.currentThread().getId());
         InputMethodManager imm = (InputMethodManager) getSystemService(this.INPUT_METHOD_SERVICE);
         imm.showSoftInput(mEditText, InputMethodManager.SHOW_IMPLICIT);
     }
