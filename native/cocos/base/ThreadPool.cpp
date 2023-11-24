@@ -345,7 +345,6 @@ void LegacyThreadPool::setThread(int tid) {
         _abortFlags[tid]); // a copy of the shared ptr to the flag
     auto f = [this, tid, abortPtr /* a copy of the shared ptr to the abort */]() {
         LOGD("LegacyThreadPool::setThread new threadId: %ld gettid: %ld getpid: %ld", std::this_thread::get_id(), gettid(), getpid());
-        // LOGD("LegacyThreadPool::setThread new threadId: %ld", std::this_thread::get_id());
         std::atomic<bool> &abort = *abortPtr;
         Task task;
         bool isPop = _taskQueue.pop(task);
@@ -357,10 +356,9 @@ void LegacyThreadPool::setThread(int tid) {
                 (*task.callback)(tid);
                 auto postTime = std::chrono::high_resolution_clock::now();
                 auto durationNanos = std::chrono::duration_cast<std::chrono::nanoseconds>(postTime-preTime).count();
-                LOGD("LegacyThreadPool::setThread workDuration: %ld threadId: %ld gettid: %ld getpid: %ld", durationNanos, std::this_thread::get_id(), gettid(), getpid());
+                // LOGD("LegacyThreadPool::setThread workDuration: %ld threadId: %ld gettid: %ld getpid: %ld", durationNanos, std::this_thread::get_id(), gettid(), getpid());
 #if CC_SUPPORT_ADPF
-                //  ADPFManager::getInstance().reportThreadWorkDuration(std::this_thread::get_id(), durationNanos);
-               ADPFManager::getInstance().reportThreadWorkDuration(gettid(), durationNanos);
+            //    ADPFManager::getInstance().reportThreadWorkDuration(gettid(), durationNanos);
 #endif
                 if (abort) {
                     return; // the thread is wanted to stop, return even if the queue is not empty yet

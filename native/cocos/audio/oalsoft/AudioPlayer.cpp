@@ -226,7 +226,6 @@ bool AudioPlayer::play2d() {
 }
 
 void AudioPlayer::rotateBufferThread(int offsetFrame) {
-    // ALOGD("AudioPlayer::rotateBufferThread new threadId: %ld", std::this_thread::get_id());
     ALOGD("AudioPlayer::rotateBufferThread new threadId: %ld gettid: %ld getpid: %ld", std::this_thread::get_id(), gettid(), getpid());
     char *tmpBuffer = nullptr;
     AudioDecoder *decoder = AudioDecoderManager::createDecoder(_audioCache->_fileFullPath.c_str());

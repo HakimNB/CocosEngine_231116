@@ -57,7 +57,7 @@ float ADPFManager::GetThermalStatusNormalized() const {
 }
 
 void ADPFManager::reportThreadWorkDuration(int32_t thread_id, long work_duration) {
-//    CC_LOG_INFO("ADPFManager::reportThreadWorkDuration threadId: %ld workDuration: %ld", thread_id, work_duration);
+    CC_LOG_INFO("ADPFManager::reportThreadWorkDuration threadId: %ld workDuration: %ld", thread_id, work_duration);
     JNIEnv *env = cc::JniHelper::getEnv();
 
     std::ostringstream ss;
@@ -212,7 +212,7 @@ float ADPFManager::UpdateThermalStatusHeadRoom() {
         if (!std::isnan(thermal_headroom_)) {
             thermal_headroom_valid_ = thermal_headroom_;
         }
-        CC_LOG_INFO("ADPFManager::UpdateThermalStatusHeadRoom NDK %d", thermal_headroom_);
+        // CC_LOG_INFO("ADPFManager::UpdateThermalStatusHeadRoom NDK %d", thermal_headroom_);
         return thermal_headroom_;
     }
     #endif

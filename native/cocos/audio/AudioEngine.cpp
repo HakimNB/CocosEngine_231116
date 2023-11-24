@@ -118,7 +118,6 @@ public:
 
 private:
     void threadFunc() {
-        // CC_LOG_ERROR("AudioEngine::threadFunc new threadId: %ld", std::this_thread::get_id());
         CC_LOG_ERROR("AudioEngine::threadFunc new threadId: %ld gettid: %ld getpid: %ld", std::this_thread::get_id(), gettid(), getpid());
         while (true) {
             std::function<void()> task = nullptr;

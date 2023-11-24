@@ -501,7 +501,6 @@ void WsThreadHelper::onSubThreadEnded() {
 
 void WsThreadHelper::wsThreadEntryFunc() const {
     LOGD("WebSocket thread start, helper instance: %p\n", this);
-    // LOGD("WsThreadHelper::wsThreadEntryFunc new threadId: %ld", std::this_thread::get_id());
     LOGD("WsThreadHelper::wsThreadEntryFunc new threadId: %ld", std::this_thread::get_id());
     onSubThreadStarted();
 

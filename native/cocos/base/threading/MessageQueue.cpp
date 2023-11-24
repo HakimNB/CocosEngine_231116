@@ -289,10 +289,9 @@ void MessageQueue::consumerThreadLoop() noexcept {
         flushMessages();
         auto postTime = std::chrono::high_resolution_clock::now();
         auto durationNanos = std::chrono::duration_cast<std::chrono::nanoseconds>(postTime-preTime).count();
-         CC_LOG_DEBUG("MessageQueue::consumerThreadLoop workDuration: %ld threadId: %ld gettid: %ld getpid: %ld", durationNanos, std::this_thread::get_id(), gettid(), getpid());
+        //  CC_LOG_DEBUG("MessageQueue::consumerThreadLoop workDuration: %ld threadId: %ld gettid: %ld getpid: %ld", durationNanos, std::this_thread::get_id(), gettid(), getpid());
 #if CC_SUPPORT_ADPF
-        //  ADPFManager::getInstance().reportThreadWorkDuration(std::this_thread::get_id(), durationNanos);
-       ADPFManager::getInstance().reportThreadWorkDuration(gettid(), durationNanos);
+    //    ADPFManager::getInstance().reportThreadWorkDuration(gettid(), durationNanos);
 #endif
     }
 
