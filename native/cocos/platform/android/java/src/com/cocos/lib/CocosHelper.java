@@ -151,10 +151,12 @@ public class CocosHelper {
 
     static void flushTasksOnGameThread() {
         Log.d("CocosHelper", "CocosHelper.flushTasksOnGameThread threadId: " + Thread.currentThread().getId());
+        printgettid();
         sTaskQOnGameThread.runTasks();
     }
     public static void runOnGameThreadAtForeground(final Runnable runnable) {
         Log.d("CocosHelper", "CocosHelper.runOnGameThreadAtForeground threadId: " + Thread.currentThread().getId());
+        printgettid();
         sForegroundTaskQOnGameThread.addTask(runnable);
     }
 
@@ -162,6 +164,8 @@ public class CocosHelper {
         Log.d("CocosHelper", "CocosHelper.flushTasksOnGameThreadAtForeground threadId: " + Thread.currentThread().getId());
         sForegroundTaskQOnGameThread.runTasks();
     }
+
+    public static native void printgettid();
 
     public static int getNetworkType() {
         int status = NETWORK_TYPE_NONE;

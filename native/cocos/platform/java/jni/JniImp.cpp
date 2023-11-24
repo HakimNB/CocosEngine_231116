@@ -49,6 +49,20 @@
 
 using namespace cc; //NOLINT
 
+
+extern "C" {
+
+//NOLINTNEXTLINE
+JNIEXPORT void JNICALL Java_com_cocos_lib_CocosHelper_printgettid(JNIEnv *env, jobject obj) {
+    CC_LOG_DEBUG("CocosHelper.printgettid threadId: %ld gettid: %ld getpid: %ld", std::this_thread::get_id(), gettid(), getpid());
+}
+
+//NOLINTEXTLINE
+JNIEXPORT void JNICALL Java_com_cocos_lib_CocosActivity_printgettid(JNIEnv *env, jobject obj) {
+    CC_LOG_DEBUG("CocosActivity.printgettid threadId: %ld gettid: %ld getpid: %ld", std::this_thread::get_id(), gettid(), getpid());
+}
+}
+
 /***********************************************************
  * Functions invoke from cpp to Java.
  ***********************************************************/
