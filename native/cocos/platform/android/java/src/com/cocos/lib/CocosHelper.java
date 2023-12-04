@@ -145,23 +145,23 @@ public class CocosHelper {
 
     //Run on game thread forever, no matter foreground or background
     public static void runOnGameThread(final Runnable runnable) {
-        Log.d("CocosHelper", "CocosHelper.runOnGameThread threadId: " + Thread.currentThread().getId());
+        // Log.d("CocosHelper", "CocosHelper.runOnGameThread threadId: " + Thread.currentThread().getId());
         sTaskQOnGameThread.addTask(runnable);
     }
 
     static void flushTasksOnGameThread() {
-        Log.d("CocosHelper", "CocosHelper.flushTasksOnGameThread threadId: " + Thread.currentThread().getId());
+        // Log.d("CocosHelper", "CocosHelper.flushTasksOnGameThread threadId: " + Thread.currentThread().getId());
         printgettid();
         sTaskQOnGameThread.runTasks();
     }
     public static void runOnGameThreadAtForeground(final Runnable runnable) {
-        Log.d("CocosHelper", "CocosHelper.runOnGameThreadAtForeground threadId: " + Thread.currentThread().getId());
+        // Log.d("CocosHelper", "CocosHelper.runOnGameThreadAtForeground threadId: " + Thread.currentThread().getId());
         printgettid();
         sForegroundTaskQOnGameThread.addTask(runnable);
     }
 
     static void flushTasksOnGameThreadAtForeground() {
-        Log.d("CocosHelper", "CocosHelper.flushTasksOnGameThreadAtForeground threadId: " + Thread.currentThread().getId());
+        // Log.d("CocosHelper", "CocosHelper.flushTasksOnGameThreadAtForeground threadId: " + Thread.currentThread().getId());
         sForegroundTaskQOnGameThread.runTasks();
     }
 

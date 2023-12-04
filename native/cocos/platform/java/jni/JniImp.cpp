@@ -152,13 +152,13 @@ float getBatteryLevelJNI() {
 }
 
 void flushTasksOnGameThreadJNI() {
-    CC_LOG_DEBUG("JniImp::flushTasksOnGameThreadJNI threadId: %ld gettid: %ld getpid: %ld", std::this_thread::get_id(), gettid(), getpid());
+    // CC_LOG_DEBUG("JniImp::flushTasksOnGameThreadJNI threadId: %ld gettid: %ld getpid: %ld", std::this_thread::get_id(), gettid(), getpid());
     cc::JniHelper::callStaticVoidMethod(JCLS_HELPER,
                                         "flushTasksOnGameThread");
 }
 
 void flushTasksOnGameThreadAtForegroundJNI() {
-    CC_LOG_DEBUG("JniImp::flushTasksOnGameThreadAtForegroundJNI threadId: %ld gettid: %ld getpid: %ld", std::this_thread::get_id(), gettid(), getpid());
+    // CC_LOG_DEBUG("JniImp::flushTasksOnGameThreadAtForegroundJNI threadId: %ld gettid: %ld getpid: %ld", std::this_thread::get_id(), gettid(), getpid());
     cc::JniHelper::callStaticVoidMethod(JCLS_HELPER,
                                         "flushTasksOnGameThreadAtForeground");
 }
