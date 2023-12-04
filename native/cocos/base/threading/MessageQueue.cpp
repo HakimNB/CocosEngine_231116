@@ -22,13 +22,13 @@
  THE SOFTWARE.
 ****************************************************************************/
 
+#include <unistd.h>
 #include "MessageQueue.h"
 #include "AutoReleasePool.h"
 #include "base/Utils.h"
 #include "base/Log.h"
 
 #if CC_PLATFORM == CC_PLATFORM_ANDROID
-    #include <unistd.h>
     #include "platform/android/adpf_manager.h"
 #endif
 
@@ -283,6 +283,9 @@ MessageQueue::~MessageQueue() {
 void MessageQueue::consumerThreadLoop() noexcept {
     // CC_LOG_DEBUG("MessageQueue::consumerThreadLoop created threadId: %ld", std::this_thread::get_id());
     CC_LOG_DEBUG("MessageQueue::consumerThreadLoop created threadId: %ld gettid: %ld getpid: %ld", std::this_thread::get_id(), gettid(), getpid());
+    // add tid to PerformanceHintManager
+    int32_t tid = gettid();
+    ADPFManager::getInstance().AddThreadIdToHintSession(tid);
     while (!_reader.terminateConsumerThread) {
         auto preTime = std::chrono::high_resolution_clock::now();
         AutoReleasePool autoReleasePool;

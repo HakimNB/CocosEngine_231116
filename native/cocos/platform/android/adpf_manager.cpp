@@ -19,6 +19,7 @@
 
 #if CC_PLATFORM == CC_PLATFORM_ANDROID && __ANDROID_API__ >= 30
 
+    #include <algorithm>
     #include <unistd.h>
     #include <chrono>
     #include <cstdio>
@@ -239,7 +240,7 @@ float ADPFManager::UpdateThermalStatusHeadRoom() {
 
 // Initialize JNI calls for the PowerHintManager.
 bool ADPFManager::InitializePerformanceHintManager() {
-    CC_LOG_INFO("ADPFManager::InitializePerformanceHintManager");
+    CC_LOG_INFO("ADPFManager::InitializePerformanceHintManager gettid: %ld", gettid());
 
     JNIEnv *env = cc::JniHelper::getEnv();
     auto *javaGameActivity = cc::JniHelper::getActivity();
@@ -271,7 +272,8 @@ bool ADPFManager::InitializePerformanceHintManager() {
 
     // Create int array which contain current tid.
     jintArray array = env->NewIntArray(1);
-    int32_t tid = getpid();
+    int32_t tid = gettid();
+    thread_ids_.push_back(tid);
     env->SetIntArrayRegion(array, 0, 1, &tid);
     const jlong DEFAULT_TARGET_NS = 16666666;
 
@@ -293,6 +295,14 @@ bool ADPFManager::InitializePerformanceHintManager() {
             cls_perfhint_session, "reportActualWorkDuration", "(J)V");
         update_target_work_duration_ = env->GetMethodID(
             cls_perfhint_session, "updateTargetWorkDuration", "(J)V");
+        set_threads_ = env->GetMethodID(
+            cls_perfhint_session, "setThreads", "([I)V");
+        check = env->ExceptionCheck();
+        if ( check ) {
+            env->ExceptionDescribe();
+            env->ExceptionClear();
+            set_threads_ = nullptr;
+        }
     }
 
     // Free local references
@@ -351,6 +361,48 @@ void ADPFManager::EndPerfHintSession(jlong target_duration_ns) {
                             duration_ns);
         env->CallVoidMethod(obj_perfhint_session_, update_target_work_duration_,
                             target_duration_ns);
+    }
+}
+void ADPFManager::AddThreadIdToHintSession(int32_t tid)
+{
+    thread_ids_.push_back(tid);
+    auto data = thread_ids_.data();
+    for (std::size_t i = 0; i < thread_ids_.size(); i++ ) {
+        CC_LOG_INFO("ADPFManager::AddThreadIdToHintSession threadId: %d", data[i]);
+    }
+
+    registerThreadIdsToHintSession();
+}
+
+void ADPFManager::RemoveThreadIdFromHintSession(int32_t tid)
+{
+    thread_ids_.erase(std::remove(thread_ids_.begin(), thread_ids_.end(), tid), thread_ids_.end());
+    auto data = thread_ids_.data();
+    for (std::size_t i = 0; i < thread_ids_.size(); i++ ) {
+        CC_LOG_INFO("ADPFManager::RemoveThreadIdFromHintSession threadId: %d", data[i]);
+    }
+
+    registerThreadIdsToHintSession();
+}
+
+void ADPFManager::registerThreadIdsToHintSession()
+{
+    JNIEnv *env = cc::JniHelper::getEnv();
+    std::size_t size = thread_ids_.size();
+    jintArray array = env->NewIntArray(size);
+    auto data = thread_ids_.data();
+    env->SetIntArrayRegion(array, 0, size, data);
+    if ( set_threads_ == nullptr ) {
+        // we have to recreate the hint session
+        if ( obj_perfhint_session_ ) {
+            env->DeleteGlobalRef(obj_perfhint_session_ );
+        }
+        const jlong DEFAULT_TARGET_NS = 16666666;
+        jobject obj_hintsession = env->CallObjectMethod(obj_perfhint_service_, create_hint_session_, array, DEFAULT_TARGET_NS);
+        obj_perfhint_session_ = env->NewGlobalRef(obj_hintsession);
+    } else {
+        // API Level 34
+        env->CallVoidMethod(obj_perfhint_session_, set_threads_, array);
     }
 }
 

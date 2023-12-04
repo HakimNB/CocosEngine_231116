@@ -103,6 +103,9 @@ public:
 
     void EndPerfHintSession(jlong target_duration_ns);
 
+    void AddThreadIdToHintSession(int32_t tid);
+    void RemoveThreadIdFromHintSession(int32_t tid);
+
     // Method to retrieve thermal manager. The API is used to register/unregister
     // callbacks from C API.
     AThermalManager *GetThermalManager() { return thermal_manager_; }
@@ -142,6 +145,7 @@ private:
     bool InitializePerformanceHintManager();
 
     jobject getHintSession(std::string name, bool create_if_needed);
+    void registerThreadIdsToHintSession();
 
     AThermalManager *thermal_manager_ = nullptr;
     int32_t thermal_status_;
@@ -156,6 +160,7 @@ private:
     jobject obj_perfhint_service_;
     jobject obj_perfhint_session_;
     jmethodID create_hint_session_;
+    jmethodID set_threads_;
     jmethodID report_actual_work_duration_;
     jmethodID update_target_work_duration_;
     jlong preferred_update_rate_;
@@ -165,6 +170,8 @@ private:
 
     std::chrono::time_point<std::chrono::high_resolution_clock> perfhintsession_start_;
     int64_t frame_time_ns_{0};
+
+    std::vector<int32_t> thread_ids_;
 };
 
     #define CC_SUPPORT_ADPF 1 // NOLINT
