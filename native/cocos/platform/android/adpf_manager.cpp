@@ -336,9 +336,14 @@ void ADPFManager::EndPerfHintSession(jlong target_duration_ns) {
     auto duration = current_clock - perfhintsession_start_;
     frame_time_ns_ = std::chrono::duration_cast<std::chrono::nanoseconds>(duration).count();
     if (obj_perfhint_session_) {
+//        jlong duration_ns = std::chrono::duration_cast<std::chrono::nanoseconds>(
+//                                duration * 100000000)
+//                                .count();
         jlong duration_ns = std::chrono::duration_cast<std::chrono::nanoseconds>(
-                                duration * 100000000)
+                                duration)
                                 .count();
+        CC_LOG_DEBUG("ADPFManager::EndPerfHintSession duration actualDuration: %ld targetDuration: %ld", duration_ns, target_duration_ns);
+
         auto *env = cc::JniHelper::getEnv();
 
         // Report and update the target work duration using JNI calls.
