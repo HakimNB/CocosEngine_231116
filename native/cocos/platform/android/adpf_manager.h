@@ -21,6 +21,10 @@
     #include <android/api-level.h>
     #include <android/log.h>
     #include <android/thermal.h>
+#if __ANDROID_API__ >= 33
+    #include <ctime>
+    #include <android/performance_hint.h>
+#endif
     #include <jni.h>
 
     #include <chrono>
@@ -172,6 +176,13 @@ private:
     int64_t frame_time_ns_{0};
 
     std::vector<int32_t> thread_ids_;
+
+#if __ANDROID_API__ >= 33
+    APerformanceHintManager *hint_manager_ = nullptr;
+    APerformanceHintSession *hint_session_ = nullptr;
+    int64_t last_target_ = 16666666;
+    timespec last_start_;
+#endif
 };
 
     #define CC_SUPPORT_ADPF 1 // NOLINT
