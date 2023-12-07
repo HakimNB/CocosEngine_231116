@@ -182,6 +182,8 @@ private:
     APerformanceHintSession *hint_session_ = nullptr;
     int64_t last_target_ = 16666666;
     timespec last_start_;
+
+    std::chrono::time_point<std::chrono::steady_clock> perf_start_;
 #endif
 };
 

@@ -357,6 +357,7 @@ void ADPFManager::SetThermalListener(thermalStateChangeListener listener) {
 void ADPFManager::BeginPerfHintSession() {
 #if __ANDROID_API__ >= 33
     clock_gettime(CLOCK_MONOTONIC, &last_start_);
+    perf_start_ = std::chrono::steady_clock::now();
 #else
     perfhintsession_start_ = std::chrono::high_resolution_clock::now();
 #endif
@@ -367,9 +368,21 @@ void ADPFManager::EndPerfHintSession(jlong target_duration_ns) {
     timespec current_clock;
     clock_gettime(CLOCK_MONOTONIC, &current_clock);
     auto duration = current_clock.tv_nsec - last_start_.tv_nsec;
-    int result1 = APerformanceHint_reportActualWorkDuration(hint_session_, duration);
+
+    //int result1 = APerformanceHint_reportActualWorkDuration(hint_session_, duration);
+    //int result2 = APerformanceHint_updateTargetWorkDuration(hint_session_, target_duration_ns);
+    //CC_LOG_INFO("ADPFManager::EndPerfHintSession duration actualDuration: %ld targetDuration: %ld start: %ld end: %ld result: (%d, %d)", duration, target_duration_ns, last_start_.tv_nsec, current_clock.tv_nsec, result1, result2);
+
+    auto perf_end = std::chrono::steady_clock::now();
+    auto dur = std::chrono::duration_cast<std::chrono::nanoseconds>(perf_end - perf_start_).count();
+    jlong jdur = static_cast<long>(dur);
+    int result1 = APerformanceHint_reportActualWorkDuration(hint_session_, jdur);
     int result2 = APerformanceHint_updateTargetWorkDuration(hint_session_, target_duration_ns);
-    CC_LOG_INFO("ADPFManager::EndPerfHintSession duration actualDuration: %ld targetDuration: %ld start: %ld end: %ld result: (%d, %d)", duration, target_duration_ns, last_start_.tv_nsec, current_clock.tv_nsec, result1, result2);
+    // int result2 = APerformanceHint_updateTargetWorkDuration(hint_session_, jdur);
+    CC_LOG_INFO("ADPFManager::EndPerfHintSession duration actualDuration: %ld targetDuration: %ld start: %ld end: %ld result: (%d, %d)", jdur, target_duration_ns, perf_start_.time_since_epoch(), perf_end.time_since_epoch(), result1, result2);
+    // CC_LOG_INFO("ADPFManager::EndPerfHintSession duration actualDuration: %ld targetDuration: %ld start: %ld end: %ld result: (%d, %d)", jdur, jdur, perf_start_.time_since_epoch(), perf_end.time_since_epoch(), result1, result2);
+
+
 #else
     auto current_clock = std::chrono::high_resolution_clock::now();
     auto duration = current_clock - perfhintsession_start_;
