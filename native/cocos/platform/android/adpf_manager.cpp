@@ -246,8 +246,9 @@ bool ADPFManager::InitializePerformanceHintManager() {
     if ( hint_manager_ == nullptr ) {
         hint_manager_ = APerformanceHint_getManager();
     }
-    if ( hint_session_ == nullptr && hint_manager_ != nulltptr ) {
+    if ( hint_session_ == nullptr && hint_manager_ != nullptr ) {
         int32_t tid = gettid();
+        thread_ids_.push_back(tid);
         int32_t tids[1];
         tids[0] = tid;
         hint_session_ = APerformanceHint_createSession(hint_manager_, tids, 1, last_target_);
@@ -353,11 +354,11 @@ void ADPFManager::SetThermalListener(thermalStateChangeListener listener) {
 // Indicates the start and end of the performance intensive task.
 // The methods call performance hint API to tell the performance
 // hint to the system.
-void ADPFManager::BeginPerfHintSession() { 
+void ADPFManager::BeginPerfHintSession() {
 #if __ANDROID_API__ >= 33
     clock_gettime(CLOCK_MONOTONIC, &last_start_);
 #else
-    perfhintsession_start_ = std::chrono::high_resolution_clock::now(); 
+    perfhintsession_start_ = std::chrono::high_resolution_clock::now();
 #endif
 }
 
@@ -368,7 +369,7 @@ void ADPFManager::EndPerfHintSession(jlong target_duration_ns) {
     auto duration = current_clock.tv_nsec - last_start_.tv_nsec;
     int result1 = APerformanceHint_reportActualWorkDuration(hint_session_, duration);
     int result2 = APerformanceHint_updateTargetWorkDuration(hint_session_, target_duration_ns);
-    CC_LOG_INFO("ADPFManager::EndPerfHintSession duration actualDuration: %ld targetDuration: %ld result: (%d, %d)", duration, target_duration_ns, result1, result2);
+    CC_LOG_INFO("ADPFManager::EndPerfHintSession duration actualDuration: %ld targetDuration: %ld start: %ld end: %ld result: (%d, %d)", duration, target_duration_ns, last_start_.tv_nsec, current_clock.tv_nsec, result1, result2);
 #else
     auto current_clock = std::chrono::high_resolution_clock::now();
     auto duration = current_clock - perfhintsession_start_;
@@ -430,7 +431,7 @@ void ADPFManager::registerThreadIdsToHintSession()
     std::size_t size = thread_ids_.size();
     int result = 0;
     if ( hint_session_ != nullptr ) {
-        result = APerformanceHint_closeSession(hint_session_);
+        APerformanceHint_closeSession(hint_session_);
     }
     hint_session_ = APerformanceHint_createSession(hint_manager_, data, size, last_target_);
     CC_LOG_INFO("ADPFManager::registerThreadIdsToHintSession result: %d newHint: %x", result, hint_session_);
