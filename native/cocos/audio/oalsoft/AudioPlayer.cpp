@@ -34,6 +34,13 @@
 #include "base/Log.h"
 #include "base/memory/Memory.h"
 
+#include <chrono>
+
+#if CC_PLATFORM == CC_PLATFORM_ANDROID
+    #include <unistd.h>
+    #include "platform/android/adpf_manager.h"
+#endif
+
 using namespace cc; //NOLINT
 
 namespace {
@@ -181,6 +188,7 @@ bool AudioPlayer::play2d() {
             if (_streamingSource) {
                 alSourceQueueBuffers(_alSource, QUEUEBUFFER_NUM, _bufferIds);
                 CHECK_AL_ERROR_DEBUG();
+                ALOGV("AudioPlayer::play2d about to createThread from threadId: %ld", std::this_thread::get_id());
                 _rotateBufferThread = ccnew std::thread(&AudioPlayer::rotateBufferThread, this,
                                                         _audioCache->_queBufferFrames * QUEUEBUFFER_NUM + 1);
             } else {
@@ -218,6 +226,7 @@ bool AudioPlayer::play2d() {
 }
 
 void AudioPlayer::rotateBufferThread(int offsetFrame) {
+    ALOGD("AudioPlayer::rotateBufferThread new threadId: %ld gettid: %ld getpid: %ld", std::this_thread::get_id(), gettid(), getpid());
     char *tmpBuffer = nullptr;
     AudioDecoder *decoder = AudioDecoderManager::createDecoder(_audioCache->_fileFullPath.c_str());
     do {
@@ -238,6 +247,9 @@ void AudioPlayer::rotateBufferThread(int offsetFrame) {
         bool needToExitThread = false;
 
         while (!_isDestroyed) {
+            // ++ KIM 231117 startTime
+            auto startTime = std::chrono::high_resolution_clock::now();
+
             alGetSourcei(_alSource, AL_SOURCE_STATE, &sourceState);
             if (sourceState == AL_PLAYING) {
                 alGetSourcei(_alSource, AL_BUFFERS_PROCESSED, &bufferProcessed);
@@ -282,6 +294,12 @@ void AudioPlayer::rotateBufferThread(int offsetFrame) {
             if (_isDestroyed || needToExitThread) {
                 break;
             }
+
+            // ++ KIM 231117 endTime & report
+            auto endTime = std::chrono::high_resolution_clock::now();
+            auto durationNanos = std::chrono::duration_cast<std::chrono::nanoseconds>(endTime-startTime).count();
+            CC_LOG_DEBUG("AudioPlayer duration CCL_LOG_DEBUG %ld", durationNanos);
+            ALOGD("AudioPlayer duration ALOGV %ld", durationNanos);
 
             _sleepCondition.wait_for(lk, std::chrono::milliseconds(75));
         }

@@ -598,6 +598,7 @@ bool ScriptEngine::init(v8::Isolate *isolate) {
     ++_vmId;
 
     _engineThreadId = std::this_thread::get_id();
+    SE_LOGD("ScriptEngine::init threadId: %ld", _engineThreadId);
 
     cc::events::ScriptEngine::broadcast(cc::ScriptEngineEvent::BEFORE_INIT);
 
