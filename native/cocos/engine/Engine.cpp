@@ -206,7 +206,7 @@ void Engine::destroy() {
 
 int32_t Engine::run() {
     BasePlatform *platform = BasePlatform::getPlatform();
-    // CC_LOG_DEBUG("Engine::run threadId: %ld gettid: %ld getpid: %ld", std::this_thread::get_id(), gettid(), getpid());
+    CC_LOG_DEBUG("Engine::run threadId: %ld gettid: %ld getpid: %ld", std::this_thread::get_id(), gettid(), getpid());
     platform->runInPlatformThread([&]() {
         // CC_LOG_DEBUG("Engine::run begin tick threadId: %ld gettid: %ld getpid: %ld", std::this_thread::get_id(), gettid(), getpid());
         tick();
