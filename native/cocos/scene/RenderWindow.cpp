@@ -151,7 +151,6 @@ void RenderWindow::onNativeWindowResume(uint32_t windowId) {
 }
 
 void RenderWindow::generateFrameBuffer() {
-    CC_LOG_DEBUG("RenderWindow::generateFrameBuffer called from threadId: %ld gettid: %ld getpid: %ld", std::this_thread::get_id(), gettid(), getpid());
     _frameBuffer = gfx::Device::getInstance()->createFramebuffer(gfx::FramebufferInfo{
         _renderPass,
         _colorTextures.get(),

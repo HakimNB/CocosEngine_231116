@@ -39,38 +39,7 @@ int BaseGame::init() {
 
     cc_load_all_plugins();
 
-    CC_LOG_INFO("BaseGame::Init after cc_load_all_plugins()");
-
-#ifndef __ANDROID_API__
-    CC_LOG_INFO("BaseGame::Init __ANDROID_API__ is not defined");
-#endif
-
-#if (__ANDROID_API__ == 30) 
-    CC_LOG_INFO("BaseGame::Init __ANDROID_API__ is 30");
-#endif
-
-#if (__ANDROID_API__ == 31) 
-    CC_LOG_INFO("BaseGame::Init __ANDROID_API__ is 31");
-#endif
-
-#if (__ANDROID_API__ == 32) 
-    CC_LOG_INFO("BaseGame::Init __ANDROID_API__ is 32");
-#endif
-
-#if (__ANDROID_API__ == 33) 
-    CC_LOG_INFO("BaseGame::Init __ANDROID_API__ is 33");
-#endif
-
-#if (CC_PLATFORM == CC_PLATFORM_ANDROID)
-    CC_LOG_INFO("BaseGame::Init is CC_PLATFORM_ANDROID"); // executed
-#endif
-
-#if CC_SUPPORT_ADPF
-    CC_LOG_INFO("BaseGame::Init is CC_SUPPORT_ADPF"); // not executed
-#endif
-
 #if (CC_PLATFORM == CC_PLATFORM_ANDROID) && CC_SUPPORT_ADPF
-    CC_LOG_INFO("BaseGame::Init about to call ADPFManager::Initialize");
     ADPFManager::getInstance().Initialize();
 #endif
 

@@ -29,13 +29,7 @@
 #include "base/memory/Memory.h"
 #include "platform/StdC.h"
 
-#if CC_PLATFORM == CC_PLATFORM_ANDROID
-    #include <unistd.h>
-    #include "platform/android/adpf_manager.h"
-#endif
-
 #ifdef __ANDROID__
-    #include <unistd.h>
     #include <android/log.h>
     #define LOG_TAG   "ThreadPool"
     #define LOGD(...) __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, __VA_ARGS__)
@@ -344,22 +338,14 @@ void LegacyThreadPool::setThread(int tid) {
     std::shared_ptr<std::atomic<bool>> abortPtr(
         _abortFlags[tid]); // a copy of the shared ptr to the flag
     auto f = [this, tid, abortPtr /* a copy of the shared ptr to the abort */]() {
-        LOGD("LegacyThreadPool::setThread new threadId: %ld gettid: %ld getpid: %ld", std::this_thread::get_id(), gettid(), getpid());
         std::atomic<bool> &abort = *abortPtr;
         Task task;
         bool isPop = _taskQueue.pop(task);
         while (true) {
             while (isPop) { // if there is anything in the queue
-                auto preTime = std::chrono::high_resolution_clock::now();
                 std::unique_ptr<std::function<void(int)>> func(
                     task.callback); // at return, delete the function even if an exception occurred
                 (*task.callback)(tid);
-                auto postTime = std::chrono::high_resolution_clock::now();
-                auto durationNanos = std::chrono::duration_cast<std::chrono::nanoseconds>(postTime-preTime).count();
-                // LOGD("LegacyThreadPool::setThread workDuration: %ld threadId: %ld gettid: %ld getpid: %ld", durationNanos, std::this_thread::get_id(), gettid(), getpid());
-#if CC_SUPPORT_ADPF
-            //    ADPFManager::getInstance().reportThreadWorkDuration(gettid(), durationNanos);
-#endif
                 if (abort) {
                     return; // the thread is wanted to stop, return even if the queue is not empty yet
                 }
@@ -387,9 +373,6 @@ void LegacyThreadPool::setThread(int tid) {
             }
         }
     };
-
-    LOGD("LegacyThreadPool::setThread about to createThread from threadId: %ld gettid: %ld getpid: %ld", std::this_thread::get_id(), gettid(), getpid());
-    // LOGD("LegacyThreadPool::setThread about to createThread from threadId: %ld", std::this_thread::get_id());
     _threads[tid].reset(
         ccnew std::thread(f)); // compiler may not support std::make_unique()
 }
