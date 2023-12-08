@@ -121,8 +121,7 @@ bool JniNativeGlue::isRunning() const {
 
 void JniNativeGlue::flushTasksOnGameThread() const {
     // Handle java events send by UI thread. Input events are handled here too.
-    
-    CC_LOG_DEBUG("JniNativeGlue::flushTasksOnGameThread threadId: %ld gettid: %ld getpid: %ld", std::this_thread::get_id(), gettid(), getpid());
+
     flushTasksOnGameThreadJNI();
     if (_animating) {
         flushTasksOnGameThreadAtForegroundJNI();

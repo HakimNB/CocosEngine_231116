@@ -54,8 +54,6 @@ Game::~Game() {
 }
 
 int Game::init() {
-
-    CC_LOG_INFO("Game::Init");
     
     cc::pipeline::GlobalDSManager::setDescriptorSetLayout();
     cc::ISystemWindowInfo info;
@@ -105,20 +103,14 @@ int Game::init() {
 // This function will be called when the app is inactive. When comes a phone call,it's be invoked too
 void Game::onPause() {
     cc::CocosApplication::onPause();
-
-    CC_LOG_INFO("Game::onPause");
 }
 
 void Game::onResume() {
     cc::CocosApplication::onResume();
-
-    CC_LOG_INFO("Game::onResume");
 }
 
 void Game::onClose() {
     cc::CocosApplication::onClose();
-
-    CC_LOG_INFO("Game::onClose");
 }
 
 void Game::handleException(const char* location, const char* message, const char* stack) {

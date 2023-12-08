@@ -585,7 +585,6 @@ int32_t AndroidPlatform::run(int /*argc*/, const char ** /*argv*/) {
 
 int32_t AndroidPlatform::loop() {
     IXRInterface *xr = getInterface<IXRInterface>();
-    CC_LOG_DEBUG("AndroidPlatform::loop threadId: %ld gettid: %ld getpid: %ld", std::this_thread::get_id(), gettid(), getpid());
     while (true) {
         int events;
         struct android_poll_source *source;

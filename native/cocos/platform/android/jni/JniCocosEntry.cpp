@@ -31,7 +31,6 @@
 extern "C" {
 
 void android_main(struct android_app *app) {
-    CC_LOG_DEBUG("android_main threadId: %ld gettid: %ld getpid: %ld", std::this_thread::get_id(), gettid(), getpid());
     auto *platform = cc::BasePlatform::getPlatform();
     auto *androidPlatform = static_cast<cc::AndroidPlatform *>(platform);
     androidPlatform->setAndroidApp(app);
