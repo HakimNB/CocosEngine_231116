@@ -666,7 +666,7 @@ void CCVKDevice::acquire(Swapchain *const *swapchains, uint32_t count) {
 }
 
 void CCVKDevice::present() {
-    // CC_LOG_DEBUG("CCVKDevice::present called from threadId: %ld gettid: %ld getpid: %ld", std::this_thread::get_id(), gettid(), getpid());
+    CC_LOG_DEBUG("CCVKDevice::present called from threadId: %ld gettid: %ld getpid: %ld", std::this_thread::get_id(), gettid(), getpid());
     CC_PROFILE(CCVKDevicePresent);
     bool isGFXDeviceNeedsPresent = _xr ? _xr->isGFXDeviceNeedsPresent(_api) : true;
     auto *queue = static_cast<CCVKQueue *>(_queue);
