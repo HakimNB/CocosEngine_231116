@@ -138,7 +138,6 @@ private:
       update_target_work_duration_(0),
       preferred_update_rate_(0) {
         last_clock_ = std::chrono::high_resolution_clock::now();
-        perfhintsession_start_ = std::chrono::high_resolution_clock::now();
     }
 
     // Functions to initialize ADPF API's calls.
@@ -172,18 +171,16 @@ private:
     cc::events::BeforeTick::Listener beforeTick;
     cc::events::AfterTick::Listener afterTick;
 
-    std::chrono::time_point<std::chrono::high_resolution_clock> perfhintsession_start_;
     int64_t frame_time_ns_{0};
 
     std::vector<int32_t> thread_ids_;
+    std::chrono::time_point<std::chrono::steady_clock> perf_start_;
 
 #if __ANDROID_API__ >= 33
     APerformanceHintManager *hint_manager_ = nullptr;
     APerformanceHintSession *hint_session_ = nullptr;
     int64_t last_target_ = 16666666;
     timespec last_start_;
-
-    std::chrono::time_point<std::chrono::steady_clock> perf_start_;
 #endif
 };
 

@@ -357,10 +357,8 @@ void ADPFManager::SetThermalListener(thermalStateChangeListener listener) {
 void ADPFManager::BeginPerfHintSession() {
 #if __ANDROID_API__ >= 33
     clock_gettime(CLOCK_MONOTONIC, &last_start_);
-    perf_start_ = std::chrono::steady_clock::now();
-#else
-    perfhintsession_start_ = std::chrono::high_resolution_clock::now();
 #endif
+    perf_start_ = std::chrono::steady_clock::now();
 }
 
 void ADPFManager::EndPerfHintSession(jlong target_duration_ns) {
@@ -384,27 +382,21 @@ void ADPFManager::EndPerfHintSession(jlong target_duration_ns) {
 
 
 #else
-    auto current_clock = std::chrono::high_resolution_clock::now();
-    auto duration = current_clock - perfhintsession_start_;
-    frame_time_ns_ = std::chrono::duration_cast<std::chrono::nanoseconds>(duration).count();
+    auto perf_end = std::chrono::steady_clock::now();
+    auto dur = std::chrono::duration_cast<std::chrono::nanoseconds>(perf_end - perf_start_).count();
+    jlong jdur = static_cast<long>(dur);
     if (obj_perfhint_session_) {
-//        jlong duration_ns = std::chrono::duration_cast<std::chrono::nanoseconds>(
-//                                duration * 100000000)
-//                                .count();
-        jlong duration_ns = std::chrono::duration_cast<std::chrono::nanoseconds>(
-                                duration)
-                                .count();
-         CC_LOG_DEBUG("ADPFManager::EndPerfHintSession duration actualDuration: %ld targetDuration: %ld", duration_ns, target_duration_ns);
+         CC_LOG_DEBUG("ADPFManager::EndPerfHintSession duration actualDuration: %ld targetDuration: %ld", jdur, target_duration_ns);
 
-        if ( duration_ns > target_duration_ns ) {
-            CC_LOG_WARNING("ADPFManager::EndPerfHintSession duration actualDuration: %ld targetDuration: %ld", duration_ns, target_duration_ns);
+        if ( jdur > target_duration_ns ) {
+            CC_LOG_WARNING("ADPFManager::EndPerfHintSession duration actualDuration: %ld targetDuration: %ld", jdur, target_duration_ns);
         }
 
         auto *env = cc::JniHelper::getEnv();
 
         // Report and update the target work duration using JNI calls.
         env->CallVoidMethod(obj_perfhint_session_, report_actual_work_duration_,
-                            duration_ns);
+                            jdur);
         env->CallVoidMethod(obj_perfhint_session_, update_target_work_duration_,
                             target_duration_ns);
     }
