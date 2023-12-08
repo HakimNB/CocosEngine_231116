@@ -116,8 +116,6 @@ public:
 
     void Initialize();
 
-    void reportThreadWorkDuration(int32_t thread_id, long work_duration);
-
 private:
     // Update thermal headroom each sec.
     static constexpr auto kThermalHeadroomUpdateThreshold = std::chrono::seconds(1);
@@ -147,7 +145,6 @@ private:
 
     bool InitializePerformanceHintManager();
 
-    jobject getHintSession(std::string name, bool create_if_needed);
     void registerThreadIdsToHintSession();
 
     AThermalManager *thermal_manager_ = nullptr;
@@ -180,7 +177,6 @@ private:
     APerformanceHintManager *hint_manager_ = nullptr;
     APerformanceHintSession *hint_session_ = nullptr;
     int64_t last_target_ = 16666666;
-    timespec last_start_;
 #endif
 };
 

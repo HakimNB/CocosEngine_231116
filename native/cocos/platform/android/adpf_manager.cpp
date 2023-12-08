@@ -57,63 +57,6 @@ float ADPFManager::GetThermalStatusNormalized() const {
     return levelValue;
 }
 
-void ADPFManager::reportThreadWorkDuration(int32_t thread_id, long work_duration) {
-    CC_LOG_INFO("ADPFManager::reportThreadWorkDuration threadId: %ld workDuration: %ld", thread_id, work_duration);
-    JNIEnv *env = cc::JniHelper::getEnv();
-
-    std::ostringstream ss;
-    ss << thread_id;
-    std::string key = ss.str();
-
-    jobject obj_hintsession = getHintSession(key, true);
-    if ( obj_hintsession == NULL ) {
-        CC_LOG_ERROR("ADPFManager::reportThreadWorkDuration unable to get hint session %s", key.c_str());
-        return;
-    }
-    if ( report_actual_work_duration_ == NULL ) {
-        CC_LOG_ERROR("ADPFManager::reportThreadWorkDuration unable to get method id, is it initialized?");
-        return;
-    }
-    env->CallVoidMethod(obj_hintsession, report_actual_work_duration_, work_duration);
-}
-
-jobject ADPFManager::getHintSession(std::string name, bool create_if_needed) {
-    JNIEnv *env = cc::JniHelper::getEnv();
-    auto *javaGameActivity = cc::JniHelper::getActivity();
-
-    auto pos = map_hint_sessions.find(name);
-    if ( pos == map_hint_sessions.end() ) {
-        // not found
-        if ( create_if_needed ) {
-            jintArray array = env->NewIntArray(1);
-            int32_t tid = atoi(name.c_str());
-//            int32_t tid = getpid();
-            CC_LOG_DEBUG("ADPFManager::getHintSession getpid %d %s", tid, name.c_str());
-            env->SetIntArrayRegion(array, 0, 1, &tid);
-
-            const jlong DEFAULT_TARGET_NS = 16666666;
-
-            jobject obj_hintsession = env->CallObjectMethod(obj_perfhint_service_, create_hint_session_, array, DEFAULT_TARGET_NS);
-            jboolean check = env->ExceptionCheck();
-            CC_LOG_DEBUG("ADPFManager::getHintSession done createHintSession %d %x", check, obj_hintsession);
-
-            if ( obj_hintsession == nullptr ) {
-                CC_LOG_ERROR("Failed to create a perf hint session.");
-                return NULL;
-            }
-            CC_LOG_DEBUG("getHintSession about to global new obj_hintsession");
-            obj_hintsession = env->NewGlobalRef(obj_hintsession);
-            map_hint_sessions[name] = obj_hintsession;
-            return obj_hintsession;
-        } else {
-            return NULL;
-        }
-    } else {
-        jobject session = pos->second;
-        return session;
-    }
-}
-
 // Invoke the API first to set the android_app instance.
 void ADPFManager::Initialize() {
     CC_LOG_INFO("ADPFManager::Initialize");
@@ -240,8 +183,6 @@ float ADPFManager::UpdateThermalStatusHeadRoom() {
 
 // Initialize JNI calls for the PowerHintManager.
 bool ADPFManager::InitializePerformanceHintManager() {
-    CC_LOG_INFO("ADPFManager::InitializePerformanceHintManager gettid: %ld", gettid());
-
 #if __ANDROID_API__ >= 33
     if ( hint_manager_ == nullptr ) {
         hint_manager_ = APerformanceHint_getManager();
@@ -253,7 +194,6 @@ bool ADPFManager::InitializePerformanceHintManager() {
         tids[0] = tid;
         hint_session_ = APerformanceHint_createSession(hint_manager_, tids, 1, last_target_);
     }
-    CC_LOG_INFO("ADPFManager::InitializePerformanceHintManager created: %x", hint_manager_, hint_session_);
     return true;
 #else
     JNIEnv *env = cc::JniHelper::getEnv();
@@ -355,48 +295,26 @@ void ADPFManager::SetThermalListener(thermalStateChangeListener listener) {
 // The methods call performance hint API to tell the performance
 // hint to the system.
 void ADPFManager::BeginPerfHintSession() {
-#if __ANDROID_API__ >= 33
-    clock_gettime(CLOCK_MONOTONIC, &last_start_);
-#endif
     perf_start_ = std::chrono::steady_clock::now();
 }
 
 void ADPFManager::EndPerfHintSession(jlong target_duration_ns) {
 #if __ANDROID_API__ >= 33
-    timespec current_clock;
-    clock_gettime(CLOCK_MONOTONIC, &current_clock);
-    auto duration = current_clock.tv_nsec - last_start_.tv_nsec;
-
-    //int result1 = APerformanceHint_reportActualWorkDuration(hint_session_, duration);
-    //int result2 = APerformanceHint_updateTargetWorkDuration(hint_session_, target_duration_ns);
-    //CC_LOG_INFO("ADPFManager::EndPerfHintSession duration actualDuration: %ld targetDuration: %ld start: %ld end: %ld result: (%d, %d)", duration, target_duration_ns, last_start_.tv_nsec, current_clock.tv_nsec, result1, result2);
-
     auto perf_end = std::chrono::steady_clock::now();
     auto dur = std::chrono::duration_cast<std::chrono::nanoseconds>(perf_end - perf_start_).count();
-    jlong jdur = static_cast<long>(dur);
-    int result1 = APerformanceHint_reportActualWorkDuration(hint_session_, jdur);
-    int result2 = APerformanceHint_updateTargetWorkDuration(hint_session_, target_duration_ns);
-    // int result2 = APerformanceHint_updateTargetWorkDuration(hint_session_, jdur);
-    CC_LOG_INFO("ADPFManager::EndPerfHintSession duration actualDuration: %ld targetDuration: %ld start: %ld end: %ld result: (%d, %d)", jdur, target_duration_ns, perf_start_.time_since_epoch(), perf_end.time_since_epoch(), result1, result2);
-    // CC_LOG_INFO("ADPFManager::EndPerfHintSession duration actualDuration: %ld targetDuration: %ld start: %ld end: %ld result: (%d, %d)", jdur, jdur, perf_start_.time_since_epoch(), perf_end.time_since_epoch(), result1, result2);
-
-
+    int64_t actual_duration_ns = static_cast<int64_t>(dur);
+    APerformanceHint_reportActualWorkDuration(hint_session_, actual_duration_ns);
+    APerformanceHint_updateTargetWorkDuration(hint_session_, target_duration_ns);
 #else
     auto perf_end = std::chrono::steady_clock::now();
     auto dur = std::chrono::duration_cast<std::chrono::nanoseconds>(perf_end - perf_start_).count();
-    jlong jdur = static_cast<long>(dur);
+    jlong actual_duration_ns = static_cast<jlong>(dur);
     if (obj_perfhint_session_) {
-         CC_LOG_DEBUG("ADPFManager::EndPerfHintSession duration actualDuration: %ld targetDuration: %ld", jdur, target_duration_ns);
-
-        if ( jdur > target_duration_ns ) {
-            CC_LOG_WARNING("ADPFManager::EndPerfHintSession duration actualDuration: %ld targetDuration: %ld", jdur, target_duration_ns);
-        }
-
         auto *env = cc::JniHelper::getEnv();
 
         // Report and update the target work duration using JNI calls.
         env->CallVoidMethod(obj_perfhint_session_, report_actual_work_duration_,
-                            jdur);
+                            actual_duration_ns);
         env->CallVoidMethod(obj_perfhint_session_, update_target_work_duration_,
                             target_duration_ns);
     }
@@ -406,9 +324,6 @@ void ADPFManager::AddThreadIdToHintSession(int32_t tid)
 {
     thread_ids_.push_back(tid);
     auto data = thread_ids_.data();
-    for (std::size_t i = 0; i < thread_ids_.size(); i++ ) {
-        CC_LOG_INFO("ADPFManager::AddThreadIdToHintSession threadId: %d", data[i]);
-    }
 
     registerThreadIdsToHintSession();
 }
@@ -417,9 +332,6 @@ void ADPFManager::RemoveThreadIdFromHintSession(int32_t tid)
 {
     thread_ids_.erase(std::remove(thread_ids_.begin(), thread_ids_.end(), tid), thread_ids_.end());
     auto data = thread_ids_.data();
-    for (std::size_t i = 0; i < thread_ids_.size(); i++ ) {
-        CC_LOG_INFO("ADPFManager::RemoveThreadIdFromHintSession threadId: %d", data[i]);
-    }
 
     registerThreadIdsToHintSession();
 }
